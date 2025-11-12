@@ -99,7 +99,7 @@ export default function Home() {
           <div className="space-y-4">
             <Link
               href="/characters"
-              className="block w-full bg-primary hover:bg-primary/90 text-primary-foreground font-[var(--font-uncial)] tracking-wider py-4 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-[0_0_20px_rgba(255,191,0,0.6)] hover:scale-[1.02] active:scale-[0.98] text-center"
+              className="block w-full bg-primary hover:bg-primary/90 text-[#1a140f] font-[var(--font-uncial)] font-bold tracking-wider py-4 px-8 rounded-lg transition-all duration-300 shadow-lg hover:shadow-[0_0_20px_rgba(255,191,0,0.6)] hover:scale-[1.02] active:scale-[0.98] text-center text-lg"
             >
               Commencer l&apos;aventure
             </Link>
