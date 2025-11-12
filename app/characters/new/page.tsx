@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { saveCharacter } from '@/lib/storage/characters';
+import { Character } from '@/lib/types/character';
 
 const TALENTS = [
   { id: 'instinct', name: 'Instinct', description: 'Capacité à pressentir le danger et prendre les bonnes décisions' },
@@ -56,9 +58,8 @@ export default function NewCharacterPage() {
     });
   };
 
-  const handleCreateCharacter = () => {
-    // TODO: Sauvegarder le personnage dans IndexedDB
-    const character = {
+  const handleCreateCharacter = async () => {
+    const character: Character = {
       id: crypto.randomUUID(),
       name,
       book: 'La Harpe des Quatre Saisons',
@@ -83,10 +84,13 @@ export default function NewCharacterPage() {
       notes: '',
     };
 
-    console.log('Character created:', character);
-    
-    // Rediriger vers la page des personnages
-    router.push('/characters');
+    try {
+      await saveCharacter(character);
+      router.push('/characters');
+    } catch (error) {
+      console.error('Error saving character:', error);
+      alert('Erreur lors de la sauvegarde du personnage');
+    }
   };
 
   return (
