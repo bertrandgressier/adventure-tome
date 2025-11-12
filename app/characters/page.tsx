@@ -7,7 +7,7 @@ export default function CharactersPage() {
         {/* En-tête */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-[var(--font-uncial)] text-3xl sm:text-4xl tracking-wider text-primary mb-2">
+            <h1 className="font-[var(--font-uncial)] text-3xl sm:text-4xl tracking-wider text-[#FFBF00] mb-2">
               Vos héros
             </h1>
             <p className="font-[var(--font-merriweather)] text-muted-light">
@@ -16,7 +16,7 @@ export default function CharactersPage() {
           </div>
           <Link
             href="/"
-            className="text-muted-light hover:text-primary transition-colors text-xl"
+            className="text-muted-light hover:text-primary transition-colors text-2xl"
           >
             <span className="sr-only">Retour</span>
             ←
@@ -32,7 +32,7 @@ export default function CharactersPage() {
             
             <div className="space-y-2">
               <h2 className="font-[var(--font-uncial)] text-xl tracking-wide text-light">
-                Aucun héros créé
+                Aucun héro créé
               </h2>
               <p className="font-[var(--font-merriweather)] text-sm text-muted-light">
                 Créez votre premier personnage pour commencer votre aventure
@@ -41,7 +41,7 @@ export default function CharactersPage() {
 
             <button className="inline-flex items-center gap-2 bg-[#FFBF00] hover:bg-yellow-400 text-[#000000] font-[var(--font-uncial)] font-bold tracking-wider py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-[0_0_20px_rgba(255,191,0,0.6)] hover:scale-[1.02] active:scale-[0.98]">
               <span className="text-xl">+</span>
-              Créer un héros
+              <Link href="/characters/new">Créer un héros</Link>
             </button>
           </div>
         </div>
