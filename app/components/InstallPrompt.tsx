@@ -50,19 +50,19 @@ export default function InstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#1a140f] border-t border-primary/30 shadow-lg">
       <div className="max-w-md mx-auto">
         {showPrompt && !isIOS && (
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900">Installer l'application</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="font-semibold text-light">Installer l'application</h3>
+              <p className="text-sm text-muted-light">
                 Ajoutez Adventure Hero à votre écran d'accueil
               </p>
             </div>
             <button
               onClick={handleInstall}
-              className="ml-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200"
+              className="ml-4 bg-primary hover:bg-yellow-400 text-[#000000] font-bold py-2 px-4 rounded transition duration-200"
             >
               Installer
             </button>
@@ -71,10 +71,10 @@ export default function InstallPrompt() {
 
         {isIOS && (
           <div className="text-center">
-            <h3 className="font-semibold text-gray-900 mb-2">
+            <h3 className="font-semibold text-light mb-2">
               Installer sur iOS
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-light">
               Appuyez sur le bouton de partage{' '}
               <span className="inline-block" role="img" aria-label="share icon">
                 ⎋
