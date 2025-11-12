@@ -1,0 +1,36 @@
+{
+  "name": "Adventure Hero - La Saga d'Agda",
+  "short_name": "Adventure Hero",
+  "description": "Gérez vos héros dans les livres dont vous êtes le héros",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a140f",
+  "theme_color": "#1a140f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
