@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Adventure Hero** is a mobile-first PWA for managing characters in French "Choose Your Own Adventure" books ("Le jeu dont tu es le héro") from the [La Saga d'Agda collection](https://www.lasagadedagda.fr/). First implementation targets "La Harpe des Quatre Saisons".
+**Adventure Hero** is a mobile-first PWA for managing characters in French "Choose Your Own Adventure" books ("Le jeu dont tu es le héro") from the [La Saga Dadga collection](https://www.lasagadedagda.fr/). First implementation targets "La Harpe des Quatre Saisons".
 
 **Core Philosophy**: 
 - 100% client-side (no server, no API)
@@ -162,4 +162,4 @@ const loaded = await getCharacter(characterId);
 - [Next.js 16 Docs](https://nextjs.org/docs)
 - [shadcn/ui Components](https://ui.shadcn.com/docs)
 - [Tailwind CSS 4](https://tailwindcss.com/docs)
-- [La Saga d'Agda Books](https://www.lasagadedagda.fr/)
+- [La Saga Dadga Books](https://www.lasagadedagda.fr/)

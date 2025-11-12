@@ -25,7 +25,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Adventure Hero - La Saga d'Agda",
+  title: "Adventure Hero - La Saga Dadga",
   description: "Gérez vos héros dans les livres dont vous êtes le héros",
   manifest: "/manifest.json",
   appleWebApp: {

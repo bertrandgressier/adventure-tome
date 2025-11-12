@@ -2,7 +2,7 @@
 
 ## Référence
 
-Basé sur le premier livre de la collection [La Saga d'Agda](https://www.lasagadedagda.fr/) : **La Harpe des Quatre Saisons**
+Basé sur le premier livre de la collection [La Saga Dadga](https://www.lasagadedagda.fr/) : **La Harpe des Quatre Saisons**
 
 ## Structure de la fiche
 

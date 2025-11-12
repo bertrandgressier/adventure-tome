@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-Application PWA mobile pour gérer vos personnages des livres "Le jeu dont tu es le héro" de la collection [La Saga d'Agda](https://www.lasagadedagda.fr/).
+Application PWA mobile pour gérer vos personnages des livres "Le jeu dont tu es le héro" de la collection [La Saga Dadga](https://www.lasagadedagda.fr/).
 
 Première implémentation : **La Harpe des Quatre Saisons**
 
