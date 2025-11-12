@@ -57,10 +57,6 @@ export default function NewCharacterPage() {
     // TODO: Sauvegarder le personnage dans IndexedDB
     const character = {
       id: crypto.randomUUID(),
-  const handleCreateCharacter = () => {
-    // TODO: Sauvegarder le personnage dans IndexedDB
-    const character = {
-      id: crypto.randomUUID(),
       name,
       book: 'La Harpe des Quatre Saisons',
       talent: selectedTalent,
