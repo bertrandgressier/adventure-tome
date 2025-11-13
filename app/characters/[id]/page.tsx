@@ -16,8 +16,18 @@ export default function CharacterDetail() {
   const [editingBoulons, setEditingBoulons] = useState(false);
   const [boulonsValue, setBoulonsValue] = useState('');
   const [newItemName, setNewItemName] = useState('');
+  const [newWeaponName, setNewWeaponName] = useState('');
+  const [newWeaponAttack, setNewWeaponAttack] = useState('');
+  const [showWeaponModal, setShowWeaponModal] = useState(false);
+  const [showItemModal, setShowItemModal] = useState(false);
+  const [editingWeaponName, setEditingWeaponName] = useState(false);
+  const [weaponNameValue, setWeaponNameValue] = useState('');
+  const [editingWeaponAttack, setEditingWeaponAttack] = useState(false);
+  const [weaponAttackValue, setWeaponAttackValue] = useState('');
   const paragraphInputRef = useRef<HTMLInputElement>(null);
   const boulonsInputRef = useRef<HTMLInputElement>(null);
+  const weaponNameInputRef = useRef<HTMLInputElement>(null);
+  const weaponAttackInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadCharacter();
@@ -37,6 +47,20 @@ export default function CharacterDetail() {
       boulonsInputRef.current.select();
     }
   }, [editingBoulons]);
+
+  useEffect(() => {
+    if (editingWeaponName && weaponNameInputRef.current) {
+      weaponNameInputRef.current.focus();
+      weaponNameInputRef.current.select();
+    }
+  }, [editingWeaponName]);
+
+  useEffect(() => {
+    if (editingWeaponAttack && weaponAttackInputRef.current) {
+      weaponAttackInputRef.current.focus();
+      weaponAttackInputRef.current.select();
+    }
+  }, [editingWeaponAttack]);
 
   const loadCharacter = async () => {
     try {
@@ -146,12 +170,148 @@ export default function CharacterDetail() {
         },
         updatedAt: new Date().toISOString()
       };
-
       await updateCharacter(updatedCharacter);
       setCharacter(updatedCharacter);
       setNewItemName('');
     } catch (error) {
       console.error('Error adding item:', error);
+    }
+  };
+
+  const handleAddWeapon = async () => {
+    if (!character || !newWeaponName.trim()) return;
+
+    try {
+      const attackPoints = parseInt(newWeaponAttack) || 0;
+      const updatedCharacter = {
+        ...character,
+        inventory: {
+          ...character.inventory,
+          weapon: {
+            name: newWeaponName.trim(),
+            attackPoints
+          }
+        },
+        updatedAt: new Date().toISOString()
+      };
+      await updateCharacter(updatedCharacter);
+      setCharacter(updatedCharacter);
+      setNewWeaponName('');
+      setNewWeaponAttack('');
+      setShowWeaponModal(false);
+    } catch (error) {
+      console.error('Error adding weapon:', error);
+    }
+  };
+
+  const handleAddItemWithModal = async () => {
+    if (!character || !newItemName.trim()) return;
+
+    try {
+      const updatedCharacter = {
+        ...character,
+        inventory: {
+          ...character.inventory,
+          items: [
+            ...character.inventory.items,
+            {
+              name: newItemName.trim(),
+              possessed: true,
+              type: 'item' as const
+            }
+          ]
+        },
+        updatedAt: new Date().toISOString()
+      };
+      await updateCharacter(updatedCharacter);
+      setCharacter(updatedCharacter);
+      setNewItemName('');
+      setShowItemModal(false);
+    } catch (error) {
+      console.error('Error adding item:', error);
+    }
+  };
+
+  const handleUpdateWeaponName = async () => {
+    if (!character || !character.inventory.weapon) return;
+
+    if (!weaponNameValue.trim()) {
+      setEditingWeaponName(false);
+      setWeaponNameValue('');
+      return;
+    }
+
+    try {
+      const updatedCharacter = {
+        ...character,
+        inventory: {
+          ...character.inventory,
+          weapon: {
+            ...character.inventory.weapon,
+            name: weaponNameValue.trim()
+          }
+        },
+        updatedAt: new Date().toISOString()
+      };
+
+      await updateCharacter(updatedCharacter);
+      setCharacter(updatedCharacter);
+      setEditingWeaponName(false);
+      setWeaponNameValue('');
+    } catch (error) {
+      console.error('Error updating weapon name:', error);
+    }
+  };
+
+  const handleUpdateWeaponAttack = async () => {
+    if (!character || !character.inventory.weapon) return;
+
+    const newAttack = parseInt(weaponAttackValue);
+    if (isNaN(newAttack) || newAttack < 0) {
+      setEditingWeaponAttack(false);
+      setWeaponAttackValue('');
+      return;
+    }
+
+    try {
+      const updatedCharacter = {
+        ...character,
+        inventory: {
+          ...character.inventory,
+          weapon: {
+            ...character.inventory.weapon,
+            attackPoints: newAttack
+          }
+        },
+        updatedAt: new Date().toISOString()
+      };
+
+      await updateCharacter(updatedCharacter);
+      setCharacter(updatedCharacter);
+      setEditingWeaponAttack(false);
+      setWeaponAttackValue('');
+    } catch (error) {
+      console.error('Error updating weapon attack:', error);
+    }
+  };
+
+  const handleRemoveWeapon = async () => {
+    if (!character) return;
+
+    try {
+      const updatedCharacter = {
+        ...character,
+        inventory: {
+          ...character.inventory,
+          weapon: undefined
+        },
+        updatedAt: new Date().toISOString()
+      };
+
+      await updateCharacter(updatedCharacter);
+      setCharacter(updatedCharacter);
+    } catch (error) {
+      console.error('Error removing weapon:', error);
     }
   };
 
@@ -377,6 +537,122 @@ export default function CharacterDetail() {
             )}
           </div>
 
+          {/* Arme */}
+          <div className="mb-6 bg-[#1a140f] border-2 border-primary/30 rounded-lg p-4">
+            <h3 className="font-[var(--font-uncial)] text-sm tracking-wide text-primary mb-3">⚔️ ARME</h3>
+            {character.inventory.weapon ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="font-[var(--font-merriweather)] text-muted-light text-sm">Nom:</span>
+                  {editingWeaponName ? (
+                    <div className="flex items-center gap-2 flex-1">
+                      <input
+                        ref={weaponNameInputRef}
+                        type="text"
+                        value={weaponNameValue}
+                        onChange={(e) => setWeaponNameValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleUpdateWeaponName();
+                          } else if (e.key === 'Escape') {
+                            setEditingWeaponName(false);
+                            setWeaponNameValue('');
+                          }
+                        }}
+                        className="flex-1 bg-[#2a1e17] border border-primary/20 rounded px-3 py-1 font-[var(--font-merriweather)] text-light focus:outline-none focus:border-primary"
+                      />
+                      <button
+                        onClick={handleUpdateWeaponName}
+                        className="bg-[#FFBF00] hover:bg-yellow-400 text-[#000000] font-bold px-3 py-1 rounded transition-all text-sm"
+                      >
+                        ✓
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingWeaponName(false);
+                          setWeaponNameValue('');
+                        }}
+                        className="bg-muted hover:bg-muted/80 text-light font-bold px-3 py-1 rounded transition-all text-sm"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setEditingWeaponName(true);
+                        setWeaponNameValue(character.inventory.weapon?.name || '');
+                      }}
+                      className="flex-1 text-left font-[var(--font-merriweather)] text-light hover:text-primary transition-colors cursor-pointer"
+                    >
+                      {character.inventory.weapon.name}
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-[var(--font-merriweather)] text-muted-light text-sm">Points d'attaque:</span>
+                  {editingWeaponAttack ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        ref={weaponAttackInputRef}
+                        type="number"
+                        value={weaponAttackValue}
+                        onChange={(e) => setWeaponAttackValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleUpdateWeaponAttack();
+                          } else if (e.key === 'Escape') {
+                            setEditingWeaponAttack(false);
+                            setWeaponAttackValue('');
+                          }
+                        }}
+                        className="w-24 bg-[#2a1e17] border border-primary/20 rounded px-3 py-1 font-[var(--font-geist-mono)] text-light focus:outline-none focus:border-primary"
+                      />
+                      <button
+                        onClick={handleUpdateWeaponAttack}
+                        className="bg-[#FFBF00] hover:bg-yellow-400 text-[#000000] font-bold px-3 py-1 rounded transition-all text-sm"
+                      >
+                        ✓
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingWeaponAttack(false);
+                          setWeaponAttackValue('');
+                        }}
+                        className="bg-muted hover:bg-muted/80 text-light font-bold px-3 py-1 rounded transition-all text-sm"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setEditingWeaponAttack(true);
+                        setWeaponAttackValue(character.inventory.weapon?.attackPoints.toString() || '0');
+                      }}
+                      className="font-[var(--font-geist-mono)] text-xl font-bold text-primary hover:text-yellow-400 transition-colors cursor-pointer"
+                    >
+                      +{character.inventory.weapon.attackPoints}
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={handleRemoveWeapon}
+                  className="text-sm text-destructive hover:text-destructive/80 transition-colors"
+                >
+                  Retirer l'arme
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowWeaponModal(true)}
+                className="w-full bg-[#2a1e17] border border-primary/20 rounded px-4 py-3 font-[var(--font-merriweather)] text-muted-light hover:text-primary hover:border-primary/40 transition-colors text-center"
+              >
+                + Ajouter une arme
+              </button>
+            )}
+          </div>
+
           {/* Items List */}
           <div className="space-y-2 mb-4">
             {character.inventory.items.map((item, index) => (
@@ -392,11 +668,6 @@ export default function CharacterDetail() {
                 />
                 <span className={`flex-1 font-[var(--font-merriweather)] ${item.possessed ? 'text-light' : 'text-muted-light line-through'}`}>
                   {item.name}
-                  {item.attackPoints && (
-                    <span className="ml-2 text-sm text-primary font-bold">
-                      (+{item.attackPoints})
-                    </span>
-                  )}
                 </span>
                 <button
                   onClick={() => handleDeleteItem(index)}
@@ -409,26 +680,114 @@ export default function CharacterDetail() {
           </div>
 
           {/* Add Item */}
-          <div className="flex gap-2">
-            <input
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleAddItem();
-                }
-              }}
-              placeholder="Nouvel objet..."
-              className="flex-1 bg-[#1a140f] border border-primary/20 rounded px-4 py-2 font-[var(--font-merriweather)] text-light placeholder:text-muted-light focus:outline-none focus:border-primary"
-            />
-            <button
-              onClick={handleAddItem}
-              className="bg-[#FFBF00] hover:bg-yellow-400 text-[#000000] font-[var(--font-uncial)] font-bold px-6 py-2 rounded transition-all"
-            >
-              Ajouter
-            </button>
-          </div>
+          <button
+            onClick={() => setShowItemModal(true)}
+            className="w-full bg-[#FFBF00] hover:bg-yellow-400 text-[#000000] font-[var(--font-uncial)] font-bold px-6 py-3 rounded transition-all"
+          >
+            + Ajouter un objet
+          </button>
         </div>
+
+        {/* Modal Arme */}
+        {showWeaponModal && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={() => setShowWeaponModal(false)}>
+            <div className="bg-[#2a1e17] border-2 border-primary/50 rounded-lg p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+              <h3 className="font-[var(--font-uncial)] text-2xl tracking-wide text-primary mb-4">⚔️ Ajouter une arme</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="font-[var(--font-merriweather)] text-muted-light text-sm mb-2 block">Nom de l'arme</label>
+                  <input
+                    value={newWeaponName}
+                    onChange={(e) => setNewWeaponName(e.target.value)}
+                    placeholder="Ex: Épée longue"
+                    autoFocus
+                    className="w-full bg-[#1a140f] border border-primary/20 rounded px-4 py-2 font-[var(--font-merriweather)] text-light placeholder:text-muted-light focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="font-[var(--font-merriweather)] text-muted-light text-sm mb-2 block">Points d'attaque</label>
+                  <input
+                    type="number"
+                    value={newWeaponAttack}
+                    onChange={(e) => setNewWeaponAttack(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddWeapon();
+                      } else if (e.key === 'Escape') {
+                        setShowWeaponModal(false);
+                      }
+                    }}
+                    placeholder="Ex: 3"
+                    className="w-full bg-[#1a140f] border border-primary/20 rounded px-4 py-2 font-[var(--font-geist-mono)] text-light placeholder:text-muted-light focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowWeaponModal(false);
+                      setNewWeaponName('');
+                      setNewWeaponAttack('');
+                    }}
+                    className="flex-1 bg-muted hover:bg-muted/80 text-light font-[var(--font-merriweather)] font-bold px-4 py-2 rounded transition-all"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleAddWeapon}
+                    className="flex-1 bg-[#FFBF00] hover:bg-yellow-400 text-[#000000] font-[var(--font-uncial)] font-bold px-4 py-2 rounded transition-all"
+                  >
+                    Ajouter
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Objet */}
+        {showItemModal && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50" onClick={() => setShowItemModal(false)}>
+            <div className="bg-[#2a1e17] border-2 border-primary/50 rounded-lg p-6 max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+              <h3 className="font-[var(--font-uncial)] text-2xl tracking-wide text-primary mb-4">📦 Ajouter un objet</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="font-[var(--font-merriweather)] text-muted-light text-sm mb-2 block">Nom de l'objet</label>
+                  <input
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddItemWithModal();
+                      } else if (e.key === 'Escape') {
+                        setShowItemModal(false);
+                      }
+                    }}
+                    placeholder="Ex: Potion de soin"
+                    autoFocus
+                    className="w-full bg-[#1a140f] border border-primary/20 rounded px-4 py-2 font-[var(--font-merriweather)] text-light placeholder:text-muted-light focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowItemModal(false);
+                      setNewItemName('');
+                    }}
+                    className="flex-1 bg-muted hover:bg-muted/80 text-light font-[var(--font-merriweather)] font-bold px-4 py-2 rounded transition-all"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleAddItemWithModal}
+                    className="flex-1 bg-[#FFBF00] hover:bg-yellow-400 text-[#000000] font-[var(--font-uncial)] font-bold px-4 py-2 rounded transition-all"
+                  >
+                    Ajouter
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Notes Section */}
         {character.notes && (

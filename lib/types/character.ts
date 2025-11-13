@@ -16,11 +16,14 @@ export interface Character {
   
   inventory: {
     boulons: number;
+    weapon?: {
+      name: string;
+      attackPoints: number;
+    };
     items: Array<{
       name: string;
       possessed: boolean;
-      attackPoints?: number;
-      type?: 'weapon' | 'item' | 'special';
+      type?: 'item' | 'special';
     }>;
   };
   
