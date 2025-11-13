@@ -40,7 +40,7 @@ export default function Home() {
             </h1>
             
             <p className="font-[var(--font-merriweather)] text-lg text-light max-w-sm mx-auto">
-              Entrez dans la légende de <span className="text-primary font-semibold">La Saga Dadga</span>
+              Entrez dans la légende de <span className="text-primary font-semibold">La Saga de Dagda</span>
             </p>
           </div>
 
@@ -120,7 +120,7 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="text-accent hover:underline"
               >
-                La Saga Dadga
+                La Saga de Dagda
               </a>
             </p>
           </div>

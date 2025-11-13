@@ -1,6 +1,6 @@
 # 🗡️ Adventure Hero - Le Jeu Dont Tu Es Le Héro
 
-Application PWA mobile pour gérer vos personnages des livres "Le jeu dont tu es le héro" de la collection [La Saga Dadga](https://www.lasagadedagda.fr/).
+Application PWA mobile pour gérer vos personnages des livres "Le jeu dont tu es le héro" de la collection [La Saga de Dagda](https://www.lasagadedagda.fr/).
 
 ## 📖 Description
 
@@ -163,7 +163,7 @@ pnpm start
 - [Next.js Documentation](https://nextjs.org/docs)
 - [shadcn/ui Components](https://ui.shadcn.com/docs)
 - [Tailwind CSS](https://tailwindcss.com/docs)
-- [La Saga Dadga](https://www.lasagadedagda.fr/)on)](https://vercel.com/new)
+- [La Saga de Dagda](https://www.lasagadedagda.fr/)on)](https://vercel.com/new)
 
 ## 🧪 Tests
 
