@@ -10,32 +10,29 @@ interface CombatSetupProps {
 
 export default function CombatSetup({ onStartCombat, onCancel }: CombatSetupProps) {
   const [enemyName, setEnemyName] = useState('');
-  const [habilete, setHabilete] = useState('');
+  const [dexterite, setDexterite] = useState('');
   const [endurance, setEndurance] = useState('');
-  const [attackPoints, setAttackPoints] = useState('0');
   const [mode, setMode] = useState<'auto' | 'manual'>('auto');
 
   const handleStart = () => {
-    const hab = parseInt(habilete);
+    const dex = parseInt(dexterite);
     const end = parseInt(endurance);
-    const atk = parseInt(attackPoints);
 
-    if (!enemyName.trim() || isNaN(hab) || isNaN(end) || isNaN(atk)) {
+    if (!enemyName.trim() || isNaN(dex) || isNaN(end)) {
       alert('Veuillez remplir tous les champs correctement');
       return;
     }
 
-    if (hab < 1 || end < 1 || atk < 0) {
-      alert('Les valeurs doivent être positives (attaque peut être 0)');
+    if (dex < 1 || end < 1) {
+      alert('Les valeurs doivent être positives');
       return;
     }
 
     const enemy: Enemy = {
       name: enemyName.trim(),
-      habilete: hab,
+      dexterite: dex,
       endurance: end,
-      enduranceMax: end,
-      attackPoints: atk
+      enduranceMax: end
     };
 
     onStartCombat(enemy, mode);
@@ -66,15 +63,15 @@ export default function CombatSetup({ onStartCombat, onCancel }: CombatSetupProp
             />
           </div>
 
-          {/* Habileté */}
+          {/* Dextérité */}
           <div>
             <label className="font-[var(--font-merriweather)] text-muted-light text-sm mb-2 block">
-              HABILETÉ
+              DEXTÉRITÉ
             </label>
             <input
               type="number"
-              value={habilete}
-              onChange={(e) => setHabilete(e.target.value)}
+              value={dexterite}
+              onChange={(e) => setDexterite(e.target.value)}
               placeholder="Score de combat"
               min="1"
               className="w-full bg-[#1a140f] border border-primary/20 rounded px-4 py-2 font-[var(--font-geist-mono)] text-light placeholder:text-muted-light focus:outline-none focus:border-primary"
@@ -92,21 +89,6 @@ export default function CombatSetup({ onStartCombat, onCancel }: CombatSetupProp
               onChange={(e) => setEndurance(e.target.value)}
               placeholder="Points de vie"
               min="1"
-              className="w-full bg-[#1a140f] border border-primary/20 rounded px-4 py-2 font-[var(--font-geist-mono)] text-light placeholder:text-muted-light focus:outline-none focus:border-primary"
-            />
-          </div>
-
-          {/* Points d'attaque */}
-          <div>
-            <label className="font-[var(--font-merriweather)] text-muted-light text-sm mb-2 block">
-              Points d'attaque (arme)
-            </label>
-            <input
-              type="number"
-              value={attackPoints}
-              onChange={(e) => setAttackPoints(e.target.value)}
-              placeholder="0 si pas d'arme"
-              min="0"
               className="w-full bg-[#1a140f] border border-primary/20 rounded px-4 py-2 font-[var(--font-geist-mono)] text-light placeholder:text-muted-light focus:outline-none focus:border-primary"
             />
           </div>

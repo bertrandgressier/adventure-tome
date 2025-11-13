@@ -24,20 +24,10 @@ export default function CombatRoundDisplay({ round, playerName, enemyName }: Com
   const getDamageText = () => {
     if (round.winner === 'draw') return null;
     
-    const damage = round.luckUsed ? round.adjustedDamage! : round.damageDealt;
+    const damage = round.damageDealt;
     const target = round.winner === 'player' ? enemyName : playerName;
     
-    let text = `${target} perd ${damage} point${damage > 1 ? 's' : ''} d'ENDURANCE`;
-    
-    if (round.luckUsed) {
-      if (round.luckResult === 'lucky') {
-        text += ` ✨ (Chanceux ! ${round.winner === 'player' ? '3' : '1'} dégât${damage > 1 ? 's' : ''})`;
-      } else {
-        text += ` 💥 (Malchanceux ! ${round.winner === 'player' ? '1' : '3'} dégât${damage > 1 ? 's' : ''})`;
-      }
-    }
-    
-    return text;
+    return `${target} perd ${damage} point${damage > 1 ? 's' : ''} d'ENDURANCE`;
   };
 
   return (
@@ -66,7 +56,7 @@ export default function CombatRoundDisplay({ round, playerName, enemyName }: Com
             </span>
           </div>
           <div className="text-xs font-[var(--font-geist-mono)] text-muted-light">
-            {round.playerDiceRoll} + HAB + Arme ({round.playerWeaponPoints})
+            {round.playerDiceRoll} + DEX + Arme ({round.playerWeaponPoints})
           </div>
           <div className="font-[var(--font-geist-mono)] text-2xl text-primary mt-1">
             FA: {round.playerAttackStrength}
@@ -88,7 +78,7 @@ export default function CombatRoundDisplay({ round, playerName, enemyName }: Com
             </span>
           </div>
           <div className="text-xs font-[var(--font-geist-mono)] text-muted-light">
-            {round.enemyDiceRoll} + HAB + Arme ({round.enemyWeaponPoints})
+            {round.enemyDiceRoll} + DEX
           </div>
           <div className="font-[var(--font-geist-mono)] text-2xl text-primary mt-1">
             FA: {round.enemyAttackStrength}

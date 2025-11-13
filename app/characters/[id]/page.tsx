@@ -582,11 +582,6 @@ export default function CharacterDetail() {
     await handleDelete();
   };
 
-  const handleFlee = () => {
-    setShowCombat(false);
-    setCombatEndStatus(null);
-  };
-
   if (loading) {
     return (
       <main className="min-h-screen bg-[#1a140f] p-4">
@@ -1294,7 +1289,6 @@ export default function CharacterDetail() {
             enemy={currentEnemy}
             mode={combatMode}
             onCombatEnd={handleCombatEnd}
-            onFlee={handleFlee}
           />
         )}
 

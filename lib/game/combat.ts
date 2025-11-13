@@ -11,14 +11,14 @@ export function rollTwoDice(): number {
 
 /**
  * Calcule la Force d'Attaque
- * Formule: 2d6 + HABILETÉ + Points d'attaque de l'arme
+ * Formule: 2d6 + DEXTÉRITÉ + Points d'attaque de l'arme
  */
 export function calculateAttackStrength(
   diceRoll: number,
-  habilete: number,
+  dexterite: number,
   weaponPoints: number
 ): number {
-  return diceRoll + habilete + weaponPoints;
+  return diceRoll + dexterite + weaponPoints;
 }
 
 /**
@@ -26,7 +26,7 @@ export function calculateAttackStrength(
  */
 export function resolveCombatRound(
   roundNumber: number,
-  playerHabilete: number,
+  playerDexterite: number,
   playerEndurance: number,
   playerWeaponPoints: number,
   enemy: Enemy,
@@ -38,8 +38,8 @@ export function resolveCombatRound(
   const enemyRoll = enemyDiceRoll ?? rollTwoDice();
   
   // 2. Calculer Forces d'Attaque
-  const playerAS = calculateAttackStrength(playerRoll, playerHabilete, playerWeaponPoints);
-  const enemyAS = calculateAttackStrength(enemyRoll, enemy.habilete, enemy.attackPoints);
+  const playerAS = calculateAttackStrength(playerRoll, playerDexterite, playerWeaponPoints);
+  const enemyAS = calculateAttackStrength(enemyRoll, enemy.dexterite, 0); // Pas d'arme pour l'ennemi
   
   // 3. Déterminer le gagnant et les dégâts
   let winner: 'player' | 'enemy' | 'draw';
@@ -67,73 +67,10 @@ export function resolveCombatRound(
     playerWeaponPoints,
     enemyDiceRoll: enemyRoll,
     enemyAttackStrength: enemyAS,
-    enemyWeaponPoints: enemy.attackPoints,
     winner,
     damageDealt,
-    playerEnduranceAfter,
-    enemyEnduranceAfter,
-    luckUsed: false
-  };
-}
-
-/**
- * Teste la chance du joueur
- * Retourne true si chanceux (2d6 <= CHANCE actuelle)
- */
-export function testLuck(currentChance: number): { isLucky: boolean; diceRoll: number } {
-  const roll = rollTwoDice();
-  return {
-    isLucky: roll <= currentChance,
-    diceRoll: roll
-  };
-}
-
-/**
- * Applique l'effet de la chance sur les dégâts
- */
-export function applyLuckToDamage(
-  baseDamage: number,
-  isLucky: boolean,
-  damageType: 'dealt' | 'taken'
-): number {
-  if (damageType === 'dealt') {
-    // Vous avez blessé l'adversaire
-    return isLucky ? baseDamage + 1 : baseDamage - 1; // 3 ou 1
-  } else {
-    // Vous avez été blessé
-    return isLucky ? baseDamage - 1 : baseDamage + 1; // 1 ou 3
-  }
-}
-
-/**
- * Applique les résultats de la chance à un round de combat
- */
-export function applyCombatLuck(
-  round: CombatRound,
-  isLucky: boolean,
-  playerEndurance: number,
-  enemyEndurance: number
-): CombatRound {
-  const damageType = round.winner === 'player' ? 'dealt' : 'taken';
-  const adjustedDamage = applyLuckToDamage(round.damageDealt, isLucky, damageType);
-  
-  let playerEnduranceAfter = playerEndurance;
-  let enemyEnduranceAfter = enemyEndurance;
-  
-  if (round.winner === 'player') {
-    // Dégâts infligés à l'ennemi modifiés
-    enemyEnduranceAfter = Math.max(0, enemyEndurance - adjustedDamage);
-  } else if (round.winner === 'enemy') {
-    // Dégâts subis par le joueur modifiés
-    playerEnduranceAfter = Math.max(0, playerEndurance - adjustedDamage);
-  }
-  
-  return {
-    ...round,
-    luckUsed: true,
-    luckResult: isLucky ? 'lucky' : 'unlucky',
-    adjustedDamage,
     playerEnduranceAfter,
     enemyEnduranceAfter
   };
 }
+
