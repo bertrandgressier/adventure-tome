@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Uncial_Antiqua, Merriweather, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import MusicPlayer from "./components/MusicPlayer";
 
 const uncialAntiqua = Uncial_Antiqua({
   variable: "--font-uncial",
@@ -53,6 +54,7 @@ export default function RootLayout({
       <body
         className={`${uncialAntiqua.variable} ${merriweather.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
+        <MusicPlayer />
         {children}
       </body>
     </html>

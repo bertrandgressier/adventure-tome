@@ -219,6 +219,12 @@ export default function CharacterDetail() {
       <div className="max-w-4xl mx-auto py-8 space-y-6">
         {/* En-tête */}
         <div className="flex items-center justify-between">
+          <button
+            onClick={() => router.push('/characters')}
+            className="text-muted-light hover:text-primary transition-colors text-2xl mr-4"
+          >
+            ←
+          </button>
           <div className="flex-1">
             {editingName ? (
               <div className="flex items-center gap-2 mb-2">
@@ -256,12 +262,6 @@ export default function CharacterDetail() {
               Talent : <span className="text-primary">{character.talent}</span>
             </p>
           </div>
-          <button
-            onClick={() => router.push('/characters')}
-            className="text-muted-light hover:text-primary transition-colors text-2xl"
-          >
-            ←
-          </button>
         </div>
 
         {/* Actions principales */}

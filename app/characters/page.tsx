@@ -72,22 +72,13 @@ export default function CharactersPage() {
     <main className="min-h-screen bg-[#1a140f] p-4">
       <div className="max-w-4xl mx-auto py-8 space-y-6">
         {/* En-tête */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="font-[var(--font-uncial)] text-3xl sm:text-4xl tracking-wider text-[#FFBF00] mb-2">
-              Vos héros
-            </h1>
-            <p className="font-[var(--font-merriweather)] text-muted-light">
-              Gérez vos personnages d&apos;aventure
-            </p>
-          </div>
-          <Link
-            href="/"
-            className="text-muted-light hover:text-primary transition-colors text-2xl"
-          >
-            <span className="sr-only">Retour</span>
-            ←
-          </Link>
+        <div>
+          <h1 className="font-[var(--font-uncial)] text-3xl sm:text-4xl tracking-wider text-[#FFBF00] mb-2">
+            Vos héros
+          </h1>
+          <p className="font-[var(--font-merriweather)] text-muted-light">
+            Gérez vos personnages d&apos;aventure
+          </p>
         </div>
 
         {/* Bouton créer */}
@@ -207,6 +198,14 @@ export default function CharactersPage() {
             ))}
           </div>
         )}
+
+        {/* Bouton retour à l'accueil */}
+        <Link
+          href="/"
+          className="block w-full bg-[#2a1e17] hover:bg-[#2a1e17]/80 border border-primary/30 text-light font-[var(--font-uncial)] tracking-wider py-4 px-8 rounded-lg transition-all duration-300 hover:border-primary text-center"
+        >
+          ← Retour à l&apos;accueil
+        </Link>
       </div>
     </main>
   );
