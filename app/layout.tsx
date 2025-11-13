@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Uncial_Antiqua, Merriweather, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import MusicPlayer from "./components/MusicPlayer";
+import GoogleAnalytics from "./components/GoogleAnalytics";
 
 const uncialAntiqua = Uncial_Antiqua({
   variable: "--font-uncial",
@@ -49,11 +50,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  
   return (
     <html lang="fr" className="dark">
       <body
         className={`${uncialAntiqua.variable} ${merriweather.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
+        {gaId && <GoogleAnalytics gaId={gaId} />}
         <MusicPlayer />
         {children}
       </body>
