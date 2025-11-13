@@ -1,5 +1,6 @@
 import InstallPrompt from './components/InstallPrompt';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
   return (
@@ -31,10 +32,13 @@ export default function Home() {
           <div className="text-center space-y-4">
             <div className="inline-block animate-float">
               <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/30 to-amber-600/30 border-2 border-primary overflow-hidden backdrop-blur-sm shadow-lg">
-                <img 
+                <Image 
                   src="/icon-adventure-hero.jpg" 
                   alt="Adventure Hero" 
+                  width={96}
+                  height={96}
                   className="w-full h-full object-cover"
+                  priority
                 />
               </div>
             </div>
