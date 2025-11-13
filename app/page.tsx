@@ -30,8 +30,12 @@ export default function Home() {
           {/* En-tête héroïque */}
           <div className="text-center space-y-4">
             <div className="inline-block animate-float">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/30 to-amber-600/30 border-2 border-primary flex items-center justify-center backdrop-blur-sm shadow-lg">
-                <span className="text-5xl">⚔️</span>
+              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/30 to-amber-600/30 border-2 border-primary overflow-hidden backdrop-blur-sm shadow-lg">
+                <img 
+                  src="/icon-adventure-hero.jpg" 
+                  alt="Adventure Hero" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
             
