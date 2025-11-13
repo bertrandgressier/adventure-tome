@@ -4,6 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getCharacter, deleteCharacter, updateCharacter } from '@/lib/storage/characters';
 import type { Character } from '@/lib/types/character';
+import type { Enemy, CombatMode } from '@/lib/types/combat';
+import CombatSetup from '@/app/components/adventure/CombatSetup';
+import CombatInterface from '@/app/components/adventure/CombatInterface';
+import CombatEndModal from '@/app/components/adventure/CombatEndModal';
 
 export default function CharacterDetail() {
   const router = useRouter();
@@ -24,6 +28,14 @@ export default function CharacterDetail() {
   const [diceResult, setDiceResult] = useState<number[]>([]);
   const [diceTotal, setDiceTotal] = useState(0);
   const [isRolling, setIsRolling] = useState(false);
+  
+  // Combat states
+  const [showCombatSetup, setShowCombatSetup] = useState(false);
+  const [currentEnemy, setCurrentEnemy] = useState<Enemy | null>(null);
+  const [combatMode, setCombatMode] = useState<CombatMode>('auto');
+  const [showCombat, setShowCombat] = useState(false);
+  const [combatEndStatus, setCombatEndStatus] = useState<'victory' | 'defeat' | null>(null);
+  const [finalEndurance, setFinalEndurance] = useState(0);
   const [editingWeaponName, setEditingWeaponName] = useState(false);
   const [weaponNameValue, setWeaponNameValue] = useState('');
   const [editingWeaponAttack, setEditingWeaponAttack] = useState(false);
@@ -513,6 +525,68 @@ export default function CharacterDetail() {
     }
   };
 
+  // Combat handlers
+  const handleStartCombat = (enemy: Enemy, mode: CombatMode) => {
+    setCurrentEnemy(enemy);
+    setCombatMode(mode);
+    setShowCombatSetup(false);
+    setShowCombat(true);
+  };
+
+  const handleCombatEnd = async (status: 'victory' | 'defeat', finalEnd: number) => {
+    if (!character) return;
+
+    setCombatEndStatus(status);
+    setFinalEndurance(finalEnd);
+
+    // Mettre à jour les PV du personnage
+    try {
+      const updatedCharacter = {
+        ...character,
+        stats: {
+          ...character.stats,
+          pointsDeVieActuels: finalEnd
+        },
+        updatedAt: new Date().toISOString()
+      };
+      await updateCharacter(updatedCharacter);
+      setCharacter(updatedCharacter);
+    } catch (error) {
+      console.error('Error updating character endurance:', error);
+    }
+
+    setShowCombat(false);
+  };
+
+  const handleResurrect = async () => {
+    if (!character) return;
+
+    try {
+      const updatedCharacter = {
+        ...character,
+        stats: {
+          ...character.stats,
+          pointsDeVieActuels: 0
+        },
+        updatedAt: new Date().toISOString()
+      };
+      await updateCharacter(updatedCharacter);
+      setCharacter(updatedCharacter);
+      setCombatEndStatus(null);
+    } catch (error) {
+      console.error('Error resurrecting character:', error);
+    }
+  };
+
+  const handleDeleteCharacterAfterDeath = async () => {
+    await handleDelete();
+  };
+
+  const handleFlee = () => {
+    setShowCombat(false);
+    setCombatEndStatus(null);
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen bg-[#1a140f] p-4">
@@ -541,6 +615,13 @@ export default function CharacterDetail() {
             </p>
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={() => setShowCombatSetup(true)}
+              className="text-2xl hover:scale-110 transition-transform"
+              title="Lancer un combat"
+            >
+              ⚔️
+            </button>
             <button
               onClick={() => setShowDiceModal(true)}
               className="text-2xl hover:scale-110 transition-transform"
@@ -1196,6 +1277,38 @@ export default function CharacterDetail() {
             <h2 className="font-[var(--font-uncial)] text-xl tracking-wide text-light mb-4">Notes</h2>
             <p className="font-[var(--font-merriweather)] text-light whitespace-pre-wrap">{character.notes}</p>
           </div>
+        )}
+
+        {/* Combat Setup Modal */}
+        {showCombatSetup && (
+          <CombatSetup
+            onStartCombat={handleStartCombat}
+            onCancel={() => setShowCombatSetup(false)}
+          />
+        )}
+
+        {/* Combat Interface */}
+        {showCombat && currentEnemy && (
+          <CombatInterface
+            character={character}
+            enemy={currentEnemy}
+            mode={combatMode}
+            onCombatEnd={handleCombatEnd}
+            onFlee={handleFlee}
+          />
+        )}
+
+        {/* Combat End Modal */}
+        {combatEndStatus && (
+          <CombatEndModal
+            status={combatEndStatus}
+            playerName={character.name}
+            enemyName={currentEnemy?.name || 'Adversaire'}
+            roundsCount={0}
+            characterId={id}
+            onResurrect={handleResurrect}
+            onDelete={handleDeleteCharacterAfterDeath}
+          />
         )}
       </div>
     </main>
