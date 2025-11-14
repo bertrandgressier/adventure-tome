@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/bertrandgressier/adventure-tome/compare/v1.4.0...v1.4.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* **analytics:** use NEXT_PUBLIC_GA_ID for proper client-side tracking ([76fda3c](https://github.com/bertrandgressier/adventure-tome/commit/76fda3cb20304f908fbb0b38cbb68490f8abce06))
+
 # [1.4.0](https://github.com/bertrandgressier/adventure-tome/compare/v1.3.1...v1.4.0) (2025-11-14)
 
 
