@@ -18,8 +18,11 @@ export default function Home() {
     const standalone = window.matchMedia('(display-mode: standalone)').matches;
     setIsStandalone(standalone);
 
+    console.log('isIOS:', iOS, 'isStandalone:', standalone);
+
     // Écouter l'événement beforeinstallprompt (Chrome, Edge, etc.)
     const handler = (e: any) => {
+      console.log('beforeinstallprompt event triggered');
       e.preventDefault();
       setDeferredPrompt(e);
     };
@@ -32,13 +35,31 @@ export default function Home() {
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    console.log('handleInstall called, isIOS:', isIOS, 'deferredPrompt:', !!deferredPrompt);
     
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
+    if (isIOS) {
+      // Pour iOS, afficher une alerte avec les instructions
+      alert('Sur iOS : Appuyez sur le bouton de partage (⬆️) puis "Sur l\'écran d\'accueil" (➕)');
+      return;
+    }
+
+    if (!deferredPrompt) {
+      console.log('No deferredPrompt available');
+      alert('Pour installer l\'application :\n\n1. Cliquez sur le menu ⋮ (3 points) en haut à droite\n2. Sélectionnez "Installer Adventure Hero" ou "Ajouter à l\'écran d\'accueil"\n\nOu utilisez le raccourci : Ctrl+Shift+A (Windows) ou Cmd+Shift+A (Mac)');
+      return;
+    }
+
+    try {
+      console.log('Calling deferredPrompt.prompt()');
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('Install outcome:', outcome);
+      
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    } catch (error) {
+      console.error('Error during install:', error);
     }
   };
 
@@ -62,6 +83,7 @@ export default function Home() {
                 top: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 2}s`,
               }}
+              suppressHydrationWarning
             />
           ))}
         </div>
@@ -156,14 +178,12 @@ export default function Home() {
                 <p className="text-center text-xs text-muted-light">
                   💡 Installez l&apos;app sur votre écran d&apos;accueil pour une expérience optimale
                 </p>
-                {(deferredPrompt || isIOS) && (
-                  <button
-                    onClick={handleInstall}
-                    className="block w-full bg-primary hover:bg-yellow-400 text-[#000000] font-[var(--font-uncial)] font-bold tracking-wider py-2 px-4 rounded transition-all duration-300 shadow-md hover:shadow-[0_0_10px_rgba(255,191,0,0.4)] hover:scale-[1.01] active:scale-[0.99] text-center text-sm"
-                  >
-                    {isIOS ? 'Installer sur iOS' : 'Installer l\'application'}
-                  </button>
-                )}
+                <button
+                  onClick={handleInstall}
+                  className="mx-auto block w-auto bg-gray-600 hover:bg-gray-500 text-white font-[var(--font-uncial)] font-bold tracking-wider py-2 px-6 rounded transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] text-center text-sm"
+                >
+                  {isIOS ? 'Installer sur iOS' : 'Installer l\'application'}
+                </button>
               </div>
             )}
           </div>
