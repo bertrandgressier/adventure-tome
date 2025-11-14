@@ -12,7 +12,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "echo \"NEXT_PUBLIC_APP_VERSION=${nextRelease.version}\" > .env.production"
+        "prepareCmd": "echo \"NEXT_PUBLIC_APP_VERSION=${nextRelease.version}\nNEXT_PUBLIC_GA_ID=G-8CE6F3T3FX\" > .env.production"
       }
     ],
     [
