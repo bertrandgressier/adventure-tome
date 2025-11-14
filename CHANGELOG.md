@@ -1,3 +1,11 @@
+## [1.4.3](https://github.com/bertrandgressier/adventure-tome/compare/v1.4.2...v1.4.3) (2025-11-14)
+
+
+### Bug Fixes
+
+* **analytics:** simplify Google Analytics implementation ([c2ea552](https://github.com/bertrandgressier/adventure-tome/commit/c2ea552e782cf95b7ea06a0868998a1b5b4a2523))
+* **release:** preserve NEXT_PUBLIC_GA_ID in .env.production ([3f19568](https://github.com/bertrandgressier/adventure-tome/commit/3f19568b6006606705fcc3ca6298b338bd214e19))
+
 ## [1.4.2](https://github.com/bertrandgressier/adventure-tome/compare/v1.4.1...v1.4.2) (2025-11-14)
 
 
