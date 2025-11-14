@@ -149,6 +149,7 @@ pnpm build
 
 # Démarrer en production
 pnpm start
+```
 ## 📖 Documentation
 
 ### Documentation projet
