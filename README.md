@@ -1,10 +1,10 @@
-# 🗡️ Adventure Hero - Le Jeu Dont Tu Es Le Héro
+# 🗡️ Adventure Tome - Le Jeu Dont Tu Es Le Héro
 
 Application PWA mobile pour gérer vos personnages des livres "Le jeu dont tu es le héro" de la collection [La Saga de Dagda](https://www.lasagadedagda.fr/).
 
 ## 📖 Description
 
-Adventure Hero est votre compagnon mobile pour vivre vos aventures épiques ! Créez et gérez vos héros, suivez votre progression, lancez les dés, combattez des créatures et explorez les mondes fantastiques des livres dont vous êtes le héro.
+Adventure Tome est votre compagnon mobile pour vivre vos aventures épiques ! Créez et gérez vos héros, suivez votre progression, lancez les dés, combattez des créatures et explorez les mondes fantastiques des livres dont vous êtes le héro.
 
 **Première implémentation** : La Harpe des Quatre Saisons
 
@@ -79,7 +79,7 @@ Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 ## 📁 Structure du projet
 
 ```
-adventure-hero/
+adventure-tome/
 ├── app/
 │   ├── layout.tsx              # Layout principal
 │   ├── page.tsx                # Page d'accueil

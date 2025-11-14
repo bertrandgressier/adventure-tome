@@ -1,8 +1,8 @@
-# Déploiement - Adventure Hero
+# Déploiement - Adventure Tome
 
 ## Vue d'ensemble
 
-Guide de déploiement de la PWA "Adventure Hero" sur différentes plateformes.
+Guide de déploiement de la PWA "Adventure Tome" sur différentes plateformes.
 
 ## Prérequis
 
@@ -34,13 +34,13 @@ Créer `.env.local` :
 
 ```env
 # Nom de l'application
-NEXT_PUBLIC_APP_NAME="Adventure Hero"
+NEXT_PUBLIC_APP_NAME="Adventure Tome"
 
 # Version
 NEXT_PUBLIC_APP_VERSION="1.0.0"
 
 # URL de base (production)
-NEXT_PUBLIC_BASE_URL="https://adventure-hero.vercel.app"
+NEXT_PUBLIC_BASE_URL="https://adventure-tome.vercel.app"
 
 # Analytics (optionnel)
 # NEXT_PUBLIC_GA_ID="G-XXXXXXXXXX"
@@ -50,7 +50,7 @@ NEXT_PUBLIC_BASE_URL="https://adventure-hero.vercel.app"
 
 ### Méthode 1 : Deploy button
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/votre-username/adventure-hero)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/votre-username/adventure-tome)
 
 ### Méthode 2 : CLI
 
@@ -129,7 +129,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: '/adventure-hero', // Nom de votre repo
+  basePath: '/adventure-tome', // Nom de votre repo
 };
 ```
 
@@ -202,15 +202,15 @@ pnpm add -g pm2
 
 ```bash
 # Clone le projet
-git clone https://github.com/votre-username/adventure-hero.git
-cd adventure-hero
+git clone https://github.com/votre-username/adventure-tome.git
+cd adventure-tome
 
 # Installer et build
 pnpm install
 pnpm build
 
 # Démarrer avec PM2
-pm2 start pnpm --name "adventure-hero" -- start
+pm2 start pnpm --name "adventure-tome" -- start
 
 # Sauvegarder la config PM2
 pm2 save
@@ -222,7 +222,7 @@ pm2 startup
 ```nginx
 server {
     listen 80;
-    server_name adventure-hero.com;
+    server_name adventure-tome.com;
 
     location / {
         proxy_pass http://localhost:3000;
@@ -242,7 +242,7 @@ server {
 sudo apt-get install certbot python3-certbot-nginx
 
 # Obtenir certificat
-sudo certbot --nginx -d adventure-hero.com
+sudo certbot --nginx -d adventure-tome.com
 
 # Renouvellement automatique
 sudo certbot renew --dry-run
@@ -256,7 +256,7 @@ Le service worker est généré automatiquement. Vérifier dans `public/` :
 
 ```javascript
 // sw.js (exemple)
-const CACHE_NAME = 'adventure-hero-v1';
+const CACHE_NAME = 'adventure-tome-v1';
 const urlsToCache = [
   '/',
   '/characters',
@@ -278,7 +278,7 @@ Vérifier `public/manifest.json` :
 
 ```json
 {
-  "name": "Adventure Hero",
+  "name": "Adventure Tome",
   "short_name": "AdventureHero",
   "description": "Guide pour livres 'Le jeu dont tu es le héro'",
   "start_url": "/",
@@ -395,11 +395,11 @@ vercel promote <deployment-url>
 
 ```bash
 # Revenir à la version précédente
-cd adventure-hero
+cd adventure-tome
 git pull origin main
 pnpm install
 pnpm build
-pm2 restart adventure-hero
+pm2 restart adventure-tome
 ```
 
 ## Checklist de déploiement
@@ -463,7 +463,7 @@ tar -czf backup-assets-$(date +%Y%m%d).tar.gz public/
 vercel logs [deployment-url]
 
 # Logs PM2
-pm2 logs adventure-hero
+pm2 logs adventure-tome
 
 # Logs Netlify
 netlify logs

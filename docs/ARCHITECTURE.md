@@ -1,4 +1,4 @@
-# Architecture - Adventure Hero
+# Architecture - Adventure Tome
 
 ## Stack technique
 
@@ -17,7 +17,7 @@
 ## Structure du projet
 
 ```
-adventure-hero/
+adventure-tome/
 ├── app/
 │   ├── layout.tsx                 # Layout principal + metadata
 │   ├── page.tsx                   # Page d'accueil

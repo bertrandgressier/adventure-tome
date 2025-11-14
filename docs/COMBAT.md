@@ -1,4 +1,4 @@
-# Système de combat - Adventure Hero
+# Système de combat - Adventure Tome
 
 ## Vue d'ensemble
 

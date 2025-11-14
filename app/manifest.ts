@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Adventure Hero - La Saga de Dagda',
-    short_name: 'Adventure Hero',
+    name: 'Adventure Tome - La Saga de Dagda',
+    short_name: 'Adventure Tome',
     description: 'Gérez vos héros dans les livres dont vous êtes le héros',
     start_url: '/',
     display: 'standalone',

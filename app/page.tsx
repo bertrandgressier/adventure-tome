@@ -39,7 +39,7 @@ export default function Home() {
     }
 
     if (!deferredPrompt) {
-      alert('Pour installer l\'application :\n\n1. Cliquez sur le menu ⋮ (3 points) en haut à droite\n2. Sélectionnez "Installer Adventure Hero" ou "Ajouter à l\'écran d\'accueil"\n\nOu utilisez le raccourci : Ctrl+Shift+A (Windows) ou Cmd+Shift+A (Mac)');
+      alert('Pour installer l\'application :\n\n1. Cliquez sur le menu ⋮ (3 points) en haut à droite\n2. Sélectionnez "Installer Adventure Tome" ou "Ajouter à l\'écran d\'accueil"\n\nOu utilisez le raccourci : Ctrl+Shift+A (Windows) ou Cmd+Shift+A (Mac)');
       return;
     }
 
@@ -86,8 +86,8 @@ export default function Home() {
             <div className="inline-block animate-float">
               <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/30 to-amber-600/30 border-2 border-primary overflow-hidden backdrop-blur-sm shadow-lg">
                 <Image 
-                  src="/icon-adventure-hero.jpg" 
-                  alt="Adventure Hero" 
+                  src="/icon-adventure-tome.jpg" 
+                  alt="Adventure Tome" 
                   width={96}
                   height={96}
                   className="w-full h-full object-cover"
@@ -97,7 +97,7 @@ export default function Home() {
             </div>
             
             <h1 className="font-[var(--font-uncial)] text-5xl sm:text-6xl tracking-wider animate-gold-shimmer mb-2">
-              Adventure Hero
+              Adventure Tome
             </h1>
             
             <p className="font-[var(--font-merriweather)] text-lg text-light max-w-sm mx-auto">

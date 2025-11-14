@@ -27,7 +27,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Adventure Hero - La Saga de Dagda",
+  title: "Adventure Tome - La Saga de Dagda",
   description: "Gérez vos héros dans les livres dont vous êtes le héros",
   manifest: "/manifest.json",
   icons: {
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Adventure Hero",
+    title: "Adventure Tome",
   },
 };
 

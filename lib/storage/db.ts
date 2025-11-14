@@ -9,7 +9,7 @@ interface AdventureHeroDB extends DBSchema {
   };
 }
 
-const DB_NAME = 'adventure-hero-db';
+const DB_NAME = 'adventure-tome-db';
 const DB_VERSION = 1;
 
 let dbInstance: IDBPDatabase<AdventureHeroDB> | null = null;

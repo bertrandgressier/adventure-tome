@@ -1,4 +1,4 @@
-# Adventure Hero - Guide des Commits
+# Adventure Tome - Guide des Commits
 
 ## Format des commits (Conventional Commits)
 

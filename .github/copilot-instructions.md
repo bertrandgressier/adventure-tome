@@ -1,8 +1,8 @@
-# Adventure Hero - AI Agent Instructions
+# Adventure Tome - AI Agent Instructions
 
 ## Project Overview
 
-**Adventure Hero** is a mobile-first PWA for managing characters in French "Choose Your Own Adventure" books ("Le jeu dont tu es le héro") from the [La Saga de Dagda collection](https://www.lasagadedagda.fr/). First implementation targets "La Harpe des Quatre Saisons".
+**Adventure Tome** is a mobile-first PWA for managing characters in French "Choose Your Own Adventure" books ("Le jeu dont tu es le héro") from the [La Saga de Dagda collection](https://www.lasagadedagda.fr/). First implementation targets "La Harpe des Quatre Saisons".
 
 **Core Philosophy**: 
 - 100% client-side (no server, no API)

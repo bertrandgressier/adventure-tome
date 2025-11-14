@@ -1,4 +1,4 @@
-# Fonctionnalités - Adventure Hero
+# Fonctionnalités - Adventure Tome
 
 ## Vue d'ensemble
 
