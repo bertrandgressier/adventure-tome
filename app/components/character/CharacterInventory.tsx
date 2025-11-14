@@ -65,9 +65,7 @@ export default function CharacterInventory({
         </button>
       </div>
       {character.inventory.items.length === 0 ? (
-        <p className="font-[var(--font-merriweather)] text-muted-light">
-          Aucun objet dans l'inventaire
-        </p>
+                        <span className="text-sm text-muted-light">Aucun objet dans l&apos;inventaire</span>
       ) : (
         <div className="space-y-2">
           {character.inventory.items.map((item, index) => (

@@ -107,7 +107,7 @@ export default function CombatRoundDisplay({ round, playerName, enemyName }: Com
             ? 'bg-green-900/20 text-green-400' 
             : 'bg-red-900/20 text-red-400'
         }`}>
-          {defenderName} perd {round.totalDamage} point{round.totalDamage > 1 ? 's' : ''} d'ENDURANCE
+          {defenderName} perd {round.totalDamage} point{round.totalDamage > 1 ? 's' : ''} d&apos;ENDURANCE
         </div>
       )}
     </div>

@@ -37,7 +37,6 @@ export default function CharacterDetail() {
   const [firstAttacker, setFirstAttacker] = useState<'player' | 'enemy'>('player');
   const [showCombat, setShowCombat] = useState(false);
   const [combatEndStatus, setCombatEndStatus] = useState<'victory' | 'defeat' | null>(null);
-  const [finalEndurance, setFinalEndurance] = useState(0);
   const [roundsCount, setRoundsCount] = useState(0);
 
   useEffect(() => {
@@ -129,7 +128,6 @@ export default function CharacterDetail() {
     if (!character) return;
 
     setCombatEndStatus(status);
-    setFinalEndurance(finalEnd);
     setRoundsCount(rounds);
 
     // Mettre à jour les PV du personnage

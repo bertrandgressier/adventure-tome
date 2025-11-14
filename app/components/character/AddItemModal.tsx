@@ -38,7 +38,7 @@ export default function AddItemModal({ onAdd, onClose }: AddItemModalProps) {
 
         <div className="mb-6">
           <label className="font-[var(--font-merriweather)] text-muted-light text-sm mb-2 block">
-            Nom de l'objet
+            Nom de l&apos;objet
           </label>
           <input
             type="text"

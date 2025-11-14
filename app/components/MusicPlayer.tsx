@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 
 export default function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(() => 
+    typeof window !== 'undefined' && localStorage.getItem('musicMuted') === 'true'
+  );
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -14,12 +16,11 @@ export default function MusicPlayer() {
     audioRef.current.volume = 0.3; // Volume à 30% par défaut
 
     // Charger les préférences depuis localStorage
-    const savedMuted = localStorage.getItem('musicMuted');
-    if (savedMuted === 'true') {
-      setIsMuted(true);
-    } else {
+    if (!isMuted) {
       // Démarrer la musique automatiquement si non muté
-      playMusic();
+      audioRef.current.play().catch(error => {
+        console.log('Audio autoplay blocked:', error);
+      });
     }
 
     return () => {
@@ -28,18 +29,8 @@ export default function MusicPlayer() {
         audioRef.current = null;
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const playMusic = async () => {
-    if (audioRef.current) {
-      try {
-        await audioRef.current.play();
-        setIsPlaying(true);
-      } catch (error) {
-        console.log('Audio autoplay blocked:', error);
-      }
-    }
-  };
 
   const toggleMusic = () => {
     if (isMuted || !isPlaying) {

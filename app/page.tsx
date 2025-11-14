@@ -2,32 +2,52 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+declare global {
+  interface Window {
+    MSStream?: unknown;
+  }
+}
 
 export default function Home() {
-  const [isStandalone, setIsStandalone] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isIOS, setIsIOS] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [stars, setStars] = useState<Array<{left: number; top: number; delay: number}>>([]);
+
+  const isIOS = useMemo(() => 
+    typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as Window).MSStream,
+    []
+  );
+  const isStandalone = useMemo(() => 
+    typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches,
+    []
+  );
 
   useEffect(() => {
-    // Détecter iOS
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    setIsIOS(iOS);
-
-    // Vérifier si déjà installé
-    const standalone = window.matchMedia('(display-mode: standalone)').matches;
-    setIsStandalone(standalone);
+    // Générer les étoiles côté client uniquement
+    setStars(
+      [...Array(20)].map(() => ({
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        delay: Math.random() * 2
+      }))
+    );
 
     // Écouter l'événement beforeinstallprompt (Chrome, Edge, etc.)
-    const handler = (e: any) => {
+    const handler = (e: BeforeInstallPromptEvent) => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('beforeinstallprompt', handler as EventListener);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('beforeinstallprompt', handler as EventListener);
     };
   }, []);
 
@@ -66,16 +86,15 @@ export default function Home() {
 
         {/* Étoiles scintillantes */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
+          {stars.map((star, i) => (
             <div
               key={i}
-              className="absolute w-1 h-1 bg-primary rounded-full animate-magic"
+              className="absolute w-2 h-2 bg-primary rounded-full animate-magic shadow-[0_0_8px_rgba(255,191,0,1),0_0_12px_rgba(255,191,0,0.6)]"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
+                left: `${star.left}%`,
+                top: `${star.top}%`,
+                animationDelay: `${star.delay}s`,
               }}
-              suppressHydrationWarning
             />
           ))}
         </div>

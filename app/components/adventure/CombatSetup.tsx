@@ -89,7 +89,7 @@ export default function CombatSetup({ onStartCombat, onCancel }: CombatSetupProp
           {/* Points d'attaque (arme) */}
           <div>
             <label className="font-[var(--font-merriweather)] text-muted-light text-sm mb-2 block">
-              Points d'attaque (arme)
+              Points d&apos;attaque (arme)
             </label>
             <input
               type="number"

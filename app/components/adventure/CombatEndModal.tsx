@@ -46,7 +46,7 @@ export default function CombatEndModal({
             }}
             className="w-full bg-[#FFBF00] hover:bg-yellow-400 text-[#000000] font-[var(--font-uncial)] font-bold px-6 py-3 rounded-lg transition-colors text-base sm:text-lg"
           >
-            Continuer l'aventure
+            Continuer l&apos;aventure
           </button>
         </div>
       </div>
@@ -92,7 +92,7 @@ export default function CombatEndModal({
           onClick={() => router.push('/characters')}
           className="text-muted-light hover:text-light font-[var(--font-merriweather)] text-xs sm:text-sm transition-colors"
         >
-          Retour à la liste des personnages
+                        Retour à l&apos;aventure
         </button>
       </div>
     </div>

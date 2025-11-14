@@ -179,7 +179,7 @@ export default function CharacterWeapon({
           {/* Points d'attaque */}
           <div>
             <div className="text-xs font-[var(--font-merriweather)] text-muted-light mb-1">
-              Points d'attaque
+              Points d&apos;attaque
             </div>
             {editingWeaponAttack ? (
               <div className="flex items-center gap-2">

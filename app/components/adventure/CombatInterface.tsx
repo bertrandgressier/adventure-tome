@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { Character } from '@/lib/types/character';
-import type { Enemy, CombatRound, CombatState, CombatMode } from '@/lib/types/combat';
+import type { Enemy, CombatState, CombatMode } from '@/lib/types/combat';
 import { resolveCombatRound } from '@/lib/game/combat';
 import CombatRoundDisplay from './CombatRoundDisplay';
 
@@ -33,30 +33,6 @@ export default function CombatInterface({
   const [isRolling, setIsRolling] = useState(false);
   const [showEndButton, setShowEndButton] = useState(false);
   const historyRef = useRef<HTMLDivElement>(null);
-
-  // Scroll automatique vers le bas en mode auto
-  useEffect(() => {
-    if (mode === 'auto' && historyRef.current && combatState.rounds.length > 0) {
-      historyRef.current.scrollTop = historyRef.current.scrollHeight;
-    }
-  }, [combatState.rounds.length, mode]);
-
-  // Mode automatique : lancer les rounds automatiquement
-  useEffect(() => {
-    if (mode === 'auto' && combatState.status === 'ongoing' && !isRolling && !showEndButton) {
-      const timer = setTimeout(() => {
-        executeRound();
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [mode, combatState.status, combatState.rounds.length, isRolling, showEndButton]);
-
-  // Vérifier la fin du combat
-  useEffect(() => {
-    if (combatState.playerEndurance <= 0 || combatState.enemyEndurance <= 0) {
-      setShowEndButton(true);
-    }
-  }, [combatState.playerEndurance, combatState.enemyEndurance]);
 
   const executeRound = (hitDiceRoll?: number, damageDiceRoll?: number) => {
     setIsRolling(true);
@@ -94,6 +70,31 @@ export default function CombatInterface({
       setIsRolling(false);
     }, mode === 'auto' ? 1500 : 0);
   };
+
+  // Scroll automatique vers le bas à chaque nouveau round
+  useEffect(() => {
+    if (historyRef.current && combatState.rounds.length > 0) {
+      historyRef.current.scrollTop = historyRef.current.scrollHeight;
+    }
+  }, [combatState.rounds.length]);
+
+  // Mode automatique : lancer les rounds automatiquement
+  useEffect(() => {
+    if (mode === 'auto' && combatState.status === 'ongoing' && !isRolling && !showEndButton) {
+      const timer = setTimeout(() => {
+        executeRound();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, combatState.status, combatState.rounds.length, isRolling, showEndButton]);
+
+  // Vérifier la fin du combat
+  useEffect(() => {
+    if (combatState.playerEndurance <= 0 || combatState.enemyEndurance <= 0) {
+      setShowEndButton(true);
+    }
+  }, [combatState.playerEndurance, combatState.enemyEndurance]);
 
   const playerWeaponName = character.inventory.weapon?.name || 'Aucune';
   const playerWeaponPoints = character.inventory.weapon?.attackPoints || 0;
@@ -228,10 +229,10 @@ export default function CombatInterface({
                 }
               }}
               disabled={isRolling || combatState.status !== 'ongoing'}
-              className={`flex-1 font-[var(--font-uncial)] font-bold px-6 py-3 rounded-lg text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`flex-1 font-[var(--font-uncial)] font-bold px-6 py-3 rounded-lg text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                 showEndButton 
                   ? 'bg-[#FFBF00] hover:bg-[#FFBF00]/90 text-[#000000] shadow-lg shadow-[#FFBF00]/50 animate-bounce'
-                  : 'bg-primary hover:bg-yellow-400 text-[#1a140f]'
+                  : 'bg-gradient-to-r from-[#FFBF00] to-[#FFD700] hover:from-[#FFD700] hover:to-[#FFBF00] text-[#000000] shadow-md hover:shadow-lg'
               }`}
             >
               {isRolling ? '⏳ Lancer en cours...' : showEndButton ? '✓ Voir le résultat' : '🎲 Lancer les dés'}

@@ -48,7 +48,7 @@ export default function AddWeaponModal({ onAdd, onClose }: AddWeaponModalProps) 
         <div className="space-y-4 mb-6">
           <div>
             <label className="font-[var(--font-merriweather)] text-muted-light text-sm mb-2 block">
-              Nom de l'arme
+              Nom de l&apos;arme
             </label>
             <input
               type="text"
@@ -62,7 +62,7 @@ export default function AddWeaponModal({ onAdd, onClose }: AddWeaponModalProps) 
 
           <div>
             <label className="font-[var(--font-merriweather)] text-muted-light text-sm mb-2 block">
-              Points d'attaque
+              Points d&apos;attaque
             </label>
             <input
               type="number"
