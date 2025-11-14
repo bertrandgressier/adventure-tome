@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/bertrandgressier/adventure-tome/compare/v1.1.0...v1.1.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* séparation des workflows release et docker ([f42b44c](https://github.com/bertrandgressier/adventure-tome/commit/f42b44c4221f3927f11d5be34be7c08a599560e2))
+
 # [1.1.0](https://github.com/bertrandgressier/adventure-tome/compare/v1.0.0...v1.1.0) (2025-11-14)
 
 
