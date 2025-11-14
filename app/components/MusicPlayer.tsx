@@ -21,6 +21,7 @@ export default function MusicPlayer() {
       audioRef.current.play().catch(error => {
         console.log('Audio autoplay blocked:', error);
       });
+      setIsPlaying(true); // Mettre à jour l'état
     }
 
     return () => {
