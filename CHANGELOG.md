@@ -1,3 +1,11 @@
+## [1.4.2](https://github.com/bertrandgressier/adventure-tome/compare/v1.4.1...v1.4.2) (2025-11-14)
+
+
+### Bug Fixes
+
+* **ci:** make release depend on CI success ([ae8f748](https://github.com/bertrandgressier/adventure-tome/commit/ae8f7485df398c4e4ae9025a1c31ba5556fb66c0))
+* wrap GoogleAnalytics in Suspense for useSearchParams ([aa458d0](https://github.com/bertrandgressier/adventure-tome/commit/aa458d06784cbf37941db34b945bc170780646ab))
+
 ## [1.4.1](https://github.com/bertrandgressier/adventure-tome/compare/v1.4.0...v1.4.1) (2025-11-14)
 
 
