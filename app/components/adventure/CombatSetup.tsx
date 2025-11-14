@@ -64,7 +64,6 @@ export default function CombatSetup({ onStartCombat, onCancel }: CombatSetupProp
               placeholder="Score de combat"
               min="1"
               className="w-full bg-[#1a140f] border border-primary/20 rounded px-4 py-2 font-[var(--font-geist-mono)] text-light placeholder:text-muted-light focus:outline-none focus:border-primary"
-              autoFocus
             />
           </div>
 
