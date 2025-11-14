@@ -15,6 +15,7 @@ on:
       - 'tsconfig.json'
       - 'tailwind.config.ts'
       - 'postcss.config.mjs'
+  workflow_dispatch:
 
 permissions:
   contents: write
