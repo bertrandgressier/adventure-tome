@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/bertrandgressier/adventure-tome/compare/v1.5.1...v1.6.0) (2025-11-14)
+
+
+### Features
+
+* ajout du lien de donation PayPal ([2f923ab](https://github.com/bertrandgressier/adventure-tome/commit/2f923abdcc65f81500d9d066978a03bf60db288a))
+
 ## [1.5.1](https://github.com/bertrandgressier/adventure-tome/compare/v1.5.0...v1.5.1) (2025-11-14)
 
 
