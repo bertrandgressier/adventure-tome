@@ -1,3 +1,11 @@
+# [1.2.0](https://github.com/bertrandgressier/adventure-tome/compare/v1.1.1...v1.2.0) (2025-11-14)
+
+
+### Features
+
+* ajout lien vers CHANGELOG depuis la version ([47ec98c](https://github.com/bertrandgressier/adventure-tome/commit/47ec98c52088dbebd9f60561fe9dba1f5c5bff30))
+* release uniquement sur changements du code applicatif ([6079fcd](https://github.com/bertrandgressier/adventure-tome/commit/6079fcdde89e16ec016981f97452717f933f6df5))
+
 ## [1.1.1](https://github.com/bertrandgressier/adventure-tome/compare/v1.1.0...v1.1.1) (2025-11-14)
 
 
