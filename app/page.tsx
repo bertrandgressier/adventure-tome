@@ -235,7 +235,15 @@ export default function Home() {
               </a>
             </p>
             <p className="text-[10px] text-muted-light/50">
-              v{process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'}
+              <a 
+                href="https://github.com/bertrandgressier/adventure-tome/blob/main/CHANGELOG.md" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors inline-flex items-center gap-1"
+                title="Voir les notes de version"
+              >
+                <span>📝</span> v{process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'}
+              </a>
             </p>
           </div>
         </div>
