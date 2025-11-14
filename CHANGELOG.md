@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/bertrandgressier/adventure-tome/compare/v1.4.4...v1.5.0) (2025-11-14)
+
+
+### Features
+
+* **analytics:** add custom event tracking for user actions ([dfab43e](https://github.com/bertrandgressier/adventure-tome/commit/dfab43e6d12d974b557a72dc73b43fe9cfdb7175))
+
 ## [1.4.4](https://github.com/bertrandgressier/adventure-tome/compare/v1.4.3...v1.4.4) (2025-11-14)
 
 
