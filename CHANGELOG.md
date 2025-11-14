@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/bertrandgressier/adventure-tome/compare/v1.2.0...v1.3.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* génération correcte des tags Docker avec version ([d35f5c2](https://github.com/bertrandgressier/adventure-tome/commit/d35f5c2fa13e756cbc1a07d9ae866826e4fc5988))
+
+
+### Features
+
+* support Google Analytics avec injection runtime ([8dafaba](https://github.com/bertrandgressier/adventure-tome/commit/8dafaba3fe3f0b568d5e705afc827d31e864146c))
+
 # [1.2.0](https://github.com/bertrandgressier/adventure-tome/compare/v1.1.1...v1.2.0) (2025-11-14)
 
 
