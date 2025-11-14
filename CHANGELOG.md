@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/bertrandgressier/adventure-tome/compare/v1.3.0...v1.3.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* icône musique affichée correctement au démarrage ([bad15ab](https://github.com/bertrandgressier/adventure-tome/commit/bad15ab2a8363ba84e0f8bbf842eac34913f4d60))
+
 # [1.3.0](https://github.com/bertrandgressier/adventure-tome/compare/v1.2.0...v1.3.0) (2025-11-14)
 
 
