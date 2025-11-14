@@ -4,17 +4,18 @@ import { useState, useEffect, useRef } from 'react';
 
 export default function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true); // Commence toujours muted par défaut
+  const [isMuted, setIsMuted] = useState(() => {
+    // Initialiser depuis localStorage au premier render
+    if (typeof window !== 'undefined') {
+      const savedMuted = localStorage.getItem('musicMuted');
+      return savedMuted !== 'false'; // true par défaut, false si explicitement sauvegardé
+    }
+    return true;
+  });
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasInteracted = useRef(false);
 
   useEffect(() => {
-    // Charger les préférences depuis localStorage
-    const savedMuted = localStorage.getItem('musicMuted');
-    if (savedMuted === 'false') {
-      setIsMuted(false);
-    }
-
     // Créer l'élément audio
     audioRef.current = new Audio('/music1.mp3');
     audioRef.current.loop = true;
