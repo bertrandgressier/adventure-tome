@@ -30,13 +30,14 @@ export default function Home() {
 
   useEffect(() => {
     // Générer les étoiles côté client uniquement
-    setStars(
-      [...Array(20)].map(() => ({
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        delay: Math.random() * 2
-      }))
-    );
+    const generatedStars = [...Array(20)].map(() => ({
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      delay: Math.random() * 2
+    }));
+    
+    // Utiliser setTimeout pour éviter le setState dans l'effet
+    const timer = setTimeout(() => setStars(generatedStars), 0);
 
     // Écouter l'événement beforeinstallprompt (Chrome, Edge, etc.)
     const handler = (e: BeforeInstallPromptEvent) => {
@@ -47,6 +48,7 @@ export default function Home() {
     window.addEventListener('beforeinstallprompt', handler as EventListener);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('beforeinstallprompt', handler as EventListener);
     };
   }, []);
@@ -200,7 +202,7 @@ export default function Home() {
           </div>
 
           {/* Mention légale */}
-          <div className="text-center pt-4 border-t border-border/50">
+          <div className="text-center pt-4 border-t border-border/50 space-y-2">
             <p className="text-xs text-muted-light">
               Basé sur les livres <span className="text-primary">Le jeu dont tu es le héro</span>
               <br />
@@ -213,7 +215,26 @@ export default function Home() {
                 La Saga de Dagda
               </a>
             </p>
-            <p className="text-[10px] text-muted-light/50 mt-2">
+            <p className="text-[10px] text-muted-light/50">
+              <a 
+                href="https://github.com/bertrandgressier/adventure-tome" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors inline-flex items-center gap-1"
+              >
+                <span>⭐</span> Code source sur GitHub
+              </a>
+              {' • '}
+              <a 
+                href="https://github.com/bertrandgressier/adventure-tome/issues/new" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors inline-flex items-center gap-1"
+              >
+                <span>🐛</span> Signaler un bug
+              </a>
+            </p>
+            <p className="text-[10px] text-muted-light/50">
               v{process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'}
             </p>
           </div>
