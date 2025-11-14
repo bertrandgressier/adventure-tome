@@ -123,7 +123,7 @@ export default function CharacterWeapon({
         ) : (
           <button
             onClick={onOpenAddWeaponModal}
-            className="text-primary hover:text-yellow-300 text-2xl transition-colors"
+            className="text-primary hover:text-yellow-300 text-2xl transition-colors bg-primary/10 hover:bg-primary/20 rounded-lg px-3 py-1"
             title="Ajouter une arme"
           >
             ➕

@@ -56,13 +56,13 @@ export default function AddItemModal({ onAdd, onClose }: AddItemModalProps) {
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 bg-muted hover:bg-muted/80 text-light font-[var(--font-merriweather)] font-bold px-6 py-3 rounded-lg transition-colors"
+            className="flex-1 bg-[#3a2e27] hover:bg-[#4a3e37] text-light font-[var(--font-merriweather)] font-bold px-6 py-3 rounded-lg transition-colors border border-primary/20"
           >
             Annuler
           </button>
           <button
             onClick={handleAdd}
-            className="flex-1 bg-primary hover:bg-yellow-400 text-[#1a140f] font-[var(--font-uncial)] font-bold px-6 py-3 rounded-lg transition-colors"
+            className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-[#1a140f] font-[var(--font-uncial)] font-bold px-6 py-3 rounded-lg transition-all shadow-[0_0_20px_rgba(255,191,0,0.8)] hover:shadow-[0_0_30px_rgba(255,191,0,1)] border-2 border-yellow-300"
           >
             Ajouter
           </button>
