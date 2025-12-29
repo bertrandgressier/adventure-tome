@@ -1,8 +1,10 @@
 'use client';
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
+import { isIOS, isIOSSafari, isSafari, isStandalone } from '@/lib/browser-detection';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -18,24 +20,23 @@ declare global {
 export default function Home() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [stars, setStars] = useState<Array<{left: number; top: number; delay: number}>>([]);
-
-  const isIOS = useMemo(() => 
-    typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as Window).MSStream,
-    []
-  );
-  const isStandalone = useMemo(() => 
-    typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches,
-    []
-  );
+  const [isIOSSafariDetected, setIsIOSSafariDetected] = useState(false);
+  const [isSafariDesktop, setIsSafariDesktop] = useState(false);
+  const [isStandaloneDetected, setIsStandaloneDetected] = useState(false);
 
   useEffect(() => {
+    // Détecter le navigateur et le mode standalone côté client uniquement
+    setIsIOSSafariDetected(isIOSSafari());
+    setIsSafariDesktop(isSafari() && !isIOS());
+    setIsStandaloneDetected(isStandalone());
+
     // Générer les étoiles côté client uniquement
     const generatedStars = [...Array(20)].map(() => ({
       left: Math.random() * 100,
       top: Math.random() * 100,
       delay: Math.random() * 2
     }));
-    
+
     // Utiliser setTimeout pour éviter le setState dans l'effet
     const timer = setTimeout(() => setStars(generatedStars), 0);
 
@@ -54,9 +55,13 @@ export default function Home() {
   }, []);
 
   const handleInstall = async () => {
-    if (isIOS) {
-      // Pour iOS, afficher une alerte avec les instructions
-      alert('Sur iOS : Appuyez sur le bouton de partage (⬆️) puis "Sur l\'écran d\'accueil" (➕)');
+    if (isIOSSafariDetected) {
+      alert('Sur iOS Safari : Appuyez sur le bouton de partage (⬆️) puis "Sur l\'écran d\'accueil" (➕)');
+      return;
+    }
+
+    if (isSafariDesktop) {
+      alert('Sur Safari Mac : Allez dans le menu Fichier > Ajouter au Dock (File > Add to Dock)');
       return;
     }
 
@@ -186,7 +191,7 @@ export default function Home() {
               Commencer l&apos;aventure
             </Link>
 
-            {!isStandalone && (
+            {!isStandaloneDetected && (isIOSSafariDetected || !isIOS()) && (
               <div className="space-y-2">
                 <p className="text-center text-xs text-muted-light">
                   💡 Installez l&apos;app sur votre écran d&apos;accueil pour une expérience optimale
@@ -195,9 +200,15 @@ export default function Home() {
                   onClick={handleInstall}
                   className="mx-auto block w-auto bg-gray-600 hover:bg-gray-500 text-white font-[var(--font-uncial)] font-bold tracking-wider py-2 px-6 rounded transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] text-center text-sm"
                 >
-                  {isIOS ? 'Installer sur iOS' : 'Installer l\'application'}
+                  {isIOSSafariDetected ? 'Installer sur iOS' : 'Installer l\'application'}
                 </button>
               </div>
+            )}
+
+            {isIOS() && !isIOSSafariDetected && !isStandaloneDetected && (
+              <p className="text-center text-xs text-muted-light">
+                ℹ️ Pour installer sur iOS, ouvrez l&apos;application dans Safari
+              </p>
             )}
           </div>
 
