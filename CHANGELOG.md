@@ -1,3 +1,11 @@
+## [3.0.1](https://github.com/bertrandgressier/adventure-tome/compare/v3.0.0...v3.0.1) (2025-12-29)
+
+
+### Bug Fixes
+
+* iOS installation button detection (fixes [#12](https://github.com/bertrandgressier/adventure-tome/issues/12)) ([8bfaa73](https://github.com/bertrandgressier/adventure-tome/commit/8bfaa734762cc9ef149b7a6500e1a43c9344bc0a))
+* **issue-14:** adjust current health when max health is reduced ([0c0283b](https://github.com/bertrandgressier/adventure-tome/commit/0c0283b69dc96c0a71cfa3c521fda1024285e5b2))
+
 # [3.0.0](https://github.com/bertrandgressier/adventure-tome/compare/v2.2.1...v3.0.0) (2025-11-19)
 
 

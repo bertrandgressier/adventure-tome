@@ -12,6 +12,16 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 3.0.1
+*29 décembre 2025*
+
+### 🐛 Corrections de bugs
+
+- iOS installation button detection (fixes [#12](https://github.com/bertrandgressier/adventure-tome/issues/12))
+- adjust current health when max health is reduced
+
+---
+
 ## Version 3.0.0
 *19 novembre 2025*
 
