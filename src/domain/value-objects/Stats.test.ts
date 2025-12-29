@@ -71,6 +71,30 @@ describe('Stats', () => {
       expect(updated.currentHealth).toBe(15);
     });
 
+    it('devrait ajuster la vie actuelle si maxHealth diminue en dessous (issue #14)', () => {
+      const stats = new Stats(7, null, null, 5, 5, 20, 15);
+      const updated = stats.update({ pointsDeVieMax: 10 });
+      
+      expect(updated.maxHealth).toBe(10);
+      expect(updated.currentHealth).toBe(10);
+    });
+
+    it('devrait conserver la vie actuelle si maxHealth augmente', () => {
+      const stats = new Stats(7, null, null, 5, 5, 20, 15);
+      const updated = stats.update({ pointsDeVieMax: 30 });
+      
+      expect(updated.maxHealth).toBe(30);
+      expect(updated.currentHealth).toBe(15);
+    });
+
+    it('devrait respecter la vie actuelle explicitement fournie', () => {
+      const stats = new Stats(7, null, null, 5, 5, 20, 15);
+      const updated = stats.update({ pointsDeVieMax: 10, pointsDeVieActuels: 8 });
+      
+      expect(updated.maxHealth).toBe(10);
+      expect(updated.currentHealth).toBe(8);
+    });
+
     it('devrait valider les nouvelles stats', () => {
       const stats = new Stats(7, null, null, 5, 5, 20, 20);
       
