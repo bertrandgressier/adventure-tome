@@ -58,14 +58,25 @@ export class Stats {
    * Pattern immutable - ne modifie jamais l'instance actuelle
    */
   update(newStats: Partial<StatsData>): Stats {
+    const newMaxHealth = newStats.pointsDeVieMax ?? this.maxHealth;
+    let newCurrentHealth = newStats.pointsDeVieActuels;
+
+    if (newCurrentHealth === undefined) {
+      newCurrentHealth = this.currentHealth;
+    }
+
+    if (newCurrentHealth > newMaxHealth) {
+      newCurrentHealth = newMaxHealth;
+    }
+
     return new Stats(
       newStats.dexterite ?? this.dexterite,
       newStats.constitution !== undefined ? (newStats.constitution ?? null) : this.constitution,
       newStats.reputation !== undefined ? (newStats.reputation ?? null) : this.reputation,
       newStats.chance ?? this.chance,
       newStats.chanceInitiale ?? this.chanceInitiale,
-      newStats.pointsDeVieMax ?? this.maxHealth,
-      newStats.pointsDeVieActuels ?? this.currentHealth
+      newMaxHealth,
+      newCurrentHealth
     );
   }
 
