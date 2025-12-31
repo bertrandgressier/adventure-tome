@@ -6,19 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { trackCharacterCreation, trackDiceRoll } from '@/src/infrastructure/analytics/tracking';
 import { BookTag, BOOK_TITLES } from '@/components/ui/book-tag';
+import { TALENTS } from '@/src/presentation/constants/talents';
 import type { GameMode } from '@/src/domain/entities/Character';
 
 const BOOKS = [1, 2, 3];
-
-const TALENTS = [
-  { id: 'instinct', name: 'Instinct', description: 'Capacité à pressentir le danger et prendre les bonnes décisions' },
-  { id: 'herbologie', name: 'Herbologie', description: 'Connaissance des plantes et de leurs propriétés' },
-  { id: 'discretion', name: 'Discrétion', description: 'Art de se déplacer et agir sans être remarqué' },
-  { id: 'persuasion', name: 'Persuasion', description: 'Capacité à convaincre et négocier' },
-  { id: 'observation', name: 'Observation', description: 'Sens du détail et capacité à repérer des indices' },
-  { id: 'doigts-agiles', name: 'Doigts agiles', description: 'Dextérité manuelle et agilité des mains' },
-  { id: 'empratique', name: 'Empratique', description: 'Capacité à comprendre et ressentir les émotions d\'autrui' },
-];
 
 const GAME_MODES: Array<{ id: GameMode; name: string; description: string; icon: string }> = [
   { 

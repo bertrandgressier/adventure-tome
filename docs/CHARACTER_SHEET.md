@@ -12,7 +12,7 @@ Basé sur le premier livre de la collection [La Saga de Dagda](https://www.lasag
 {
   name: string;              // Nom du personnage
   createdAt: Date;          // Date de création
-  book: "La Harpe des Quatre Saisons";
+  book: 1 | 2 | 3;        // Numéro du livre
 }
 ```
 
@@ -21,7 +21,11 @@ Basé sur le premier livre de la collection [La Saga de Dagda](https://www.lasag
 Selon la fiche officielle du livre :
 
 #### TALENT
-- Choix parmi : Artisan, Explorateur, Guerrier, Magicien, Négociant, Voleur
+- **Tome 1** : 1 talent (liste initiale)
+  - Instinct, Herbologie, Discrétion, Persuasion, Observation, Doigts agiles, Empratique
+- **Tome 2+** : 1 ou 2 talents
+  - Talent initial (liste ci-dessus)
+  - Second talent optionnel (Cartographe, Tueur de gobelin, Instinct)
 - Défini au moment de la création du personnage
 
 #### DEXTÉRITÉ
@@ -57,8 +61,11 @@ interface Character {
   // Identité
   id: string;
   name: string;
-  book: string;
-  talent: string;              // Talent choisi (Artisan, Explorateur, Guerrier, Magicien, Négociant, Voleur)
+  book: number;               // Numéro du livre (1, 2, 3)
+  talent: string;              // Talent principal
+  secondTalent?: string;      // Second talent (Tome 2+, optionnel)
+  gameMode: 'narrative' | 'simplified' | 'mortal';
+  version: number;            // Version du modèle de données (9)
   createdAt: string;
   updatedAt: string;
   
@@ -69,6 +76,7 @@ interface Character {
     chanceInitiale: number;    // Score initial de chance
     pointsDeVieMax: number;    // Points de vie maximum (2d6 × 4)
     pointsDeVieActuels: number;// Points de vie actuels
+    reputation?: number;       // Réputation (Tome 2)
   };
   
   // Inventaire
@@ -90,9 +98,13 @@ interface Character {
     currentParagraph: number;
     history: number[];
     lastSaved: string;
+    daysElapsed?: number;      // Jours écoulés (Tome 2)
+    nextWakeUpParagraph?: number; // Paragraphe de prochain réveil (Tome 2)
   };
   
   // Notes (non présent sur la fiche officielle, mais utile)
+  notes: string;
+}
 ## Règles de jeu
 
 ### Création du personnage

@@ -8,6 +8,7 @@ export interface CharacterMutationSlice {
     name: string;
     book: number;
     talent: string;
+    secondTalent?: string;
     gameMode: GameMode;
     stats: StatsData;
   }) => Promise<Character>;
