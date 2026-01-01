@@ -2,6 +2,7 @@ import { Character, type GameMode } from '@/src/domain/entities/Character';
 import { ICharacterRepository } from '@/src/domain/repositories/ICharacterRepository';
 import { StatsData } from '@/src/domain/value-objects/Stats';
 import { CharacterNotFoundError } from '@/src/domain/errors/DomainErrors';
+import type { InventoryItem } from '@/src/domain/value-objects/Inventory';
 
 /**
  * CharacterService - Application Service
@@ -148,7 +149,7 @@ export class CharacterService {
    */
   async addItemToInventory(
     id: string,
-    item: { name: string; possessed: boolean; type?: 'item' | 'special' }
+    item: Partial<InventoryItem> & { name: string; possessed?: boolean }
   ): Promise<Character> {
     const character = await this.repository.findById(id);
     if (!character) {
@@ -156,9 +157,9 @@ export class CharacterService {
     }
 
     const updated = character.addItem(item);
-    
+
     await this.repository.save(updated);
-    
+
     return updated;
   }
 
