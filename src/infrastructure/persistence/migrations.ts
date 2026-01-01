@@ -13,7 +13,18 @@
 
 import { BOURSE_ITEM_NAME } from '@/src/domain/value-objects/Inventory';
 
-export const CURRENT_VERSION = 9;
+export const CURRENT_VERSION = 10;
+
+/**
+ * Legacy item type (pre-v10)
+ */
+interface LegacyItem {
+  id?: string;
+  name?: string;
+  possessed?: boolean;
+  type?: 'item' | 'special';
+  attackPoints?: number;
+}
 
 /**
  * Migration interface
@@ -61,6 +72,11 @@ export interface Migration {
  * Migration v8 → v9: Add optional second talent for Tome 2+ characters
  * - Add secondTalent (default undefined) for characters from Tome 2 and beyond
  * - Characters can now have 1 or 2 talents based on their book
+ *
+ * Migration v9 → v10: Add item types and inventory structure
+ * - Migrate existing inventory items to have an ID and proper type (basic by default)
+ * - Add all new item fields with default values (quantity, stackable, unique, etc.)
+ * - Ensure backward compatibility with legacy inventory items
  */
 export const migrations: Migration[] = [
   {
@@ -169,6 +185,40 @@ export const migrations: Migration[] = [
         ...data,
         secondTalent: data.secondTalent ?? undefined,
         version: 9,
+      };
+    },
+  },
+  {
+    version: 10,
+    migrate: (data) => {
+      // Add item types and inventory structure
+      const items = data.inventory?.items || [];
+      
+      // Migrate existing items to new structure
+      const migratedItems = items.map((item: LegacyItem, index: number) => ({
+        id: item.id || `legacy-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 9)}`,
+        name: item.name || 'Item inconnu',
+        type: 'basic',
+        possessed: item.possessed ?? true,
+        effect: item.attackPoints ? `Arme avec +${item.attackPoints} dégâts` : undefined,
+        quantity: 1,
+        stackable: false,
+        unique: false,
+        disappearsOnTimeLoop: false,
+        attackPoints: item.attackPoints,
+        healAmount: undefined,
+        damageToEnemy: undefined,
+        statBonus: undefined,
+        isQuestItem: false,
+      }));
+
+      return {
+        ...data,
+        inventory: {
+          ...data.inventory,
+          items: migratedItems,
+        },
+        version: 10,
       };
     },
   },

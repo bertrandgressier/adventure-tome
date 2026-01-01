@@ -1,5 +1,5 @@
 import { Stats, StatsData } from '../value-objects/Stats';
-import { Inventory, InventoryData, BOURSE_ITEM_NAME } from '../value-objects/Inventory';
+import { Inventory, InventoryData, InventoryItem, BOURSE_ITEM_NAME } from '../value-objects/Inventory';
 
 /**
  * Game Mode Types
@@ -360,9 +360,9 @@ export class Character {
   /**
    * Ajoute un objet à l'inventaire
    */
-  addItem(item: { name: string; possessed: boolean; type?: 'item' | 'special' }): Character {
+  addItem(item: Partial<InventoryItem> & { name: string; possessed?: boolean }): Character {
     const updatedInventory = this.inventory.addItem(item);
-    
+
     return new Character(
       this.id,
       this._name,
@@ -644,6 +644,9 @@ export class Character {
       statsData.reputation = 0;
     }
 
+    const initialInventory = new Inventory(0, undefined, []);
+    const inventoryWithBourse = initialInventory.addItem({ name: BOURSE_ITEM_NAME, possessed: true });
+
     return new Character(
       id,
       data.name.trim(),
@@ -651,11 +654,11 @@ export class Character {
       data.talent,
       data.secondTalent,
       data.gameMode,
-      9, // CURRENT_VERSION
+      10, // CURRENT_VERSION
       now,
       now,
       Stats.fromData(statsData),
-      new Inventory(0, undefined, [{ name: BOURSE_ITEM_NAME, possessed: true }]),
+      inventoryWithBourse,
       new Progress(1, [1], now, 0, undefined), // Initialiser daysElapsed à 0
       ''
     );

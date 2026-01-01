@@ -1,0 +1,452 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "tome1-bourse",
+      "name": "Bourse",
+      "type": "basic",
+      "tome": 1,
+      "effect": "Pour l'argent (item non-jetable)",
+      "isQuestItem": false
+    },
+    {
+      "id": "tome1-potion-soin",
+      "name": "Potion de soin",
+      "type": "active",
+      "tome": 1,
+      "paragraph": 7,
+      "effect": "Redonne instantanément 5 POINTS DE VIE.",
+      "healAmount": 5,
+      "stackable": true
+    },
+    {
+      "id": "tome1-collier-charisme",
+      "name": "Collier de charisme",
+      "type": "passive",
+      "tome": 1,
+      "paragraph": 16,
+      "effect": "+2 en CHANCE tant qu'il est porté. (Récupéré sur un Gobelin).",
+      "statBonus": {
+        "chance": 2
+      }
+    },
+    {
+      "id": "tome1-fiole-potion-laurier",
+      "name": "Fiole de potion de Laurier",
+      "type": "passive",
+      "tome": 1,
+      "paragraph": 20,
+      "effect": "+5 en DEXTÉRITÉ temporairement (24h).",
+      "statBonus": {
+        "dexterite": 5
+      }
+    },
+    {
+      "id": "tome1-torche-neuve",
+      "name": "Torche neuve",
+      "type": "basic",
+      "tome": 1,
+      "paragraph": 228,
+      "effect": "Une torche simple trouvée dans un coffre.",
+      "isQuestItem": false
+    },
+    {
+      "id": "tome1-cristal",
+      "name": "Cristal",
+      "type": "basic",
+      "tome": 1,
+      "paragraph": 76,
+      "effect": "Un magnifique cristal trouvé dans le Temple. Sert d'arme contre le Dragon/Sage à la fin.",
+      "isQuestItem": false
+    },
+    {
+      "id": "tome1-arc-carquois",
+      "name": "Arc et carquois",
+      "type": "weapon",
+      "tome": 1,
+      "paragraph": 82,
+      "effect": "Arme à distance.",
+      "attackPoints": 0
+    },
+    {
+      "id": "tome1-epee-courte-1",
+      "name": "Épée courte (+1)",
+      "type": "weapon",
+      "tome": 1,
+      "paragraph": 177,
+      "effect": "+1 de DOMMAGE. (Récupérée dans la salle d'armes).",
+      "attackPoints": 1
+    },
+    {
+      "id": "tome1-epee-courte-2",
+      "name": "Épée courte (+2)",
+      "type": "weapon",
+      "tome": 1,
+      "paragraph": 169,
+      "effect": "+2 de DOMMAGES. (Récupérée dans le camp Gobelin).",
+      "attackPoints": 2
+    },
+    {
+      "id": "tome1-pendentif-rainure",
+      "name": "Pendentif de la rainure",
+      "type": "basic",
+      "tome": 1,
+      "paragraph": 133,
+      "effect": "Forme de feuille de chêne. Donné par le Sage mourant.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome1-boule-rouge",
+      "name": "Boule rouge",
+      "type": "basic",
+      "tome": 1,
+      "paragraph": 333,
+      "effect": "Sphère obtenue via un mécanisme dans la salle de cartographie.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome1-boule-verte",
+      "name": "Boule verte",
+      "type": "basic",
+      "tome": 1,
+      "paragraph": 343,
+      "effect": "Sphère obtenue via un mécanisme dans la salle vide.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome1-bourse-cuir",
+      "name": "Bourse en cuir",
+      "type": "basic",
+      "tome": 1,
+      "paragraph": 238,
+      "effect": "Contient 25 boulons.",
+      "isQuestItem": false
+    },
+    {
+      "id": "tome1-bague-deuxieme-chance",
+      "name": "Bague de la deuxième chance",
+      "type": "special",
+      "tome": 1,
+      "paragraph": 209,
+      "effect": "Permet de relancer les dés une fois par combat/action. (Unique, on ne peut en porter qu'une).",
+      "unique": true
+    },
+    {
+      "id": "tome1-cle-rouillee",
+      "name": "Clé rouillée",
+      "type": "basic",
+      "tome": 1,
+      "paragraph": 340,
+      "effect": "Trouvée dans la peinture magique. Sert à ouvrir la grille du labyrinthe.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome1-bracelet-force",
+      "name": "Bracelet de force",
+      "type": "passive",
+      "tome": 1,
+      "paragraph": 287,
+      "effect": "+2 en DEXTÉRITÉ tant qu'il est porté.",
+      "statBonus": {
+        "dexterite": 2
+      }
+    },
+    {
+      "id": "tome1-bague-vitalite",
+      "name": "Bague de vitalité",
+      "type": "passive",
+      "tome": 1,
+      "paragraph": 334,
+      "effect": "+2 POINTS DE VIE (Max/Actuels) tant qu'elle est portée.",
+      "statBonus": {
+        "pvMax": 2,
+        "vie": 2
+      }
+    },
+    {
+      "id": "tome2-champignon-poils-longs",
+      "name": "Champignon à poils longs",
+      "type": "basic",
+      "tome": 2,
+      "paragraph": 3,
+      "effect": "Objet de quête pour Terry.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome2-lettre-pliee",
+      "name": "Lettre pliée",
+      "type": "basic",
+      "tome": 2,
+      "paragraph": 24,
+      "effect": "Donnée par Tess. Contient le message codé « Tess : Ho Vous Rendez Maintenant. Merci. »",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome2-pomme-verte",
+      "name": "Pomme verte",
+      "type": "active",
+      "tome": 2,
+      "paragraph": 102,
+      "effect": "Redonne 2 POINTS DE VIE.",
+      "healAmount": 2,
+      "stackable": true
+    },
+    {
+      "id": "tome2-potion-soin-pale",
+      "name": "Potion de soin pâle",
+      "type": "active",
+      "tome": 2,
+      "paragraph": 47,
+      "effect": "Redonne 3 POINTS DE VIE (version moins efficace que la potion standard).",
+      "healAmount": 3,
+      "stackable": true
+    },
+    {
+      "id": "tome2-souris-morte",
+      "name": "Souris morte",
+      "type": "basic",
+      "tome": 2,
+      "paragraph": 120,
+      "effect": "Seule « richesse » dans la geôle.",
+      "isQuestItem": false
+    },
+    {
+      "id": "tome2-pomme-rouge",
+      "name": "Pomme rouge",
+      "type": "active",
+      "tome": 2,
+      "paragraph": 130,
+      "effect": "Redonne 2 POINTS DE VIE.",
+      "healAmount": 2,
+      "stackable": true
+    },
+    {
+      "id": "tome2-melange-potions-soin",
+      "name": "Mélange pour potions de soin",
+      "type": "basic",
+      "tome": 2,
+      "paragraph": 335,
+      "effect": "Mélange de *Punica granatum* et *Hypericum perforatum*. Permet de créer des potions (§37).",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome2-potions-soin-fabriquees",
+      "name": "Potions de soin (fabriquées)",
+      "type": "active",
+      "tome": 2,
+      "paragraph": 37,
+      "effect": "Création de 2 potions de soin (+5 PV chacune).",
+      "healAmount": 5,
+      "stackable": true
+    },
+    {
+      "id": "tome2-bague-deuxieme-chance",
+      "name": "Bague de la deuxième chance",
+      "type": "special",
+      "tome": 2,
+      "paragraph": 181,
+      "effect": "Trouvée sur le Gardien. Permet de relancer les dés (remplace celle du Tome 1 si déjà possédée).",
+      "unique": true
+    },
+    {
+      "id": "tome2-recu-cheval",
+      "name": "Reçu cheval",
+      "type": "basic",
+      "tome": 2,
+      "paragraph": 272,
+      "effect": "Preuve de dépôt du cheval aux écuries.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome2-ceinture-paco-tille",
+      "name": "Ceinture de Paco Tille",
+      "type": "special",
+      "tome": 2,
+      "paragraph": 215,
+      "effect": "Peut être donnée à la place de 5 boulons pour n'importe quel paiement (pas de monnaie rendue).",
+      "unique": true
+    },
+    {
+      "id": "tome2-champignon-orange",
+      "name": "Champignon orange",
+      "type": "active",
+      "tome": 2,
+      "paragraph": 50,
+      "effect": "+1 POINT DE VIE ACTUEL (consommable).",
+      "healAmount": 1,
+      "stackable": true
+    },
+    {
+      "id": "tome3-cle-coffre",
+      "name": "Clé du coffre",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 8,
+      "effect": "Donnée par le Nain Vil Requin. Ouvre le coffre du couloir.",
+      "isQuestItem": true,
+      "disappearsOnTimeLoop": true
+    },
+    {
+      "id": "tome3-gros-livre",
+      "name": "Gros Livre",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 219,
+      "effect": "Trouvé dans la bibliothèque. Sert à déclencher les dalles piégées.",
+      "isQuestItem": true,
+      "disappearsOnTimeLoop": true
+    },
+    {
+      "id": "tome3-tige-metal",
+      "name": "Tige de métal",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 236,
+      "effect": "Trouvée dans l'établi. Sert de levier.",
+      "isQuestItem": true,
+      "disappearsOnTimeLoop": true
+    },
+    {
+      "id": "tome3-poudre-eveil",
+      "name": "Poudre d'Éveil",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 272,
+      "effect": "Poudre bleue trouvée dans le coffre.",
+      "isQuestItem": true,
+      "disappearsOnTimeLoop": true
+    },
+    {
+      "id": "tome3-potion-eveil",
+      "name": "Potion d'Éveil",
+      "type": "special",
+      "tome": 3,
+      "paragraph": 304,
+      "effect": "Créée en mélangeant la Poudre d'Éveil dans le flacon du guéridon. Permet de sortir de la boucle.",
+      "unique": true,
+      "disappearsOnTimeLoop": true
+    },
+    {
+      "id": "tome3-bague-ancrage",
+      "name": "Bague d'ancrage",
+      "type": "special",
+      "tome": 3,
+      "paragraph": 53,
+      "effect": "+1 CHANCE. Permet d'annuler une blessure par aventure (une fois par tome).",
+      "unique": true,
+      "statBonus": {
+        "chance": 1
+      }
+    },
+    {
+      "id": "tome3-fragment-carapace-reine",
+      "name": "Fragment de carapace de reine",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 53,
+      "effect": "Butin sur la Reine Scarabée.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome3-cle-bronze",
+      "name": "Clé en bronze",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 70,
+      "effect": "Donnée par le Gardien.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome3-cle-soleil",
+      "name": "Clé Soleil",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 89,
+      "effect": "Clé lourde avec une tête en soleil, trouvée au sol après la vision.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome3-potion-confusion",
+      "name": "Potion de confusion",
+      "type": "active",
+      "tome": 3,
+      "paragraph": 91,
+      "effect": "-5 PV à un adversaire. Fabriquée avec *Helleborus*, *Melatonium*, *Punica*.",
+      "damageToEnemy": 5,
+      "stackable": true
+    },
+    {
+      "id": "tome3-medailleon-grave",
+      "name": "Médaillon gravé",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 104,
+      "effect": "Trouvé sur un squelette. Inscription « Pour ceux qui se perdent dans l'étoffe des heures ».",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome3-oeil-nivelis",
+      "name": "Œil de Nivélis",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 349,
+      "effect": "Petite bille bleue récupérée sur le corps de la créature Nivélis.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome3-potion-soin-craftee",
+      "name": "Potion de soin (Craftée)",
+      "type": "active",
+      "tome": 3,
+      "paragraph": 114,
+      "effect": "+5 PV. Fabriquée avec *Punica* et *Hypericum*.",
+      "healAmount": 5,
+      "stackable": true
+    },
+    {
+      "id": "tome3-anneau-echos",
+      "name": "Anneau des échos",
+      "type": "special",
+      "tome": 3,
+      "paragraph": 192,
+      "effect": "Permet de rejouer une scène cruciale/revenir au chapitre précédent une fois (Objet très puissant donné par le Nivélis).",
+      "unique": true
+    },
+    {
+      "id": "tome3-cle-doree",
+      "name": "Clé dorée",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 313,
+      "effect": "Trouvée sur le Gardien.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome3-cuivre",
+      "name": "Clé en cuivre",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 234,
+      "effect": "Trouvée sous le masque au sommet de la tour.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome3-cle-bois",
+      "name": "Clé en bois",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 296,
+      "effect": "Trouvée sur la porte de l'atelier.",
+      "isQuestItem": true
+    },
+    {
+      "id": "tome3-cle-argente",
+      "name": "Clé argentée",
+      "type": "basic",
+      "tome": 3,
+      "paragraph": 308,
+      "effect": "Volée/Trouvée sur le corps du Gardien.",
+      "isQuestItem": true
+    }
+  ]
+}

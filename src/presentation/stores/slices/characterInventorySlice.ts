@@ -1,5 +1,6 @@
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { CharacterListSlice } from './characterListSlice';
+import type { InventoryItem } from '@/src/domain/value-objects/Inventory';
 
 export interface CharacterInventorySlice {
   equipWeapon: (
@@ -8,7 +9,7 @@ export interface CharacterInventorySlice {
   ) => Promise<void>;
   addItem: (
     id: string,
-    item: { name: string; possessed: boolean; type?: 'item' | 'special' }
+    item: Partial<InventoryItem> & { name: string; possessed?: boolean }
   ) => Promise<void>;
   removeItem: (id: string, itemIndex: number) => Promise<void>;
   addBoulons: (id: string, amount: number) => Promise<void>;
@@ -43,7 +44,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
 
     addItem: async (
       id: string,
-      item: { name: string; possessed: boolean; type?: 'item' | 'special' }
+      item: Partial<InventoryItem> & { name: string; possessed?: boolean }
     ) => {
       const character = get().characters[id];
       if (!character) return;
