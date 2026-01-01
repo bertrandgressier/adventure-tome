@@ -12,6 +12,15 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 3.1.0
+*1 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- add second talent for Tome 2+ characters
+
+---
+
 ## Version 3.0.1
 *29 décembre 2025*
 

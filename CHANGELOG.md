@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/bertrandgressier/adventure-tome/compare/v3.0.1...v3.1.0) (2026-01-01)
+
+
+### Features
+
+* **talent:** add second talent for Tome 2+ characters ([3450a76](https://github.com/bertrandgressier/adventure-tome/commit/3450a7658149483bc896e7d3c7db4f6c0e00d66c))
+
 ## [3.0.1](https://github.com/bertrandgressier/adventure-tome/compare/v3.0.0...v3.0.1) (2025-12-29)
 
 
