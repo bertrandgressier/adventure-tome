@@ -3,10 +3,28 @@
  * Représente l'inventaire d'un personnage
  */
 
-export interface InventoryItem {
+import { InventoryItem as DomainInventoryItem, ItemType } from '../types/items';
+
+export interface InventoryItem extends DomainInventoryItem {
+  id: string;
   name: string;
+  type: ItemType;
   possessed: boolean;
-  type?: 'item' | 'special';
+  effect?: string;
+  quantity?: number;
+  stackable?: boolean;
+  unique?: boolean;
+  disappearsOnTimeLoop?: boolean;
+  attackPoints?: number;
+  healAmount?: number;
+  statBonus?: {
+    dexterite?: number;
+    chance?: number;
+    vie?: number;
+    pvMax?: number;
+  };
+  isQuestItem?: boolean;
+  damageToEnemy?: number;
 }
 
 export interface Weapon {
@@ -105,7 +123,24 @@ export class Inventory {
   /**
    * Ajoute un objet à l'inventaire
    */
-  addItem(item: InventoryItem): Inventory {
+  addItem(item: Partial<InventoryItem> & { name: string; possessed?: boolean }): Inventory {
+    const itemToAdd: InventoryItem = {
+      id: item.id || `legacy-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      name: item.name,
+      type: item.type || ItemType.BASIC,
+      possessed: item.possessed ?? true,
+      effect: item.effect,
+      quantity: item.quantity ?? 1,
+      stackable: item.stackable ?? false,
+      unique: item.unique ?? false,
+      disappearsOnTimeLoop: item.disappearsOnTimeLoop ?? false,
+      attackPoints: item.attackPoints,
+      healAmount: item.healAmount,
+      damageToEnemy: item.damageToEnemy,
+      statBonus: item.statBonus,
+      isQuestItem: item.isQuestItem ?? false,
+    };
+
     if (this.items.length >= MAX_ITEMS) {
       throw new Error(`Inventaire plein (${MAX_ITEMS} objets maximum)`);
     }
@@ -113,7 +148,7 @@ export class Inventory {
     return new Inventory(
       this.boulons,
       this.weapon,
-      [...this.items, item]
+      [...this.items, itemToAdd]
     );
   }
 
