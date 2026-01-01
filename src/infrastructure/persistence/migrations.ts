@@ -13,7 +13,7 @@
 
 import { BOURSE_ITEM_NAME } from '@/src/domain/value-objects/Inventory';
 
-export const CURRENT_VERSION = 8;
+export const CURRENT_VERSION = 9;
 
 /**
  * Migration interface
@@ -57,6 +57,10 @@ export interface Migration {
  * Migration v7 → v8: Add days elapsed and next wake up paragraph for Tome 2
  * - Add daysElapsed (default 0) and nextWakeUpParagraph (default undefined)
  * - Only used for Tome 2 time tracking
+ * 
+ * Migration v8 → v9: Add optional second talent for Tome 2+ characters
+ * - Add secondTalent (default undefined) for characters from Tome 2 and beyond
+ * - Characters can now have 1 or 2 talents based on their book
  */
 export const migrations: Migration[] = [
   {
@@ -154,6 +158,17 @@ export const migrations: Migration[] = [
           nextWakeUpParagraph: data.progress?.nextWakeUpParagraph,
         },
         version: 8,
+      };
+    },
+  },
+  {
+    version: 9,
+    migrate: (data) => {
+      // Add optional second talent for Tome 2+ characters
+      return {
+        ...data,
+        secondTalent: data.secondTalent ?? undefined,
+        version: 9,
       };
     },
   },

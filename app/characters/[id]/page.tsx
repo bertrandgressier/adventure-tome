@@ -9,6 +9,7 @@ import CombatInterface from '@/components/adventure/CombatInterface';
 import CombatEndModal from '@/components/adventure/CombatEndModal';
 import CharacterStats from '@/src/presentation/components/CharacterStats';
 import CharacterProgress from '@/src/presentation/components/CharacterProgress';
+import CharacterTalents from '@/src/presentation/components/CharacterTalents';
 import CharacterTimeTracking from '@/src/presentation/components/CharacterTimeTracking';
 import CharacterWeapon from '@/src/presentation/components/CharacterWeapon';
 import CharacterInventory from '@/src/presentation/components/CharacterInventory';
@@ -236,6 +237,9 @@ export default function CharacterDetail() {
         <div className="bg-card glow-border rounded-lg p-6">
           <CharacterStats characterId={id} />
         </div>
+
+        {/* Talents Section */}
+        <CharacterTalents characterId={id} />
 
         {/* Progress Section */}
         <CharacterProgress characterId={id} />

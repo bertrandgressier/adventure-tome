@@ -145,7 +145,7 @@ describe('Migration des données - Compatibilité', () => {
 
     // VÉRIFICATION: gameMode et version
     expect(data.gameMode).toBe('simplified');
-    expect(data.version).toBe(8);
+    expect(data.version).toBe(9);
 
     // VÉRIFICATION: Structure stats
     expect(data.stats).toHaveProperty('dexterite');
@@ -399,7 +399,7 @@ describe('Migration des données - Compatibilité', () => {
     
     // VÉRIFICATION: book converti en number
     expect(character.book).toBe(1); // "La Harpe des Quatre Saisons" → 1
-    expect(character.version).toBe(8); // Version mise à jour
+    expect(character.version).toBe(9); // Version mise à jour
     
     // Test avec autres titres
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -460,7 +460,7 @@ describe('Migration des données - Compatibilité', () => {
     const items = character.getInventory().items;
 
     // VÉRIFICATION: Bourse ajoutée
-    expect(character.version).toBe(8);
+    expect(character.version).toBe(9);
     expect(items).toHaveLength(2);
     expect(items[0].name).toBe('Bourse');
     expect(items[1].name).toBe('Potion');

@@ -31,6 +31,7 @@ export class CharacterService {
     name: string;
     book: number;
     talent: string;
+    secondTalent?: string;
     gameMode: GameMode;
     stats: StatsData;
   }): Promise<Character> {
@@ -322,6 +323,22 @@ export class CharacterService {
     }
 
     const updated = character.updateNextWakeUpParagraph(paragraph);
+    
+    await this.repository.save(updated);
+    
+    return updated;
+  }
+
+  /**
+   * Met à jour le second talent (Tome 2+)
+   */
+  async updateSecondTalent(id: string, secondTalent: string | undefined): Promise<Character> {
+    const character = await this.repository.findById(id);
+    if (!character) {
+      throw new CharacterNotFoundError(id);
+    }
+
+    const updated = character.updateSecondTalent(secondTalent);
     
     await this.repository.save(updated);
     

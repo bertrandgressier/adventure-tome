@@ -107,6 +107,7 @@ export interface CharacterData {
   name: string;
   book: number;
   talent: string;
+  secondTalent?: string;
   gameMode: GameMode;
   version: number;
   createdAt: string;
@@ -123,6 +124,7 @@ export class Character {
     private _name: string,
     public readonly book: number,
     public readonly talent: string,
+    public readonly secondTalent: string | undefined,
     public readonly gameMode: GameMode,
     public readonly version: number,
     public readonly createdAt: string,
@@ -163,6 +165,7 @@ export class Character {
       newName.trim(),
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -183,6 +186,28 @@ export class Character {
       this._name,
       newBook,
       this.talent,
+      this.secondTalent,
+      this.gameMode,
+      this.version,
+      this.createdAt,
+      new Date().toISOString(),
+      this.stats,
+      this.inventory,
+      this.progress,
+      this._notes
+    );
+  }
+
+  /**
+   * Met à jour le second talent (Tome 2+)
+   */
+  updateSecondTalent(secondTalent: string | undefined): Character {
+    return new Character(
+      this.id,
+      this._name,
+      this.book,
+      this.talent,
+      secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -205,6 +230,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -227,6 +253,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -249,6 +276,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -271,6 +299,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -293,6 +322,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -315,6 +345,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -337,6 +368,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -359,6 +391,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -381,6 +414,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -403,6 +437,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -425,6 +460,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -447,6 +483,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -469,6 +506,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -489,6 +527,7 @@ export class Character {
       this._name,
       this.book,
       this.talent,
+      this.secondTalent,
       this.gameMode,
       this.version,
       this.createdAt,
@@ -552,6 +591,7 @@ export class Character {
       name: this._name,
       book: this.book,
       talent: this.talent,
+      secondTalent: this.secondTalent,
       gameMode: this.gameMode,
       version: this.version,
       createdAt: this.createdAt,
@@ -572,6 +612,7 @@ export class Character {
       data.name,
       data.book,
       data.talent,
+      data.secondTalent,
       data.gameMode,
       data.version,
       data.createdAt,
@@ -590,6 +631,7 @@ export class Character {
     name: string;
     book: number;
     talent: string;
+    secondTalent?: string;
     gameMode: GameMode;
     stats: StatsData;
   }): Character {
@@ -607,8 +649,9 @@ export class Character {
       data.name.trim(),
       data.book,
       data.talent,
+      data.secondTalent,
       data.gameMode,
-      8, // CURRENT_VERSION
+      9, // CURRENT_VERSION
       now,
       now,
       Stats.fromData(statsData),

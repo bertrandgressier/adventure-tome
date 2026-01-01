@@ -15,13 +15,22 @@ Première implémentation : **La Harpe des Quatre Saisons**
 
 ### 2. Choix du talent
 
-Lors de la création du personnage, choix parmi 6 talents :
-- **Artisan** : Compétences artisanales
-- **Explorateur** : Connaissance du terrain
-- **Guerrier** : Maîtrise des armes
-- **Magicien** : Pouvoir magique
-- **Négociant** : Sens du commerce
-- **Voleur** : Agilité et discrétion
+**Tome 1** : 1 talent parmi 7 talents initiaux :
+- **Instinct** : Capacité à pressentir le danger et prendre les bonnes décisions
+- **Herbologie** : Connaissance des plantes et de leurs propriétés
+- **Discrétion** : Art de se déplacer et agir sans être remarqué
+- **Persuasion** : Capacité à convaincre et négocier
+- **Observation** : Sens du détail et capacité à repérer des indices
+- **Doigts agiles** : Dextérité manuelle et agilité des mains
+- **Empratique** : Capacité à comprendre et ressentir les émotions d'autrui
+
+**Tome 2+** : 1 ou 2 talents
+- 1 talent initial (liste ci-dessus)
+- 1 second talent optionnel (Tome 2 et suivants) :
+  - **Cartographe** : Capacité à lire les cartes et s'orienter
+  - **Tueur de gobelin** : Expertise contre les gobelins
+  - **Instinct** : Capacité à pressentir le danger et prendre les bonnes décisions
+- Le second talent est optionnel et peut être ignoré
 
 ### 3. Gestion des personnages
 
