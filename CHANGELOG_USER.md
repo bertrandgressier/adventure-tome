@@ -12,6 +12,22 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 3.2.0
+*3 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- create item catalog with 47 items and migration v10
+- add visual item type badges and quick actions overlay
+
+### 🐛 Corrections de bugs
+
+- update CharacterDTO to match new InventoryItem interface
+- update characterInventorySlice to use new InventoryItem type
+- update CharacterService.addItemToInventory signature
+
+---
+
 ## Version 3.1.0
 *1 janvier 2026*
 

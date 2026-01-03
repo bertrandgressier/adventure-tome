@@ -1,3 +1,18 @@
+# [3.2.0](https://github.com/bertrandgressier/adventure-tome/compare/v3.1.0...v3.2.0) (2026-01-03)
+
+
+### Bug Fixes
+
+* update CharacterDTO to match new InventoryItem interface ([404861e](https://github.com/bertrandgressier/adventure-tome/commit/404861ed1d9d1adf0f2579884266750c807e578a))
+* update characterInventorySlice to use new InventoryItem type ([9fc99ac](https://github.com/bertrandgressier/adventure-tome/commit/9fc99ac22a8be8fe21905fd512709b7f36e2bb89))
+* update CharacterService.addItemToInventory signature ([85e8587](https://github.com/bertrandgressier/adventure-tome/commit/85e858768cdd2b30cd890f4f94b967ea2a78cce8))
+
+
+### Features
+
+* **data:** create item catalog with 47 items and migration v10 ([a1cb7fd](https://github.com/bertrandgressier/adventure-tome/commit/a1cb7fd9baa0d1bc9c25debcfa31625f6e6261dd)), closes [#19](https://github.com/bertrandgressier/adventure-tome/issues/19)
+* **inventory:** add visual item type badges and quick actions overlay ([dd7fb1c](https://github.com/bertrandgressier/adventure-tome/commit/dd7fb1c3a66721cce7153f6d91c8fc9c18b7f604)), closes [#20](https://github.com/bertrandgressier/adventure-tome/issues/20)
+
 # [3.1.0](https://github.com/bertrandgressier/adventure-tome/compare/v3.0.1...v3.1.0) (2026-01-01)
 
 
