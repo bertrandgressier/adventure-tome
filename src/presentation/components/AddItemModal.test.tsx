@@ -28,13 +28,13 @@ describe('AddItemModal', () => {
 
   it('should display all items when dialog is opened', async () => {
     render(<AddItemModal onAddItem={onAddItem} />);
-    
+
     const button = screen.getByRole('button', { name: /ajouter un item/i });
     fireEvent.click(button);
 
     await waitFor(() => {
       expect(screen.getByText('Potion de soin')).toBeInTheDocument();
-      expect(screen.getByText('Épée courte (+1)')).toBeInTheDocument();
+      expect(screen.getByText('Collier de charisme')).toBeInTheDocument();
     });
   });
 
@@ -48,12 +48,12 @@ describe('AddItemModal', () => {
       expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, épée...)');
+    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, collier...)');
     fireEvent.change(searchInput, { target: { value: 'potion' } });
 
     await waitFor(() => {
       expect(screen.getByText('Potion de soin')).toBeInTheDocument();
-      expect(screen.queryByText('Épée courte (+1)')).not.toBeInTheDocument();
+      expect(screen.queryByText('Collier de charisme')).not.toBeInTheDocument();
     });
   });
 
@@ -72,7 +72,7 @@ describe('AddItemModal', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Potion de soin')).toBeInTheDocument();
-      expect(screen.queryByText('Épée courte (+1)')).not.toBeInTheDocument();
+      expect(screen.queryByText('Collier de charisme')).not.toBeInTheDocument();
     });
   });
 
@@ -86,7 +86,7 @@ describe('AddItemModal', () => {
       expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, épée...)');
+    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, collier...)');
     fireEvent.change(searchInput, { target: { value: 'potion' } });
 
     await waitFor(() => {
@@ -113,7 +113,7 @@ describe('AddItemModal', () => {
       expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, épée...)');
+    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, collier...)');
     fireEvent.change(searchInput, { target: { value: 'potion' } });
 
     await waitFor(() => {
@@ -136,7 +136,7 @@ describe('AddItemModal', () => {
       expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, épée...)');
+    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, collier...)');
     fireEvent.change(searchInput, { target: { value: 'xyz' } });
 
     await waitFor(() => {

@@ -28,11 +28,13 @@ export function AddItemModal({ onAddItem, disabled }: AddItemModalProps) {
 
   const filteredItems = useMemo(() => {
     return ITEMS_CATALOG.filter((item) => {
+      const isBourse = item.name === 'Bourse';
+      const isWeapon = item.type === ItemType.WEAPON;
       const matchesSearch =
         item.name.toLowerCase().includes(search.toLowerCase());
       const matchesType =
         selectedType === 'all' || item.type === selectedType;
-      return matchesSearch && matchesType;
+      return !isBourse && !isWeapon && matchesSearch && matchesType;
     });
   }, [search, selectedType]);
 
@@ -60,56 +62,49 @@ export function AddItemModal({ onAddItem, disabled }: AddItemModalProps) {
 
         <div className="flex flex-col max-h-[70vh]">
           <Input
-            placeholder="Rechercher un item (ex: potion, épée...)"
+            placeholder="Rechercher un item (ex: potion, collier...)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="mb-4"
           />
 
-          <div className="flex gap-2 mb-4 flex-wrap">
-            <Button
-              variant={selectedType === 'all' ? 'default' : 'outline'}
-              onClick={() => setSelectedType('all')}
-              size="sm"
-            >
-              Tous
-            </Button>
-            <Button
-              variant={selectedType === ItemType.ACTIVE ? 'default' : 'outline'}
-              onClick={() => setSelectedType(ItemType.ACTIVE)}
-              size="sm"
-            >
-              Actifs
-            </Button>
-            <Button
-              variant={selectedType === ItemType.PASSIVE ? 'default' : 'outline'}
-              onClick={() => setSelectedType(ItemType.PASSIVE)}
-              size="sm"
-            >
-              Passifs
-            </Button>
-            <Button
-              variant={selectedType === ItemType.WEAPON ? 'default' : 'outline'}
-              onClick={() => setSelectedType(ItemType.WEAPON)}
-              size="sm"
-            >
-              Armes
-            </Button>
-            <Button
-              variant={selectedType === ItemType.BASIC ? 'default' : 'outline'}
-              onClick={() => setSelectedType(ItemType.BASIC)}
-              size="sm"
-            >
-              Basiques
-            </Button>
-            <Button
-              variant={selectedType === ItemType.SPECIAL ? 'default' : 'outline'}
-              onClick={() => setSelectedType(ItemType.SPECIAL)}
-              size="sm"
-            >
-              Spéciaux
-            </Button>
-          </div>
+        <div className="flex gap-2 mb-4 flex-wrap">
+          <Button
+            variant={selectedType === 'all' ? 'default' : 'outline'}
+            onClick={() => setSelectedType('all')}
+            size="sm"
+          >
+            Tous
+          </Button>
+          <Button
+            variant={selectedType === ItemType.ACTIVE ? 'default' : 'outline'}
+            onClick={() => setSelectedType(ItemType.ACTIVE)}
+            size="sm"
+          >
+            Actifs
+          </Button>
+          <Button
+            variant={selectedType === ItemType.PASSIVE ? 'default' : 'outline'}
+            onClick={() => setSelectedType(ItemType.PASSIVE)}
+            size="sm"
+          >
+            Passifs
+          </Button>
+          <Button
+            variant={selectedType === ItemType.BASIC ? 'default' : 'outline'}
+            onClick={() => setSelectedType(ItemType.BASIC)}
+            size="sm"
+          >
+            Basiques
+          </Button>
+          <Button
+            variant={selectedType === ItemType.SPECIAL ? 'default' : 'outline'}
+            onClick={() => setSelectedType(ItemType.SPECIAL)}
+            size="sm"
+          >
+            Spéciaux
+          </Button>
+        </div>
 
           <ScrollArea className="flex-1 pr-4 min-h-0">
             <div className="grid gap-2">
