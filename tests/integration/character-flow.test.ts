@@ -9,6 +9,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CharacterService } from '@/src/application/services/CharacterService';
 import { IndexedDBCharacterRepository } from '@/src/infrastructure/repositories/IndexedDBCharacterRepository';
+import { ItemType } from '@/src/domain/types/items';
 
 describe('Integration: CharacterService + IndexedDBRepository', () => {
   let service: CharacterService;
@@ -168,13 +169,13 @@ describe('Integration: CharacterService + IndexedDBRepository', () => {
     await service.addItemToInventory(character.id, {
       name: 'Corde',
       possessed: true,
-      type: 'item',
+      type: ItemType.BASIC,
     });
 
     await service.addItemToInventory(character.id, {
       name: 'Potion',
       possessed: true,
-      type: 'item',
+      type: ItemType.ACTIVE,
     });
 
     // Vérifier persistance

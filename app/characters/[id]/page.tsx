@@ -16,7 +16,6 @@ import CharacterInventory from '@/src/presentation/components/CharacterInventory
 import CharacterNotes from '@/src/presentation/components/CharacterNotes';
 import DiceRoller from '@/components/character/DiceRoller';
 import AddWeaponModal from '@/components/character/AddWeaponModal';
-import AddItemModal from '@/components/character/AddItemModal';
 import { GameModeBadge } from '@/components/ui/game-mode-badge';
 
 export default function CharacterDetail() {
@@ -31,7 +30,6 @@ export default function CharacterDetail() {
   const loadOne = useCharacterStore((state) => state.loadOne);
   const updateName = useCharacterStore((state) => state.updateName);
   const equipWeapon = useCharacterStore((state) => state.equipWeapon);
-  const addItem = useCharacterStore((state) => state.addItem);
   const applyDamage = useCharacterStore((state) => state.applyDamage);
   
   const [editingName, setEditingName] = useState(false);
@@ -39,7 +37,6 @@ export default function CharacterDetail() {
   
   // Modal states
   const [showWeaponModal, setShowWeaponModal] = useState(false);
-  const [showItemModal, setShowItemModal] = useState(false);
   const [showDiceModal, setShowDiceModal] = useState(false);
   
   // Combat states
@@ -73,15 +70,6 @@ export default function CharacterDetail() {
       setShowWeaponModal(false);
     } catch (error) {
       console.error('Error adding weapon:', error);
-    }
-  };
-
-  const handleAddItem = async (name: string) => {
-    try {
-      await addItem(id, { name, possessed: true });
-      setShowItemModal(false);
-    } catch (error) {
-      console.error('Error adding item:', error);
     }
   };
 
@@ -258,7 +246,6 @@ export default function CharacterDetail() {
         {/* Inventory Section */}
         <CharacterInventory
           characterId={id}
-          onOpenAddItemModal={() => setShowItemModal(true)}
         />
 
         {/* Notes Section */}
@@ -269,13 +256,6 @@ export default function CharacterDetail() {
           <AddWeaponModal
             onAdd={handleAddWeapon}
             onClose={() => setShowWeaponModal(false)}
-          />
-        )}
-
-        {showItemModal && (
-          <AddItemModal
-            onAdd={handleAddItem}
-            onClose={() => setShowItemModal(false)}
           />
         )}
 
