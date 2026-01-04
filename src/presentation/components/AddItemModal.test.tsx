@@ -11,13 +11,13 @@ describe('AddItemModal', () => {
   });
 
   it('should render add button', () => {
-    render(<AddItemModal onAddItem={onAddItem} />);
+    render(<AddItemModal onAddItem={onAddItem} currentTome={1} />);
     expect(screen.getByRole('button', { name: /ajouter un item/i })).toBeInTheDocument();
   });
 
   it('should open dialog when button is clicked', async () => {
-    render(<AddItemModal onAddItem={onAddItem} />);
-    
+    render(<AddItemModal onAddItem={onAddItem} currentTome={1} />);
+
     const button = screen.getByRole('button', { name: /ajouter un item/i });
     fireEvent.click(button);
 
@@ -27,7 +27,7 @@ describe('AddItemModal', () => {
   });
 
   it('should display all items when dialog is opened', async () => {
-    render(<AddItemModal onAddItem={onAddItem} />);
+    render(<AddItemModal onAddItem={onAddItem} currentTome={1} />);
 
     const button = screen.getByRole('button', { name: /ajouter un item/i });
     fireEvent.click(button);
@@ -39,7 +39,7 @@ describe('AddItemModal', () => {
   });
 
   it('should filter items by search term', async () => {
-    render(<AddItemModal onAddItem={onAddItem} />);
+    render(<AddItemModal onAddItem={onAddItem} currentTome={1} />);
 
     const button = screen.getByRole('button', { name: /ajouter un item/i });
     fireEvent.click(button);
@@ -58,7 +58,7 @@ describe('AddItemModal', () => {
   });
 
   it('should filter items by type', async () => {
-    render(<AddItemModal onAddItem={onAddItem} />);
+    render(<AddItemModal onAddItem={onAddItem} currentTome={1} />);
 
     const button = screen.getByRole('button', { name: /ajouter un item/i });
     fireEvent.click(button);
@@ -77,7 +77,7 @@ describe('AddItemModal', () => {
   });
 
   it('should call onAddItem when an item is clicked', async () => {
-    render(<AddItemModal onAddItem={onAddItem} />);
+    render(<AddItemModal onAddItem={onAddItem} currentTome={1} />);
 
     const button = screen.getByRole('button', { name: /ajouter un item/i });
     fireEvent.click(button);
@@ -104,7 +104,7 @@ describe('AddItemModal', () => {
   });
 
   it('should close dialog after adding item', async () => {
-    render(<AddItemModal onAddItem={onAddItem} />);
+    render(<AddItemModal onAddItem={onAddItem} currentTome={1} />);
 
     const button = screen.getByRole('button', { name: /ajouter un item/i });
     fireEvent.click(button);
@@ -127,7 +127,7 @@ describe('AddItemModal', () => {
   });
 
   it('should show empty message when no items match search', async () => {
-    render(<AddItemModal onAddItem={onAddItem} />);
+    render(<AddItemModal onAddItem={onAddItem} currentTome={1} />);
 
     const button = screen.getByRole('button', { name: /ajouter un item/i });
     fireEvent.click(button);
@@ -145,8 +145,36 @@ describe('AddItemModal', () => {
   });
 
   it('should be disabled when disabled prop is true', () => {
-    render(<AddItemModal onAddItem={onAddItem} disabled />);
+    render(<AddItemModal onAddItem={onAddItem} disabled currentTome={1} />);
     const button = screen.getByRole('button', { name: /ajouter un item/i });
     expect(button).toBeDisabled();
+  });
+
+  it('should filter items by tome', async () => {
+    render(<AddItemModal onAddItem={onAddItem} currentTome={2} />);
+
+    const button = screen.getByRole('button', { name: /ajouter un item/i });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Champignon à poils longs')).toBeInTheDocument();
+    expect(screen.queryByText('Potion de soin')).not.toBeInTheDocument();
+  });
+
+  it('should default to current tome filter', async () => {
+    render(<AddItemModal onAddItem={onAddItem} currentTome={1} />);
+
+    const button = screen.getByRole('button', { name: /ajouter un item/i });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
+    });
+
+    const tome1Button = screen.getByRole('button', { name: 'Tome 1' });
+    expect(tome1Button).toHaveClass('bg-primary');
   });
 });

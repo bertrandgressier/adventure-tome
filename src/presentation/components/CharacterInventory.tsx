@@ -97,6 +97,7 @@ export default function CharacterInventory({
             onUpdate?.();
           }}
           disabled={isFull}
+          currentTome={character.book as 1 | 2 | 3}
         />
       </div>
       {items.length === 0 ? (
