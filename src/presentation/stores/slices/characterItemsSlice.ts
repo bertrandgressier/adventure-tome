@@ -14,6 +14,8 @@ type StoreState = CharacterItemsSlice & CharacterListSlice;
 type GetState = () => StoreState;
 type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 export const createCharacterItemsSlice = (_service: CharacterService) => {
   return (_set: SetState, get: GetState): CharacterItemsSlice => ({
     getAvailableItems: (characterId: string) => {

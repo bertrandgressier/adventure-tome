@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { useCustomItemsCatalog, type CustomItemsCatalogState } from './customItemsCatalogStore';
+import { useCustomItemsCatalog } from './customItemsCatalogStore';
 import { ItemType } from '@/src/domain/types/items';
 
 describe('CustomItemsCatalogStore', () => {

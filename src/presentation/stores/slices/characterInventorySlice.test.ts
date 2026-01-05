@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createCharacterInventorySlice } from './characterInventorySlice';
 import type { CharacterListSlice } from './characterListSlice';
@@ -116,15 +118,6 @@ describe('CharacterInventorySlice', () => {
 
   describe('addItemFromCatalog()', () => {
     it('devrait ajouter un item depuis le catalogue', async () => {
-      const catalogItem: CatalogItem = {
-        id: 'tome1-potion-soin',
-        name: 'Potion de soin',
-        type: ItemType.ACTIVE,
-        tome: 1,
-        stackable: true,
-        healAmount: 5,
-      };
-
       await slice.addItemFromCatalog('test-character-id', 'tome1-potion-soin', 3);
 
       expect(mockSetState).toHaveBeenCalled();
