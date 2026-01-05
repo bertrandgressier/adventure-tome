@@ -1,3 +1,10 @@
+## [3.4.1](https://github.com/bertrandgressier/adventure-tome/compare/v3.4.0...v3.4.1) (2026-01-05)
+
+
+### Bug Fixes
+
+* **lint:** resolve ESLint errors in test files ([37bc230](https://github.com/bertrandgressier/adventure-tome/commit/37bc23078f987de8c4b01f0d77c545bd28cb7404))
+
 # [3.4.0](https://github.com/bertrandgressier/adventure-tome/compare/v3.3.0...v3.4.0) (2026-01-05)
 
 
