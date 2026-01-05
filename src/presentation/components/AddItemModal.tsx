@@ -12,6 +12,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { CatalogItem, ItemType } from '@/src/domain/types/items';
 import { ItemTypeBadge } from './ItemTypeBadge';
 import { ITEMS_CATALOG } from '@/src/data/items-catalog';
@@ -85,36 +92,20 @@ export function AddItemModal({ onAddItem, disabled, currentTome }: AddItemModalP
             className="mb-4"
           />
 
-          <div className="flex gap-2 mb-2 flex-wrap">
-            <Button
-              variant={selectedTome === 1 ? 'default' : 'outline'}
-              onClick={() => setSelectedTome(1)}
-              size="sm"
-            >
-              Tome 1
-            </Button>
-            <Button
-              variant={selectedTome === 2 ? 'default' : 'outline'}
-              onClick={() => setSelectedTome(2)}
-              size="sm"
-            >
-              Tome 2
-            </Button>
-            <Button
-              variant={selectedTome === 3 ? 'default' : 'outline'}
-              onClick={() => setSelectedTome(3)}
-              size="sm"
-            >
-              Tome 3
-            </Button>
-            <Button
-              variant={selectedTome === 'all' ? 'default' : 'outline'}
-              onClick={() => setSelectedTome('all')}
-              size="sm"
-            >
-              Tous
-            </Button>
-          </div>
+          <Select
+            value={selectedTome === 'all' ? 'all' : selectedTome.toString()}
+            onValueChange={(value) => setSelectedTome(value === 'all' ? 'all' : (parseInt(value) as 1 | 2 | 3))}
+          >
+            <SelectTrigger className="w-[180px] mb-4">
+              <SelectValue placeholder="Sélectionner un tome" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">Tome 1</SelectItem>
+              <SelectItem value="2">Tome 2</SelectItem>
+              <SelectItem value="3">Tome 3</SelectItem>
+              <SelectItem value="all">Tous</SelectItem>
+            </SelectContent>
+          </Select>
 
           <div className="flex gap-2 mb-4 flex-wrap">
             <Button

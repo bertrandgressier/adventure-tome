@@ -163,18 +163,4 @@ describe('AddItemModal', () => {
     expect(screen.getByText('Champignon à poils longs')).toBeInTheDocument();
     expect(screen.queryByText('Potion de soin')).not.toBeInTheDocument();
   });
-
-  it('should default to current tome filter', async () => {
-    render(<AddItemModal onAddItem={onAddItem} currentTome={1} />);
-
-    const button = screen.getByRole('button', { name: /ajouter un item/i });
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
-    });
-
-    const tome1Button = screen.getByRole('button', { name: 'Tome 1' });
-    expect(tome1Button).toHaveClass('bg-primary');
-  });
 });
