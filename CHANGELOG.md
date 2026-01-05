@@ -1,3 +1,10 @@
+# [3.4.0](https://github.com/bertrandgressier/adventure-tome/compare/v3.3.0...v3.4.0) (2026-01-05)
+
+
+### Features
+
+* **ui:** adapt AddWeaponModal to use catalog with manual fallback ([ba28f25](https://github.com/bertrandgressier/adventure-tome/commit/ba28f259686e66fa93b66d738cafc5714044899f)), closes [#23](https://github.com/bertrandgressier/adventure-tome/issues/23)
+
 # [3.3.0](https://github.com/bertrandgressier/adventure-tome/compare/v3.2.0...v3.3.0) (2026-01-05)
 
 

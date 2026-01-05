@@ -12,6 +12,15 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 3.4.0
+*5 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- adapt AddWeaponModal to use catalog with manual fallback
+
+---
+
 ## Version 3.3.0
 *5 janvier 2026*
 
