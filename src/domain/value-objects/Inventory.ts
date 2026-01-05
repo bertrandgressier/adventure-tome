@@ -153,6 +153,26 @@ export class Inventory {
       }
     }
 
+    // Gérer les items stackables et uniques
+    const existingItemIndex = this.items.findIndex((i) => i.id === itemToAdd.id && i.possessed);
+
+    if (existingItemIndex >= 0) {
+      const existingItem = this.items[existingItemIndex];
+
+      // Si l'item est stackable, augmenter la quantité
+      if (itemToAdd.stackable && itemToAdd.quantity) {
+        const updatedItems = [...this.items];
+        updatedItems[existingItemIndex] = {
+          ...existingItem,
+          quantity: (existingItem.quantity || 0) + itemToAdd.quantity,
+        };
+        return new Inventory(this.boulons, this.weapon, updatedItems);
+      }
+
+      // Si l'item n'est pas stackable, empêcher l'ajout
+      throw new Error(`${itemToAdd.name} est déjà dans l'inventaire`);
+    }
+
     return new Inventory(
       this.boulons,
       this.weapon,

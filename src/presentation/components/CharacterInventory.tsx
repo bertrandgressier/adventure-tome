@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Trash2, X } from 'lucide-react';
+import { Trash2, X, Minus } from 'lucide-react';
 import { useCharacter } from '@/src/presentation/hooks/useCharacter';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { MAX_ITEMS, BOURSE_ITEM_NAME } from '@/src/domain/value-objects/Inventory';
@@ -9,6 +9,7 @@ import { ItemTypeBadge } from './ItemTypeBadge';
 import { ItemType } from '@/src/domain/types/items';
 import { AddItemModal } from './AddItemModal';
 import { Badge } from '@/components/ui/badge';
+import { ITEMS_CATALOG } from '@/src/data/items-catalog';
 
 interface CharacterInventoryProps {
   characterId: string;
@@ -21,7 +22,11 @@ export default function CharacterInventory({
 }: CharacterInventoryProps) {
   const { character, isLoading, error, removeItem } = useCharacter(characterId);
   const addItemFromCatalog = useCharacterStore((state) => state.addItemFromCatalog);
+  const addCustomItem = useCharacterStore((state) => state.addCustomItem);
+  const consumeItem = useCharacterStore((state) => state.consumeItem);
+  const getAvailableItems = useCharacterStore((state) => state.getAvailableItems);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
+  const availableItems = character ? getAvailableItems(characterId) : ITEMS_CATALOG;
 
   const handleDeleteItem = async (index: number) => {
     if (!character) return;
@@ -34,6 +39,26 @@ export default function CharacterInventory({
     }
 
     await removeItem(index);
+    setSelectedItemIndex(null);
+    onUpdate?.();
+  };
+
+  const handleConsumeItem = async (index: number) => {
+    if (!character) return;
+
+    const items = character.getInventory().items;
+    const item = items[index];
+
+    if (!confirm(`Consommer 1 "${item.name}" ?`)) {
+      return;
+    }
+
+    const quantity = item.quantity || 1;
+    if (quantity <= 1) {
+      await removeItem(index);
+    } else {
+      await consumeItem(characterId, index);
+    }
     setSelectedItemIndex(null);
     onUpdate?.();
   };
@@ -79,6 +104,7 @@ export default function CharacterInventory({
   const inventory = character.getInventory();
   const items = inventory.items;
   const isFull = items.length >= MAX_ITEMS;
+  const presentItemIds = items.filter((item) => item.possessed).map((item) => item.id);
 
   return (
     <div className="bg-card glow-border rounded-lg p-6" onClick={handleClickOutside}>
@@ -93,11 +119,17 @@ export default function CharacterInventory({
         </div>
         <AddItemModal
           onAddItem={async (catalogItem, quantity) => {
-            await addItemFromCatalog(characterId, catalogItem.id, quantity);
+            if (catalogItem.id.startsWith('custom-')) {
+              await addCustomItem(characterId, catalogItem, quantity);
+            } else {
+              await addItemFromCatalog(characterId, catalogItem.id, quantity);
+            }
             onUpdate?.();
           }}
           disabled={isFull}
           currentTome={character.book as 1 | 2 | 3}
+          availableItems={availableItems}
+          presentItemIds={presentItemIds}
         />
       </div>
       {items.length === 0 ? (
@@ -137,26 +169,34 @@ export default function CharacterInventory({
                 </div>
               </div>
 
-              {selectedItemIndex === index && item.name !== BOURSE_ITEM_NAME && (
-                <div
-                  className="absolute inset-0 bg-card/95 backdrop-blur-sm rounded-lg flex items-center justify-center gap-2 z-10"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    onClick={() => handleDeleteItem(index)}
-                    className="flex items-center gap-2 px-4 py-3 bg-destructive/20 hover:bg-destructive/30 text-destructive rounded-lg transition-colors touch-manipulation active:scale-95"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span className="text-sm font-[var(--font-merriweather)]">Supprimer</span>
-                  </button>
-                  <button
-                    onClick={() => setSelectedItemIndex(null)}
-                    className="flex items-center justify-center p-3 bg-muted/50 hover:bg-muted/70 text-muted-light rounded-lg transition-colors touch-manipulation active:scale-95"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+               {selectedItemIndex === index && item.name !== BOURSE_ITEM_NAME && (
+                 <div
+                   className="absolute inset-0 bg-card/95 backdrop-blur-sm rounded-lg flex items-center justify-center gap-2 z-10"
+                   onClick={(e) => e.stopPropagation()}
+                 >
+                   <button
+                     onClick={() => handleConsumeItem(index)}
+                     className="flex items-center gap-2 px-4 py-3 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors touch-manipulation active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                     disabled={!item.stackable}
+                   >
+                     <Minus className="w-4 h-4" />
+                     <span className="text-sm font-[var(--font-merriweather)]">Consommer</span>
+                   </button>
+                   <button
+                     onClick={() => handleDeleteItem(index)}
+                     className="flex items-center gap-2 px-4 py-3 bg-destructive/20 hover:bg-destructive/30 text-destructive rounded-lg transition-colors touch-manipulation active:scale-95"
+                   >
+                     <Trash2 className="w-4 h-4" />
+                     <span className="text-sm font-[var(--font-merriweather)]">Supprimer</span>
+                   </button>
+                   <button
+                     onClick={() => setSelectedItemIndex(null)}
+                     className="flex items-center justify-center p-3 bg-muted/50 hover:bg-muted/70 text-muted-light rounded-lg transition-colors touch-manipulation active:scale-95"
+                   >
+                     <X className="w-4 h-4" />
+                   </button>
+                 </div>
+               )}
             </div>
           ))}
         </div>
