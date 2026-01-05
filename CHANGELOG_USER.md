@@ -12,6 +12,20 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 3.3.0
+*5 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- add catalog item selection modal
+- add tome filter with auto-selection
+
+### 🐛 Corrections de bugs
+
+- prevent adding bourse and weapons to inventory
+
+---
+
 ## Version 3.2.0
 *3 janvier 2026*
 

@@ -1,3 +1,16 @@
+# [3.3.0](https://github.com/bertrandgressier/adventure-tome/compare/v3.2.0...v3.3.0) (2026-01-05)
+
+
+### Bug Fixes
+
+* **inventory:** prevent adding bourse and weapons to inventory ([ea11315](https://github.com/bertrandgressier/adventure-tome/commit/ea11315d671369ced649fbd144ebd86b5a958194))
+
+
+### Features
+
+* **inventory:** add catalog item selection modal ([dd9bb0d](https://github.com/bertrandgressier/adventure-tome/commit/dd9bb0db674157d97426d00de523e6f1315c36f2))
+* **inventory:** add tome filter with auto-selection ([4999259](https://github.com/bertrandgressier/adventure-tome/commit/4999259782b6c32354e1c6537e6108437069224a))
+
 # [3.2.0](https://github.com/bertrandgressier/adventure-tome/compare/v3.1.0...v3.2.0) (2026-01-03)
 
 
