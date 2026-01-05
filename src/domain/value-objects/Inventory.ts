@@ -145,6 +145,14 @@ export class Inventory {
       throw new Error(`Inventaire plein (${MAX_ITEMS} objets maximum)`);
     }
 
+    // Empêcher d'ajouter une deuxième bourse
+    if (itemToAdd.name === BOURSE_ITEM_NAME) {
+      const hasBourse = this.items.some((i) => i.name === BOURSE_ITEM_NAME);
+      if (hasBourse) {
+        throw new Error('La bourse est déjà présente dans l\'inventaire');
+      }
+    }
+
     return new Inventory(
       this.boulons,
       this.weapon,

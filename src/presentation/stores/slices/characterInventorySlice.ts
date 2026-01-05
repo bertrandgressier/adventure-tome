@@ -1,6 +1,7 @@
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { CharacterListSlice } from './characterListSlice';
 import type { InventoryItem } from '@/src/domain/value-objects/Inventory';
+import { ITEMS_CATALOG } from '@/src/data/items-catalog';
 
 export interface CharacterInventorySlice {
   equipWeapon: (
@@ -10,6 +11,11 @@ export interface CharacterInventorySlice {
   addItem: (
     id: string,
     item: Partial<InventoryItem> & { name: string; possessed?: boolean }
+  ) => Promise<void>;
+  addItemFromCatalog: (
+    id: string,
+    catalogItemId: string,
+    quantity?: number
   ) => Promise<void>;
   removeItem: (id: string, itemIndex: number) => Promise<void>;
   addBoulons: (id: string, amount: number) => Promise<void>;
@@ -58,6 +64,39 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
         set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
         throw error;
       }
+    },
+
+    addItemFromCatalog: async (
+      id: string,
+      catalogItemId: string,
+      quantity: number = 1
+    ) => {
+      const character = get().characters[id];
+      if (!character) return;
+
+      const catalogItem = ITEMS_CATALOG.find((item) => item.id === catalogItemId);
+      if (!catalogItem) {
+        throw new Error(`Item ${catalogItemId} not found in catalog`);
+      }
+
+      const newItem: Partial<InventoryItem> & { name: string; possessed?: boolean } = {
+        id: catalogItem.id,
+        name: catalogItem.name,
+        type: catalogItem.type,
+        possessed: true,
+        effect: catalogItem.effect,
+        quantity: catalogItem.stackable ? quantity : 1,
+        stackable: catalogItem.stackable,
+        unique: catalogItem.unique,
+        disappearsOnTimeLoop: catalogItem.disappearsOnTimeLoop,
+        attackPoints: catalogItem.attackPoints,
+        healAmount: catalogItem.healAmount,
+        damageToEnemy: catalogItem.damageToEnemy,
+        statBonus: catalogItem.statBonus,
+        isQuestItem: catalogItem.isQuestItem,
+      };
+
+      await get().addItem(id, newItem);
     },
 
     removeItem: async (id: string, itemIndex: number) => {

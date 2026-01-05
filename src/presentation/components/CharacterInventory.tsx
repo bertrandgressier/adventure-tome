@@ -1,25 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { Trash2, Plus, X } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 import { useCharacter } from '@/src/presentation/hooks/useCharacter';
+import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { MAX_ITEMS, BOURSE_ITEM_NAME } from '@/src/domain/value-objects/Inventory';
 import { ItemTypeBadge } from './ItemTypeBadge';
 import { ItemType } from '@/src/domain/types/items';
+import { AddItemModal } from './AddItemModal';
 import { Badge } from '@/components/ui/badge';
 
 interface CharacterInventoryProps {
   characterId: string;
   onUpdate?: () => void;
-  onOpenAddItemModal?: () => void;
 }
 
 export default function CharacterInventory({
   characterId,
   onUpdate,
-  onOpenAddItemModal,
 }: CharacterInventoryProps) {
   const { character, isLoading, error, removeItem } = useCharacter(characterId);
+  const addItemFromCatalog = useCharacterStore((state) => state.addItemFromCatalog);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
 
   const handleDeleteItem = async (index: number) => {
@@ -81,27 +82,23 @@ export default function CharacterInventory({
 
   return (
     <div className="bg-card glow-border rounded-lg p-6" onClick={handleClickOutside}>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <h2 className="font-[var(--font-uncial)] text-xl tracking-wide text-light">
+      <div className="flex items-center justify-between mb-4 gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <h2 className="font-[var(--font-uncial)] text-xl tracking-wide text-light whitespace-nowrap">
             Inventaire
           </h2>
-          <span className={`text-sm font-mono ${isFull ? 'text-red-400' : 'text-muted-light'}`}>
+          <span className={`text-sm font-mono ${isFull ? 'text-red-400' : 'text-muted-light'} shrink-0`}>
             ({items.length}/{MAX_ITEMS})
           </span>
         </div>
-        <button
-          onClick={onOpenAddItemModal}
+        <AddItemModal
+          onAddItem={async (catalogItem, quantity) => {
+            await addItemFromCatalog(characterId, catalogItem.id, quantity);
+            onUpdate?.();
+          }}
           disabled={isFull}
-          className={`transition-colors rounded-lg p-2 ${
-            isFull
-              ? 'text-muted-light bg-muted cursor-not-allowed opacity-50'
-              : 'text-primary hover:text-yellow-300 bg-primary/10 hover:bg-primary/20'
-          }`}
-          title={isFull ? "Inventaire plein" : "Ajouter un objet"}
-        >
-          <Plus className="w-5 h-5" />
-        </button>
+          currentTome={character.book as 1 | 2 | 3}
+        />
       </div>
       {items.length === 0 ? (
         <span className="text-sm text-muted-light">Aucun objet dans l&apos;inventaire</span>
