@@ -404,6 +404,42 @@ export class Character {
   }
 
   /**
+   * Met à jour la quantité d'un item
+   */
+  updateItemQuantity(index: number, newQuantity: number): Character {
+    const items = this.inventory.items;
+    const item = items[index];
+
+    if (!item) {
+      throw new Error('Item non trouvé');
+    }
+
+    const updatedItems = [...items];
+    updatedItems[index] = { ...item, quantity: newQuantity };
+    const updatedInventory = new Inventory(
+      this.inventory.boulons,
+      this.inventory.weapon,
+      updatedItems
+    );
+
+    return new Character(
+      this.id,
+      this._name,
+      this.book,
+      this.talent,
+      this.secondTalent,
+      this.gameMode,
+      this.version,
+      this.createdAt,
+      new Date().toISOString(),
+      this.stats,
+      updatedInventory,
+      this.progress,
+      this._notes
+    );
+  }
+
+  /**
    * Ajoute des boulons
    */
   addBoulons(amount: number): Character {

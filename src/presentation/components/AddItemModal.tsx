@@ -22,15 +22,19 @@ import {
 import { CatalogItem, ItemType } from '@/src/domain/types/items';
 import { ItemTypeBadge } from './ItemTypeBadge';
 import { ITEMS_CATALOG } from '@/src/data/items-catalog';
+import { AddCustomItemModal } from './AddCustomItemModal';
 
 interface AddItemModalProps {
   onAddItem: (catalogItem: CatalogItem, quantity?: number) => void;
   disabled?: boolean;
   currentTome: 1 | 2 | 3;
+  availableItems?: CatalogItem[];
+  presentItemIds?: string[];
 }
 
-export function AddItemModal({ onAddItem, disabled, currentTome }: AddItemModalProps) {
+export function AddItemModal({ onAddItem, disabled, currentTome, availableItems = ITEMS_CATALOG, presentItemIds = [] }: AddItemModalProps) {
   const [open, setOpen] = useState(false);
+  const [customModalOpen, setCustomModalOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState<ItemType | 'all'>('all');
   const [selectedTome, setSelectedTome] = useState<1 | 2 | 3 | 'all'>(currentTome);
@@ -39,8 +43,18 @@ export function AddItemModal({ onAddItem, disabled, currentTome }: AddItemModalP
     setSelectedTome(currentTome);
   }, [currentTome]);
 
+  const handleAddCustomItem = async (catalogItem: CatalogItem, quantity?: number) => {
+    await onAddItem(catalogItem, quantity);
+  };
+
+  const canAddItem = (item: CatalogItem): boolean => {
+    const isPresent = presentItemIds.includes(item.id);
+    if (!isPresent) return true;
+    return item.stackable === true;
+  };
+
   const filteredItems = useMemo(() => {
-    return ITEMS_CATALOG.filter((item) => {
+    return availableItems.filter((item) => {
       const isBourse = item.name === 'Bourse';
       const isWeapon = item.type === ItemType.WEAPON;
       const matchesSearch =
@@ -51,7 +65,7 @@ export function AddItemModal({ onAddItem, disabled, currentTome }: AddItemModalP
         selectedTome === 'all' || item.tome === selectedTome;
       return !isBourse && !isWeapon && matchesSearch && matchesType && matchesTome;
     });
-  }, [search, selectedType, selectedTome]);
+  }, [search, selectedType, selectedTome, availableItems]);
 
   const handleAddItem = (catalogItem: CatalogItem) => {
     onAddItem(catalogItem);
@@ -147,26 +161,41 @@ export function AddItemModal({ onAddItem, disabled, currentTome }: AddItemModalP
 
           <ScrollArea className="flex-1 pr-4 min-h-0">
             <div className="grid gap-2">
-              {filteredItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent cursor-pointer"
-                  onClick={() => handleAddItem(item)}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium truncate">{item.name}</span>
-                      <ItemTypeBadge type={item.type} showLabel={false} />
+              {filteredItems.map((item) => {
+                const canAdd = canAddItem(item);
+                return (
+                  <div
+                    key={item.id}
+                    className={`flex items-center justify-between p-3 border rounded-lg ${
+                      canAdd ? 'hover:bg-accent cursor-pointer' : 'opacity-50 cursor-not-allowed bg-muted'
+                    }`}
+                    onClick={() => canAdd && handleAddItem(item)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium truncate">{item.name}</span>
+                        <ItemTypeBadge type={item.type} showLabel={false} />
+                      </div>
+                      {item.effect && (
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {item.effect}
+                        </p>
+                      )}
                     </div>
-                    {item.effect && (
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                        {item.effect}
-                      </p>
-                    )}
+                    <Button
+                      size="sm"
+                      className="shrink-0 ml-2"
+                      disabled={!canAdd}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (canAdd) handleAddItem(item);
+                      }}
+                    >
+                      Ajouter
+                    </Button>
                   </div>
-                  <Button size="sm" className="shrink-0 ml-2">Ajouter</Button>
-                </div>
-              ))}
+                );
+              })}
 
               {filteredItems.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
@@ -175,8 +204,26 @@ export function AddItemModal({ onAddItem, disabled, currentTome }: AddItemModalP
               )}
             </div>
           </ScrollArea>
+
+          <Button
+            variant="outline"
+            className="w-full mt-4"
+            onClick={() => {
+              setCustomModalOpen(true);
+              setOpen(false);
+            }}
+          >
+            Créer un item personnalisé
+          </Button>
         </div>
       </DialogContent>
+
+      <AddCustomItemModal
+        open={customModalOpen}
+        onOpenChange={setCustomModalOpen}
+        onAddCustomItem={handleAddCustomItem}
+        currentTome={currentTome}
+      />
     </Dialog>
   );
 }

@@ -267,6 +267,114 @@ describe('Character', () => {
       expect(removed.getInventory().items).toHaveLength(2);
       expect(removed.getInventory().items[1].name).toBe('Corde');
     });
+
+    it('devrait empêcher d\'ajouter un objet non-stackable déjà présent', () => {
+      const character = Character.create({
+        name: 'Aragorn',
+        book: 1,
+        talent: 'instinct',
+        gameMode: 'mortal',
+        stats: {
+          dexterite: 7,
+          chance: 5,
+          chanceInitiale: 5,
+          pointsDeVieMax: 32,
+          pointsDeVieActuels: 32,
+        },
+      });
+
+      const withItem = character.addItem({
+        id: 'test-item',
+        name: 'Clé mystérieuse',
+        possessed: true,
+        type: 'basic',
+        stackable: false,
+      });
+
+      expect(() => {
+        withItem.addItem({
+          id: 'test-item',
+          name: 'Clé mystérieuse',
+          possessed: true,
+          type: 'basic',
+          stackable: false,
+        });
+      }).toThrow('Clé mystérieuse est déjà dans l\'inventaire');
+    });
+
+    it('devrait empêcher d\'ajouter un item unique déjà présent', () => {
+      const character = Character.create({
+        name: 'Aragorn',
+        book: 1,
+        talent: 'instinct',
+        gameMode: 'mortal',
+        stats: {
+          dexterite: 7,
+          chance: 5,
+          chanceInitiale: 5,
+          pointsDeVieMax: 32,
+          pointsDeVieActuels: 32,
+        },
+      });
+
+      const withItem = character.addItem({
+        id: 'unique-item',
+        name: 'Bague de la 2ème chance',
+        possessed: true,
+        type: 'special',
+        unique: true,
+      });
+
+      expect(() => {
+        withItem.addItem({
+          id: 'unique-item',
+          name: 'Bague de la 2ème chance',
+          possessed: true,
+          type: 'special',
+          unique: true,
+        });
+      }).toThrow('Bague de la 2ème chance est déjà dans l\'inventaire');
+    });
+
+    it('devrait augmenter la quantité d\'un item stackable déjà présent', () => {
+      const character = Character.create({
+        name: 'Aragorn',
+        book: 1,
+        talent: 'instinct',
+        gameMode: 'mortal',
+        stats: {
+          dexterite: 7,
+          chance: 5,
+          chanceInitiale: 5,
+          pointsDeVieMax: 32,
+          pointsDeVieActuels: 32,
+        },
+      });
+
+      const withPotion = character.addItem({
+        id: 'tome1-potion-soin',
+        name: 'Potion de soin',
+        possessed: true,
+        type: 'active',
+        stackable: true,
+        quantity: 3,
+      });
+
+      const withMorePotions = withPotion.addItem({
+        id: 'tome1-potion-soin',
+        name: 'Potion de soin',
+        possessed: true,
+        type: 'active',
+        stackable: true,
+        quantity: 2,
+      });
+
+      const items = withMorePotions.getInventory().items;
+      const potion = items.find((i) => i.name === 'Potion de soin');
+
+      expect(items).toHaveLength(2);
+      expect(potion?.quantity).toBe(5);
+    });
   });
 
   describe('addBoulons() et removeBoulons()', () => {

@@ -2,6 +2,7 @@ import type { CharacterService } from '@/src/application/services/CharacterServi
 import type { CharacterListSlice } from './characterListSlice';
 import type { InventoryItem } from '@/src/domain/value-objects/Inventory';
 import { ITEMS_CATALOG } from '@/src/data/items-catalog';
+import { CatalogItem } from '@/src/domain/types/items';
 
 export interface CharacterInventorySlice {
   equipWeapon: (
@@ -17,7 +18,13 @@ export interface CharacterInventorySlice {
     catalogItemId: string,
     quantity?: number
   ) => Promise<void>;
+  addCustomItem: (
+    id: string,
+    catalogItem: CatalogItem,
+    quantity?: number
+  ) => Promise<void>;
   removeItem: (id: string, itemIndex: number) => Promise<void>;
+  consumeItem: (id: string, itemIndex: number) => Promise<void>;
   addBoulons: (id: string, amount: number) => Promise<void>;
   removeBoulons: (id: string, amount: number) => Promise<void>;
 }
@@ -99,6 +106,34 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
       await get().addItem(id, newItem);
     },
 
+    addCustomItem: async (
+      id: string,
+      catalogItem: CatalogItem,
+      quantity: number = 1
+    ) => {
+      const character = get().characters[id];
+      if (!character) return;
+
+      const newItem: Partial<InventoryItem> & { name: string; possessed?: boolean } = {
+        id: catalogItem.id,
+        name: catalogItem.name,
+        type: catalogItem.type,
+        possessed: true,
+        effect: catalogItem.effect,
+        quantity: catalogItem.stackable ? quantity : 1,
+        stackable: catalogItem.stackable,
+        unique: catalogItem.unique,
+        disappearsOnTimeLoop: catalogItem.disappearsOnTimeLoop,
+        attackPoints: catalogItem.attackPoints,
+        healAmount: catalogItem.healAmount,
+        damageToEnemy: catalogItem.damageToEnemy,
+        statBonus: catalogItem.statBonus,
+        isQuestItem: catalogItem.isQuestItem,
+      };
+
+      await get().addItem(id, newItem);
+    },
+
     removeItem: async (id: string, itemIndex: number) => {
       const character = get().characters[id];
       if (!character) return;
@@ -108,6 +143,37 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
         }));
+      } catch (error) {
+        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        throw error;
+      }
+    },
+
+    consumeItem: async (id: string, itemIndex: number) => {
+      const character = get().characters[id];
+      if (!character) return;
+
+      try {
+        const items = character.getInventory().items;
+        const item = items[itemIndex];
+
+        if (!item) {
+          throw new Error('Item non trouvé');
+        }
+
+        if (!item.stackable) {
+          throw new Error('Cet item n\'est pas consommable');
+        }
+
+        const quantity = item.quantity || 1;
+        if (quantity <= 1) {
+          await service.removeItemFromInventory(id, itemIndex);
+        } else {
+          const updated = await service.removeOneQuantity(id, itemIndex);
+          set((state) => ({
+            characters: { ...state.characters, [id]: updated },
+          }));
+        }
       } catch (error) {
         set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
         throw error;

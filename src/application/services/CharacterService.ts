@@ -253,6 +253,38 @@ export class CharacterService {
     }
 
     const updated = character.removeBoulons(amount);
+
+    await this.repository.save(updated);
+
+    return updated;
+  }
+
+  /**
+   * Retire 1 quantité d'un item stackable
+   */
+  async removeOneQuantity(id: string, itemIndex: number): Promise<Character> {
+    const character = await this.repository.findById(id);
+    if (!character) {
+      throw new CharacterNotFoundError(id);
+    }
+
+    const items = character.getInventory().items;
+    const item = items[itemIndex];
+
+    if (!item) {
+      throw new Error('Item non trouvé');
+    }
+
+    if (!item.stackable) {
+      throw new Error('Cet item n\'est pas consommable');
+    }
+
+    const quantity = item.quantity || 1;
+    if (quantity <= 1) {
+      throw new Error('Quantité invalide, utilisez removeItemFromInventory à la place');
+    }
+
+    const updated = character.updateItemQuantity(itemIndex, quantity - 1);
     
     await this.repository.save(updated);
     
