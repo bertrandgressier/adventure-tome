@@ -12,6 +12,13 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 4.0.0
+*6 janvier 2026*
+
+Cette version contient des améliorations techniques et des corrections mineures.
+
+---
+
 ## Version 3.4.1
 *5 janvier 2026*
 

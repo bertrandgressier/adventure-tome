@@ -1,3 +1,33 @@
+# [4.0.0](https://github.com/bertrandgressier/adventure-tome/compare/v3.4.1...v4.0.0) (2026-01-06)
+
+
+### Code Refactoring
+
+* enforce Clean Architecture with DRY patterns ([d22231a](https://github.com/bertrandgressier/adventure-tome/commit/d22231add70f2535afdbfc7ecbf852c67cabccc4))
+
+
+### BREAKING CHANGES
+
+* Business logic removed from UI components
+
+- Create DiceService for random generation (centralized Math.random)
+
+- Add withChanges() helper in Character entity (DRY)
+
+- Add handleSliceError() helper in sliceHelpers (DRY)
+
+- Add setBoulons() coordination logic in slice
+
+- Refactor app/characters/new/page.tsx (remove 28 lines)
+
+- Refactor CharacterProgress component (remove 10 lines)
+
+- Update documentation (AGENTS.md, ARCHITECTURE.md, README.md)
+
+- Delete obsolete files
+
+Test results: 293/293 pass (13 new DiceService tests)
+
 ## [3.4.1](https://github.com/bertrandgressier/adventure-tome/compare/v3.4.0...v3.4.1) (2026-01-05)
 
 
