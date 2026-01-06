@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,30 +24,46 @@ import { ItemTypeBadge } from './ItemTypeBadge';
 import { ITEMS_CATALOG } from '@/src/data/items-catalog';
 import { AddCustomItemModal } from './AddCustomItemModal';
 
+type AddItemModalMode = 'inventory' | 'equipped';
+
 interface AddItemModalProps {
   onAddItem: (catalogItem: CatalogItem, quantity?: number) => void;
   disabled?: boolean;
   currentTome: 1 | 2 | 3;
   availableItems?: CatalogItem[];
   presentItemIds?: string[];
+  mode?: AddItemModalMode;
+  filterType?: ItemType;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddItemModal({ onAddItem, disabled, currentTome, availableItems = ITEMS_CATALOG, presentItemIds = [] }: AddItemModalProps) {
-  const [open, setOpen] = useState(false);
+export function AddItemModal({
+  onAddItem,
+  disabled,
+  currentTome,
+  availableItems = ITEMS_CATALOG,
+  presentItemIds = [],
+  mode = 'inventory',
+  filterType,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange
+}: AddItemModalProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange !== undefined ? controlledOnOpenChange : setInternalOpen;
+
   const [customModalOpen, setCustomModalOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [selectedType, setSelectedType] = useState<ItemType | 'all'>('all');
+  const [selectedType, setSelectedType] = useState<ItemType | 'all'>(filterType || 'all');
   const [selectedTome, setSelectedTome] = useState<1 | 2 | 3 | 'all'>(currentTome);
-
-  useEffect(() => {
-    setSelectedTome(currentTome);
-  }, [currentTome]);
 
   const handleAddCustomItem = async (catalogItem: CatalogItem, quantity?: number) => {
     await onAddItem(catalogItem, quantity);
   };
 
   const canAddItem = (item: CatalogItem): boolean => {
+    if (mode === 'equipped') return true;
     const isPresent = presentItemIds.includes(item.id);
     if (!isPresent) return true;
     return item.stackable === true;
@@ -60,12 +76,12 @@ export function AddItemModal({ onAddItem, disabled, currentTome, availableItems 
       const matchesSearch =
         item.name.toLowerCase().includes(search.toLowerCase());
       const matchesType =
-        selectedType === 'all' || item.type === selectedType;
+        filterType ? item.type === filterType : (selectedType === 'all' || item.type === selectedType);
       const matchesTome =
         selectedTome === 'all' || item.tome === selectedTome;
-      return !isBourse && !isWeapon && matchesSearch && matchesType && matchesTome;
+      return !isBourse && (mode === 'equipped' ? true : !isWeapon) && matchesSearch && matchesType && matchesTome;
     });
-  }, [search, selectedType, selectedTome, availableItems]);
+  }, [search, selectedType, selectedTome, availableItems, filterType, mode]);
 
   const handleAddItem = (catalogItem: CatalogItem) => {
     onAddItem(catalogItem);
@@ -85,22 +101,28 @@ export function AddItemModal({ onAddItem, disabled, currentTome, availableItems 
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button disabled={disabled} className="shrink-0 whitespace-nowrap">
-          + Ajouter un item
-        </Button>
-      </DialogTrigger>
+      {mode === 'inventory' && controlledOpen === undefined ? (
+        <DialogTrigger asChild>
+          <Button disabled={disabled} className="shrink-0 whitespace-nowrap">
+            + Ajouter un item
+          </Button>
+        </DialogTrigger>
+      ) : null}
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Ajouter un item depuis le catalogue</DialogTitle>
+          <DialogTitle>
+            {mode === 'equipped' ? 'Équiper une arme' : 'Ajouter un item depuis le catalogue'}
+          </DialogTitle>
           <DialogDescription>
-            Sélectionnez un item dans le catalogue pour l&apos;ajouter à votre inventaire
+            {mode === 'equipped'
+              ? 'Sélectionnez une arme dans le catalogue pour l\'équiper'
+              : 'Sélectionnez un item dans le catalogue pour l\'ajouter à votre inventaire'}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col max-h-[70vh]">
           <Input
-            placeholder="Rechercher un item (ex: potion, collier...)"
+            placeholder="Rechercher"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="mb-4"
@@ -121,43 +143,45 @@ export function AddItemModal({ onAddItem, disabled, currentTome, availableItems 
             </SelectContent>
           </Select>
 
-          <div className="flex gap-2 mb-4 flex-wrap">
-            <Button
-              variant={selectedType === 'all' ? 'default' : 'outline'}
-              onClick={() => setSelectedType('all')}
-              size="sm"
-            >
-              Tous
-            </Button>
-            <Button
-              variant={selectedType === ItemType.ACTIVE ? 'default' : 'outline'}
-              onClick={() => setSelectedType(ItemType.ACTIVE)}
-              size="sm"
-            >
-              Actifs
-            </Button>
-            <Button
-              variant={selectedType === ItemType.PASSIVE ? 'default' : 'outline'}
-              onClick={() => setSelectedType(ItemType.PASSIVE)}
-              size="sm"
-            >
-              Passifs
-            </Button>
-            <Button
-              variant={selectedType === ItemType.BASIC ? 'default' : 'outline'}
-              onClick={() => setSelectedType(ItemType.BASIC)}
-              size="sm"
-            >
-              Basiques
-            </Button>
-            <Button
-              variant={selectedType === ItemType.SPECIAL ? 'default' : 'outline'}
-              onClick={() => setSelectedType(ItemType.SPECIAL)}
-              size="sm"
-            >
-              Spéciaux
-            </Button>
-          </div>
+          {!filterType && (
+            <div className="flex gap-2 mb-4 flex-wrap">
+              <Button
+                variant={selectedType === 'all' ? 'default' : 'outline'}
+                onClick={() => setSelectedType('all')}
+                size="sm"
+              >
+                Tous
+              </Button>
+              <Button
+                variant={selectedType === ItemType.ACTIVE ? 'default' : 'outline'}
+                onClick={() => setSelectedType(ItemType.ACTIVE)}
+                size="sm"
+              >
+                Actifs
+              </Button>
+              <Button
+                variant={selectedType === ItemType.PASSIVE ? 'default' : 'outline'}
+                onClick={() => setSelectedType(ItemType.PASSIVE)}
+                size="sm"
+              >
+                Passifs
+              </Button>
+              <Button
+                variant={selectedType === ItemType.BASIC ? 'default' : 'outline'}
+                onClick={() => setSelectedType(ItemType.BASIC)}
+                size="sm"
+              >
+                Basiques
+              </Button>
+              <Button
+                variant={selectedType === ItemType.SPECIAL ? 'default' : 'outline'}
+                onClick={() => setSelectedType(ItemType.SPECIAL)}
+                size="sm"
+              >
+                Spéciaux
+              </Button>
+            </div>
+          )}
 
           <ScrollArea className="flex-1 pr-4 min-h-0">
             <div className="grid gap-2">
@@ -191,7 +215,7 @@ export function AddItemModal({ onAddItem, disabled, currentTome, availableItems 
                         if (canAdd) handleAddItem(item);
                       }}
                     >
-                      Ajouter
+                      {mode === 'equipped' ? 'Équiper' : 'Ajouter'}
                     </Button>
                   </div>
                 );
@@ -213,7 +237,7 @@ export function AddItemModal({ onAddItem, disabled, currentTome, availableItems 
               setOpen(false);
             }}
           >
-            Créer un item personnalisé
+            {mode === 'equipped' ? 'Créer une nouvelle arme' : 'Créer un item personnalisé'}
           </Button>
         </div>
       </DialogContent>
@@ -223,6 +247,7 @@ export function AddItemModal({ onAddItem, disabled, currentTome, availableItems 
         onOpenChange={setCustomModalOpen}
         onAddCustomItem={handleAddCustomItem}
         currentTome={currentTome}
+        defaultType={filterType}
       />
     </Dialog>
   );

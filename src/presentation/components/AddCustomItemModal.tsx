@@ -29,6 +29,7 @@ interface AddCustomItemModalProps {
   onOpenChange: (open: boolean) => void;
   onAddCustomItem: (item: CatalogItem, quantity?: number) => void;
   currentTome: 1 | 2 | 3;
+  defaultType?: ItemType;
 }
 
 export function AddCustomItemModal({
@@ -36,15 +37,17 @@ export function AddCustomItemModal({
   onOpenChange,
   onAddCustomItem,
   currentTome,
+  defaultType = ItemType.BASIC,
 }: AddCustomItemModalProps) {
   const addCustomItemToCatalog = useCustomItemsCatalog((state) => state.addCustomItem);
   const [name, setName] = useState('');
-  const [type, setType] = useState<ItemType>(ItemType.BASIC);
+  const [type, setType] = useState<ItemType>(defaultType);
   const [effect, setEffect] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [stackable, setStackable] = useState(false);
   const [unique, setUnique] = useState(false);
   const [disappearsOnTimeLoop, setDisappearsOnTimeLoop] = useState(false);
+  const [attackPoints, setAttackPoints] = useState<number | undefined>(undefined);
 
   const handleSubmit = () => {
     if (!name.trim()) {
@@ -59,6 +62,7 @@ export function AddCustomItemModal({
       unique,
       disappearsOnTimeLoop,
       tome: currentTome,
+      attackPoints: type === ItemType.WEAPON ? attackPoints : undefined,
     });
 
     onAddCustomItem(customItem, quantity);
@@ -67,12 +71,13 @@ export function AddCustomItemModal({
 
   const handleClose = () => {
     setName('');
-    setType(ItemType.BASIC);
+    setType(defaultType);
     setEffect('');
     setQuantity(1);
     setStackable(false);
     setUnique(false);
     setDisappearsOnTimeLoop(false);
+    setAttackPoints(undefined);
     onOpenChange(false);
   };
 
@@ -116,6 +121,20 @@ export function AddCustomItemModal({
               </SelectContent>
             </Select>
           </div>
+
+          {type === ItemType.WEAPON && (
+            <div>
+              <Label htmlFor="attack-points">Points d&apos;attaque *</Label>
+              <Input
+                id="attack-points"
+                type="number"
+                min="0"
+                value={attackPoints ?? ''}
+                onChange={(e) => setAttackPoints(parseInt(e.target.value) || 0)}
+                placeholder="ex: 3"
+              />
+            </div>
+          )}
 
           <div>
             <Label htmlFor="item-effect">Description / Effet</Label>
@@ -180,7 +199,11 @@ export function AddCustomItemModal({
             <Button variant="outline" onClick={handleClose} className="flex-1">
               Annuler
             </Button>
-            <Button onClick={handleSubmit} className="flex-1" disabled={!name.trim()}>
+            <Button
+              onClick={handleSubmit}
+              className="flex-1"
+              disabled={!name.trim() || (type === ItemType.WEAPON && (attackPoints === undefined || attackPoints < 0))}
+            >
               Créer l&apos;item
             </Button>
           </div>

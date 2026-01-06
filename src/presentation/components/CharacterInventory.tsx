@@ -170,34 +170,34 @@ export default function CharacterInventory({
               </div>
 
                {selectedItemIndex === index && item.name !== BOURSE_ITEM_NAME && (
-                 <div
-                   className="absolute inset-0 bg-card/95 backdrop-blur-sm rounded-lg flex items-center justify-center gap-2 z-10"
-                   onClick={(e) => e.stopPropagation()}
-                 >
-                   <button
-                     onClick={() => handleConsumeItem(index)}
-                     className="flex items-center gap-2 px-4 py-3 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors touch-manipulation active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                     disabled={!item.stackable}
-                   >
-                     <Minus className="w-4 h-4" />
-                     <span className="text-sm font-[var(--font-merriweather)]">Consommer</span>
-                   </button>
-                   <button
-                     onClick={() => handleDeleteItem(index)}
-                     className="flex items-center gap-2 px-4 py-3 bg-destructive/20 hover:bg-destructive/30 text-destructive rounded-lg transition-colors touch-manipulation active:scale-95"
-                   >
-                     <Trash2 className="w-4 h-4" />
-                     <span className="text-sm font-[var(--font-merriweather)]">Supprimer</span>
-                   </button>
-                   <button
-                     onClick={() => setSelectedItemIndex(null)}
-                     className="flex items-center justify-center p-3 bg-muted/50 hover:bg-muted/70 text-muted-light rounded-lg transition-colors touch-manipulation active:scale-95"
-                   >
-                     <X className="w-4 h-4" />
-                   </button>
-                 </div>
-               )}
-            </div>
+                  <div
+                    className="absolute inset-0 bg-card/95 backdrop-blur-sm rounded-lg flex items-center justify-center gap-2 z-10"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => handleConsumeItem(index)}
+                      className="flex items-center gap-2 px-4 py-3 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors touch-manipulation active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={!item.stackable}
+                    >
+                      <Minus className="w-4 h-4" />
+                      <span className="text-sm font-[var(--font-merriweather)]">Consommer</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteItem(index)}
+                      className="flex items-center gap-2 px-4 py-3 bg-destructive/20 hover:bg-destructive/30 text-destructive rounded-lg transition-colors touch-manipulation active:scale-95"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span className="text-sm font-[var(--font-merriweather)]">Supprimer</span>
+                    </button>
+                    <button
+                      onClick={() => setSelectedItemIndex(null)}
+                      className="flex items-center justify-center p-3 bg-muted/50 hover:bg-muted/70 text-muted-light rounded-lg transition-colors touch-manipulation active:scale-95"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+             </div>
           ))}
         </div>
       )}

@@ -48,7 +48,7 @@ describe('AddItemModal', () => {
       expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, collier...)');
+    const searchInput = screen.getByPlaceholderText('Rechercher');
     fireEvent.change(searchInput, { target: { value: 'potion' } });
 
     await waitFor(() => {
@@ -86,7 +86,7 @@ describe('AddItemModal', () => {
       expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, collier...)');
+    const searchInput = screen.getByPlaceholderText('Rechercher');
     fireEvent.change(searchInput, { target: { value: 'potion' } });
 
     await waitFor(() => {
@@ -113,7 +113,7 @@ describe('AddItemModal', () => {
       expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, collier...)');
+    const searchInput = screen.getByPlaceholderText('Rechercher');
     fireEvent.change(searchInput, { target: { value: 'potion' } });
 
     await waitFor(() => {
@@ -136,7 +136,7 @@ describe('AddItemModal', () => {
       expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText('Rechercher un item (ex: potion, collier...)');
+    const searchInput = screen.getByPlaceholderText('Rechercher');
     fireEvent.change(searchInput, { target: { value: 'xyz' } });
 
     await waitFor(() => {
