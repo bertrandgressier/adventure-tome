@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import type { Enemy, CombatMode } from '@/src/domain/types/combat';
+import type { CatalogItem } from '@/src/domain/types/items';
+import { ItemType } from '@/src/domain/types/items';
 import CombatSetup from '@/components/adventure/CombatSetup';
 import CombatInterface from '@/components/adventure/CombatInterface';
 import CombatEndModal from '@/components/adventure/CombatEndModal';
@@ -15,8 +17,10 @@ import CharacterWeapon from '@/src/presentation/components/CharacterWeapon';
 import CharacterInventory from '@/src/presentation/components/CharacterInventory';
 import CharacterNotes from '@/src/presentation/components/CharacterNotes';
 import DiceRoller from '@/components/character/DiceRoller';
-import AddWeaponModal from '@/components/character/AddWeaponModal';
+import { AddItemModal } from '@/src/presentation/components/AddItemModal';
 import { GameModeBadge } from '@/components/ui/game-mode-badge';
+import { useCustomItemsCatalog } from '@/src/presentation/stores/customItemsCatalogStore';
+import { ITEMS_CATALOG } from '@/src/data/items-catalog';
 
 export default function CharacterDetail() {
   const router = useRouter();
@@ -36,9 +40,15 @@ export default function CharacterDetail() {
   const [tempName, setTempName] = useState('');
   
   // Modal states
-  const [showWeaponModal, setShowWeaponModal] = useState(false);
+  const [showItemModal, setShowItemModal] = useState(false);
   const [showDiceModal, setShowDiceModal] = useState(false);
-  
+
+  // Get all weapons (official + custom) for equipped mode
+  const customItemsCatalog = useCustomItemsCatalog((state) => state.customItems);
+  const allWeapons = [...ITEMS_CATALOG, ...customItemsCatalog].filter(
+    (item) => item.type === ItemType.WEAPON
+  );
+
   // Combat states
   const [showCombatSetup, setShowCombatSetup] = useState(false);
   const [currentEnemy, setCurrentEnemy] = useState<Enemy | null>(null);
@@ -64,10 +74,10 @@ export default function CharacterDetail() {
   }, [hasInitialLoad, isLoading, character, router]);
 
   // Modal handlers for adding weapon/item
-  const handleAddWeapon = async (name: string, attackPoints: number) => {
+  const handleEquipItem = async (catalogItem: CatalogItem) => {
     try {
-      await equipWeapon(id, { name, attackPoints });
-      setShowWeaponModal(false);
+      await equipWeapon(id, { name: catalogItem.name, attackPoints: catalogItem.attackPoints || 0 });
+      setShowItemModal(false);
     } catch (error) {
       console.error('Error adding weapon:', error);
     }
@@ -238,10 +248,12 @@ export default function CharacterDetail() {
         )}
 
         {/* Weapon Section */}
-        <CharacterWeapon
-          characterId={id}
-          onOpenAddWeaponModal={() => setShowWeaponModal(true)}
-        />
+        <div>
+          <CharacterWeapon
+            characterId={id}
+            onOpenAddWeaponModal={() => setShowItemModal(true)}
+          />
+        </div>
 
         {/* Inventory Section */}
         <CharacterInventory
@@ -252,12 +264,15 @@ export default function CharacterDetail() {
         <CharacterNotes characterId={id} />
 
         {/* Modals */}
-        {showWeaponModal && (
-          <AddWeaponModal
-            onAdd={handleAddWeapon}
-            onClose={() => setShowWeaponModal(false)}
-          />
-        )}
+        <AddItemModal
+          open={showItemModal}
+          onOpenChange={setShowItemModal}
+          onAddItem={handleEquipItem}
+          currentTome={character.book as 1 | 2 | 3}
+          mode="equipped"
+          filterType={ItemType.WEAPON}
+          availableItems={allWeapons}
+        />
 
         {showDiceModal && (
           <DiceRoller onClose={() => setShowDiceModal(false)} />
