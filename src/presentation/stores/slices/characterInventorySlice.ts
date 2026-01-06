@@ -3,6 +3,7 @@ import type { CharacterListSlice } from './characterListSlice';
 import type { InventoryItem } from '@/src/domain/value-objects/Inventory';
 import { ITEMS_CATALOG } from '@/src/data/items-catalog';
 import { CatalogItem } from '@/src/domain/types/items';
+import { handleSliceError } from './sliceHelpers';
 
 export interface CharacterInventorySlice {
   equipWeapon: (
@@ -27,6 +28,7 @@ export interface CharacterInventorySlice {
   consumeItem: (id: string, itemIndex: number) => Promise<void>;
   addBoulons: (id: string, amount: number) => Promise<void>;
   removeBoulons: (id: string, amount: number) => Promise<void>;
+  setBoulons: (id: string, newValue: number) => Promise<void>;
 }
 
 type StoreState = CharacterInventorySlice & CharacterListSlice;
@@ -50,7 +52,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -68,7 +70,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -144,7 +146,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -175,7 +177,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
           }));
         }
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -190,7 +192,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -205,7 +207,36 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
+        throw error;
+      }
+    },
+
+    setBoulons: async (id: string, newValue: number) => {
+      const character = get().characters[id];
+      if (!character) return;
+
+      try {
+        // Logique métier : calcul de la différence et choix de la méthode
+        const currentBoulons = character.getInventory().boulons;
+        const diff = newValue - currentBoulons;
+
+        if (diff > 0) {
+          await service.addBoulons(id, diff);
+        } else if (diff < 0) {
+          await service.removeBoulons(id, Math.abs(diff));
+        }
+        // Si diff === 0, ne rien faire
+
+        // Recharger le personnage pour avoir l'état à jour
+        const updated = await service.getCharacter(id);
+        if (updated) {
+          set((state) => ({
+            characters: { ...state.characters, [id]: updated },
+          }));
+        }
+      } catch (error) {
+        handleSliceError(set, error);
         throw error;
       }
     },

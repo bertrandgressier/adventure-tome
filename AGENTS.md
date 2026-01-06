@@ -1,277 +1,548 @@
 # Adventure Tome - AI Agent Instructions
 
+## ⚠️ IMPORTANT: When to Read ARCHITECTURE.md
+
+**This file (AGENTS.md)** provides essential rules and patterns for development.
+
+**Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) when working on**:
+- Data model changes (Character structure, Stats, Inventory)
+- Migration system (versioning, data persistence)
+- Detailed layer interactions (Domain ↔ Application ↔ Infrastructure ↔ Presentation)
+- Store architecture details (Slices composition, specific patterns)
+- Combat system implementation (CombatService, formulas)
+- Full project structure reference
+
+**Mandatory consultation**: Before modifying domain entities, adding fields to Character, or changing data persistence logic.
+
+---
+
 ## Project Overview
 
-**Adventure Tome** is a mobile-first PWA for managing characters in French "Choose Your Own Adventure" books ("Le jeu dont tu es le héro") from the [La Saga de Dagda collection](https://www.lasagadedagda.fr/). First implementation targets "La Harpe des Quatre Saisons".
+**Adventure Tome** is a mobile-first PWA for French gamebook characters ([La Saga de Dagda](https://www.lasagadedagda.fr/)). 100% client-side, offline-first, with strict adherence to official book rules.
 
-**Core Philosophy**: 
-- 100% client-side (no server, no API)
-- Mobile-first UX with heroic fantasy theming
-- Offline-first with IndexedDB storage
-- All game rules MUST match the official book exactly (no invented mechanics)
+**Tech Stack**: Next.js 16 (React 19) • Tailwind CSS 4 • Zustand 5 • IndexedDB • TypeScript 5 • pnpm
 
-## Tech Stack & Key Decisions
+**Core Principles**:
+- Clean Architecture (Domain → Application → Infrastructure → Presentation)
+- Mobile-first UX (min 375px width, 44px touch targets)
+- Game rules fidelity (never invent mechanics)
+- Type safety + immutability
 
-- **Next.js 16** with App Router (React 19, TypeScript 5)
-- **Tailwind CSS 4** with shadcn/ui components
-- **pnpm** package manager
-- **React Compiler** enabled in `next.config.ts`
-- **IndexedDB** for character/progress persistence (LocalStorage for simple data)
-- Path alias: `@/*` maps to project root
+## Development Workflow
 
-## Quality Gates & Workflows
+## Development Workflow
 
-### Version Requirements
-- **Node.js**: >=24.0.0
-- **pnpm**: >=10.20.0
+### Requirements
+- Node.js >=24.0.0, pnpm >=10.20.0
+- Conventional Commits enforced (commitlint)
 
-### Available Scripts
+### Commands
 ```bash
-pnpm dev              # Start dev server (http://localhost:3000)
+pnpm dev              # Dev server (localhost:3000)
 pnpm build            # Production build
-pnpm start            # Start production server
-pnpm lint             # Run ESLint
-pnpm test             # Run tests
-pnpm test:ui          # Run tests with UI
-pnpm test:coverage    # Run tests with coverage report
+pnpm lint             # ESLint (must pass)
+pnpm test             # All tests (293 tests)
+pnpm test:coverage    # Coverage report
 ```
 
-### Conventional Commits
-**Commitlint is enforced** - All commits and PR titles must follow conventional commits format:
+### CI/CD Gates (all must pass)
+1. Commitlint (PR title format)
+2. ESLint (0 errors)
+3. Tests (293/293 pass)
+4. TypeScript compilation
+5. Production build
+
+---
+
+## Architecture Globale
+
+### Clean Architecture Layers
+
 ```
-<type>(<scope>): <subject>
-
-Allowed types:
-- feat      New feature
-- fix       Bug fix
-- docs      Documentation changes
-- style     Code style changes (formatting, no logic changes)
-- refactor  Code refactoring
-- perf      Performance improvements
-- test      Test changes
-- build     Build system changes
-- ci        CI/CD changes
-- chore     Maintenance tasks
-- revert    Revert previous commit
+┌─────────────────────────────────────────────┐
+│           PRESENTATION LAYER                │  React Components, Zustand Stores
+│  app/, src/presentation/                    │  (UI, Providers, Hooks)
+├─────────────────────────────────────────────┤
+│          APPLICATION LAYER                  │  Use Cases, Services
+│  src/application/services/                  │  (CharacterService)
+├─────────────────────────────────────────────┤
+│      INFRASTRUCTURE LAYER                   │  External I/O
+│  src/infrastructure/                        │  (IndexedDB, Analytics, Migrations)
+├─────────────────────────────────────────────┤
+│           DOMAIN LAYER                      │  Business Logic (Pure)
+│  src/domain/                                │  (Character, Stats, Inventory, Combat)
+└─────────────────────────────────────────────┘
 ```
 
-Examples:
-- `feat(combat): add lucky chance mechanic`
-- `fix(inventory): prevent duplicate weapons`
-- `test(character): add migration tests`
+### Data Flow
+```
+User Action → Component
+    ↓
+Zustand Store (Slice)
+    ↓
+CharacterService (Application)
+    ↓
+Character.method() (Domain Logic)
+    ↓
+IndexedDBRepository (Infrastructure)
+    ↓
+Store Update → Re-render
+```
 
-### CI/CD Pipeline
-All PRs to `main` must pass:
-1. **Commitlint** - Validates PR title follows conventional commits
-2. **Lint** - ESLint must pass with 0 errors
-3. **Tests** - All tests must pass
-4. **Build** - Production build must succeed
-5. **Coverage** - Upload to Codecov (non-blocking)
+### Key Directories
+```
+src/domain/
+  entities/Character.ts          # Entité avec logique métier (withChanges pattern)
+  value-objects/Stats.ts         # Valeurs immuables avec validation
+  value-objects/Inventory.ts
+  services/CombatService.ts      # Logique de combat pure
+  
+src/application/
+  services/CharacterService.ts   # Orchestration CRUD + persistence
+  
+src/infrastructure/
+  repositories/IndexedDBCharacterRepository.ts
+  persistence/migrations.ts      # Versioning + migrations (v10)
+  
+src/presentation/
+  stores/characterStore.ts       # Zustand vanilla store
+  stores/slices/                 # Slices modulaires
+  providers/                     # React Context
+  components/                    # Composants métier
+  hooks/                         # Custom hooks
+```
 
-## Architecture Patterns
+---
 
-### Data Models (see `docs/CHARACTER_SHEET.md`, `docs/ARCHITECTURE.md`)
+## Domain Logic
 
-**Character Model** - Based on official book character sheet:
+### Character Entity Pattern
+
+**Problem**: 18 mutation methods duplicated `new Character(id, name, book, talent, ...)` with 13 params
+**Solution**: Private `withChanges()` helper method
+
 ```typescript
-interface Character {
-  gameMode: 'narrative' | 'simplified' | 'mortal';  // Game difficulty mode
-  version: number;                                   // Data model version (migration)
-  stats: {
-    habilete: number;           // Combat skill
-    endurance: number;          // Health points
-    chance: number;             // Luck score
-    dexterite: number;          // Dexterity (fixed)
-  };
-  pointsDeVieMaximum: number;
-  inventory: {
-    items: Array<{
-      name: string;
-      possessed: boolean;       // Checkbox-style inventory
-      attackPoints?: number;    // Weapon attack points
-      type?: 'weapon' | 'item' | 'special';
-    }>;
-  };
-  progress: {
-    currentParagraph: number;   // Book paragraph tracking
-    history: number[];
-  };
+// src/domain/entities/Character.ts
+export class Character {
+  // ✅ DRY pattern: centralize immutable updates
+  private withChanges(changes: {
+    name?: string;
+    stats?: Stats;
+    inventory?: Inventory;
+    progress?: Progress;
+    notes?: string;
+  }): Character {
+    return new Character(
+      this.id,
+      changes.name ?? this._name,
+      changes.book ?? this.book,
+      this.talent,
+      changes.secondTalent ?? this.secondTalent,
+      this.gameMode,
+      this.version,
+      this.createdAt,
+      new Date().toISOString(), // Auto-update timestamp
+      changes.stats ?? this.stats,
+      changes.inventory ?? this.inventory,
+      changes.progress ?? this.progress,
+      changes.notes ?? this._notes
+    );
+  }
+
+  // ✅ Concise mutations (was 17 lines → 3 lines)
+  updateName(name: string): Character {
+    if (!name.trim()) throw new Error('Name required');
+    return this.withChanges({ name: name.trim() });
+  }
+
+  updateStats(stats: Partial<StatsData>): Character {
+    return this.withChanges({ stats: this.stats.update(stats) });
+  }
+
+  takeDamage(amount: number): Character {
+    return this.withChanges({ stats: this.stats.takeDamage(amount) });
+  }
+  // ... 15 other methods using withChanges()
 }
 ```
 
-**Game Modes**:
-- **Narrative** (`narrative`): Story mode, auto-win combats
-- **Simplified** (`simplified`): Normal mode with manual saves allowed (character copy)
-- **Mortal** (`mortal`): Hardcore mode, one life, no manual saves
+**Rules**:
+- ALL mutations return new `Character` instance (immutable)
+- Validation in domain layer (e.g., `updateName` checks empty)
+- Value Objects (Stats, Inventory) handle their own logic
+- NO direct persistence in domain layer
 
-### Combat System (see `docs/COMBAT.md`)
-
-**Force d'Attaque Formula**: `2d6 + HABILETÉ + Weapon Attack Points`
-- Winner of each round deals 2 damage
-- "Tentez votre Chance" mechanic: Lucky = 3 damage (or 1 taken), Unlucky = 1 damage (or 3 taken)
-- Each luck test reduces CHANCE by 1
-
-### File Structure
-
-```
-app/
-  characters/          # Character CRUD pages
-    layout.tsx         # CharacterStoreProvider scope
-  adventure/           # Combat, dice, notes features
-  components/
-    ui/                # shadcn/ui primitives
-    character/         # CharacterCard, CharacterForm, StatsDisplay
-    adventure/         # CombatInterface, DiceRoller, ProgressTracker
-src/
-  domain/              # Entities, Value Objects (Character, Stats, Inventory)
-  application/         # Services (CharacterService with business logic)
-  infrastructure/      # Repositories (IndexedDBCharacterRepository)
-  presentation/
-    stores/            # Zustand stores (characterStore.ts)
-    providers/         # React Context providers
-    hooks/             # Custom React hooks
+### Value Objects
+```typescript
+// src/domain/value-objects/Stats.ts
+export class Stats {
+  update(partial: Partial<StatsData>): Stats {
+    // Validation + immutable update
+    return new Stats({ ...this.toData(), ...partial });
+  }
+  
+  takeDamage(amount: number): Stats {
+    const newEndurance = Math.max(0, this.endurance - amount);
+    return this.update({ endurance: newEndurance });
+  }
+}
 ```
 
-## Critical Development Rules
+### Game Rules Reference
+- Character stats: [docs/CHARACTER_SHEET.md](docs/CHARACTER_SHEET.md)
+- Combat formulas: [docs/COMBAT.md](docs/COMBAT.md) (2d6 + HABILETÉ + weapon)
+- Modes: `narrative` (auto-win) | `simplified` (manual saves) | `mortal` (hardcore)
 
-### 1. Game Rules Fidelity
-**NEVER invent game mechanics**. All rules must come from official book documentation:
-- Character creation formulas → check book-specific rules
-- Combat calculations → see `docs/COMBAT.md`
-- Inventory/stats → match official character sheet in `docs/CHARACTER_SHEET.md`
+---
 
-### 2. Theming & Styling (see `docs/THEMING.md`)
-- **NO hardcoded CSS colors/styles** - use CSS variables and Tailwind classes
-- Theme: Dark fantasy with gold (`--primary: 45 100% 50%`), purple (`--magic-purple`), blue (`--magic-blue`)
-- Mobile touch targets: minimum 44x44px
-- Font scale: `font-cinzel` for titles, `font-merriweather` for body, `font-mono` for stats
+## Application Layer
 
-### 3. Component Guidelines
-- Use shadcn/ui components from `app/components/ui/`
-- Add new shadcn components via: `npx shadcn@latest add <component>`
-- Mobile-first: test all layouts on 375px width minimum
-- PWA icons required: 192x192, 512x512 in `public/icons/`
+### CharacterService Pattern
 
-### 4. State Management (Zustand + Clean Architecture + Slices Pattern)
-- **Zustand 5.x** with vanilla store pattern (`zustand/vanilla`)
-- **Slices Pattern** for modularity - store divisé en slices thématiques
-- **Provider scoped** to `/characters` routes only (client-side only)
-- **Immutable updates**: Use `Record<string, T>` + spread operator, NEVER `Map`
-- **Auto-selectors**: Use `createSelectors()` helper for type-safe access
-- Persist to IndexedDB via `CharacterService` (all mutations auto-save)
-
-**Store Architecture (Slices Pattern)**:
-```
-src/presentation/stores/
-  characterStore.ts           # Store principal (combine tous les slices)
-  slices/
-    characterListSlice.ts     # État + chargement (characters, isLoading, error)
-    characterMutationSlice.ts # CRUD (create, delete)
-    characterStatsSlice.ts    # Stats (updateStats, applyDamage, heal)
-    characterInventorySlice.ts # Inventaire (equipWeapon, addItem, removeItem)
-    characterMetadataSlice.ts # Métadonnées (updateName, updateNotes, goToParagraph)
-```
+**Responsibility**: Orchestrate domain logic + persistence
 
 ```typescript
-// ✅ Correct: Immutable Record updates
-set((state) => ({ characters: { ...state.characters, [id]: updated } }))
+// src/application/services/CharacterService.ts
+export class CharacterService {
+  constructor(private repository: ICharacterRepository) {}
 
-// ❌ Wrong: Map mutations
-set((state) => ({ characters: new Map(state.characters).set(id, updated) }))
+  // Pattern: find → validate → domain method → persist → return
+  async updateCharacterStats(id: string, stats: Partial<StatsData>): Promise<Character> {
+    const character = await this.repository.findById(id);
+    if (!character) throw new CharacterNotFoundError(id);
+    
+    const updated = character.updateStats(stats); // Domain logic
+    await this.repository.save(updated);          // Persist
+    return updated;
+  }
 
-// ✅ Slice pattern (maintainability)
+  async applyDamage(id: string, amount: number): Promise<Character> {
+    const character = await this.repository.findById(id);
+    if (!character) throw new CharacterNotFoundError(id);
+    
+    const updated = character.takeDamage(amount);
+    await this.repository.save(updated);
+    return updated;
+  }
+}
+```
+
+**Rules**:
+- Service = thin orchestration layer
+- Domain logic stays in `Character.ts` / Value Objects
+- Always validate entity exists before mutation
+- Return updated entity for store sync
+
+---
+
+## Presentation: Zustand Store (Slices Pattern)
+
+### Store Architecture
+
+```
+characterStore.ts              # Main store (combines slices)
+slices/
+  sliceHelpers.ts             # Shared utilities (handleSliceError)
+  characterListSlice.ts       # State + loading (characters, isLoading, error)
+  characterMutationSlice.ts   # CRUD (create, delete)
+  characterStatsSlice.ts      # Stats updates (updateStats, applyDamage, heal)
+  characterInventorySlice.ts  # Inventory (equipWeapon, addItem, removeItem)
+  characterMetadataSlice.ts   # Metadata (updateName, notes, progress)
+  characterItemsSlice.ts      # Custom items catalog
+```
+
+### Slice Pattern
+
+**Problem**: 16 catch blocks duplicated error handling  
+**Solution**: `handleSliceError()` helper
+
+```typescript
+// slices/sliceHelpers.ts
+export function handleSliceError(set: SetState, error: unknown): void {
+  const errorMessage = error instanceof Error ? error.message : 'Erreur de mise à jour';
+  set({ error: errorMessage });
+}
+
+// slices/characterStatsSlice.ts
+import { handleSliceError } from './sliceHelpers';
+
 export const createCharacterStatsSlice = (service: CharacterService) => {
   return (set: SetState, get: GetState): CharacterStatsSlice => ({
-    updateStats: async (id, stats) => { /* ... */ },
-    applyDamage: async (id, amount) => { /* ... */ },
+    updateStats: async (id: string, stats: Partial<StatsData>) => {
+      const character = get().characters[id];
+      if (!character) return;
+
+      try {
+        const updated = await service.updateCharacterStats(id, stats);
+        set((state) => ({
+          characters: { ...state.characters, [id]: updated }, // Immutable Record update
+        }));
+      } catch (error) {
+        handleSliceError(set, error); // ✅ DRY error handling
+        throw error;
+      }
+    },
+    
+    applyDamage: async (id: string, amount: number) => {
+      // Same pattern...
+    },
   });
 };
+```
 
-// ✅ Combine slices in main store
+### Store Composition
+
+```typescript
+// characterStore.ts
 export const createCharacterStore = () => {
   const service = getService();
   return createStore<CharacterStore>()(
-    devtools((set, get, store) => ({
+    devtools((set, get) => ({
       ...createCharacterListSlice(service)(set, get),
+      ...createCharacterMutationSlice(service)(set),
       ...createCharacterStatsSlice(service)(set, get),
-      // ... other slices
-    }))
+      ...createCharacterInventorySlice(service)(set, get),
+      ...createCharacterMetadataSlice(service)(set, get),
+      ...createCharacterItemsSlice(service)(set, get),
+    }), { name: 'CharacterStore' })
   );
 };
 ```
 
-**Key patterns**:
-- **Slices** = fonctions retournant un objet avec state + actions
-- **Typed signatures**: `SetState`, `GetState` pour chaque slice
-- **Service injection**: Pass `CharacterService` to each slice creator
-- `useMemo` in provider (not `useRef`) for React 19 compatibility
-- `shallow` equality in `useStoreWithEqualityFn` for performance
-- Test mocks: `__mocks__/zustand.ts` auto-resets stores after each test
+### Store Rules
+- **Immutability**: Use `Record<string, T>` + spread (NEVER `Map`)
+- **Type safety**: `SetState`, `GetState` signatures in each slice
+- **Scope**: Provider in `app/characters/layout.tsx` only
+- **Testing**: Auto-reset via `__mocks__/zustand/vanilla.ts`
+- **Persistence**: All mutations auto-save via `CharacterService`
 
-**Testing**:
-- Unit tests: Test store directly with `store.getState()` and `store.setState()`
-- Component tests: Test with `CharacterStoreProvider` wrapper
-- All tests auto-reset state via `__mocks__/zustand/vanilla.ts`
-
-## Common Patterns
-
-### Data Migration
-1. **Increment `CURRENT_VERSION`** in `src/infrastructure/persistence/migrations.ts` when `Character` structure changes
-2. **Create migration** in `migrations` array with `migrate()` function
-3. **Default values** for backward compatibility (e.g., `gameMode: 'mortal'` for v1 characters)
-4. **Test migration** in `tests/integration/data-migration.test.ts` with legacy data
-5. **Update `CHANGELOG_USER.md`** for breaking changes
-
-### Adding a New Character Stat
-1. Update `Character` interface in `lib/types/character.ts`
-2. Add field to `CharacterForm` component
-3. Update `docs/CHARACTER_SHEET.md` with official rule
-4. Add validation in `lib/utils/validation.ts`
-
-### Creating Combat Features
-1. Implement logic in `lib/game/combat.ts` following `docs/COMBAT.md` formulas
-2. Build UI in `app/components/adventure/CombatInterface.tsx`
-3. Use dice animations and visual feedback (see theming for colors)
-4. Test edge cases: ties (no damage), luck mechanics, weapon bonuses
-
-### Storage Operations
 ```typescript
-// Use CharacterService, NOT direct IndexedDB calls
-import { CharacterService } from '@/src/application/services/CharacterService';
+// ✅ Correct: Immutable Record update
+set((state) => ({ characters: { ...state.characters, [id]: updated } }))
 
-const service = new CharacterService(repository);
-await service.createCharacter(data);
-await service.updateCharacterStats(id, stats);
-
-// Or use Zustand store (auto-persists to IndexedDB)
-const updateStats = useCharacterStore((state) => state.updateStats);
-await updateStats(characterId, { habilete: 12 });
+// ❌ Wrong: Map mutation
+set((state) => ({ characters: new Map(state.characters).set(id, updated) }))
 ```
 
-## Key Files Reference
+---
 
-- `docs/COMBAT.md` - Complete combat rules with examples
-- `docs/THEMING.md` - CSS variables, color palette, component styling
-- `docs/CHARACTER_SHEET.md` - Official character sheet structure
-- `docs/ARCHITECTURE.md` - Clean Architecture + Zustand patterns
-- `src/presentation/stores/characterStore.ts` - Zustand store implementation
-- `app/characters/layout.tsx` - CharacterStoreProvider scope
-- `app/layout.tsx` - PWA metadata and viewport config
-- `tsconfig.json` - `@/*` path alias configuration
-- `.commitlintrc.json` - Commitlint configuration
-- `eslint.config.mjs` - ESLint configuration
+## UI Components
 
-## Accessibility & Mobile
+### Component Structure
 
-- Minimum contrast ratio: 4.5:1 for text, 3:1 for large text
-- Touch targets: 44x44px minimum (`.btn-mobile` class)
-- Input font-size: 16px minimum (prevents iOS zoom)
-- Test with screen readers (labels, ARIA attributes)
-- Portrait orientation only (set in manifest)
+```
+components/ui/                 # shadcn/ui primitives (Button, Dialog, Input)
+components/adventure/          # Combat, dice roller
+components/character/          # Character-specific (legacy)
+
+src/presentation/components/   # Clean Architecture components
+  CharacterStats.tsx           # Stats display + edit
+  CharacterInventory.tsx       # Inventory management
+  CharacterProgress.tsx        # Paragraph tracking
+  AddItemModal.tsx            # Item catalog modal
+  AddCustomItemModal.tsx      # Custom item creation
+```
+
+### Component Patterns
+
+```typescript
+// ✅ Use Zustand hooks from provider
+import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
+
+export function CharacterStats({ characterId }: Props) {
+  const character = useCharacterStore((state) => state.getCharacter(characterId));
+  const updateStats = useCharacterStore((state) => state.updateStats);
+  const applyDamage = useCharacterStore((state) => state.applyDamage);
+
+  const handleSave = async () => {
+    await updateStats(characterId, { habilete: 12 });
+  };
+}
+```
+
+### shadcn/ui Usage
+- Install: `npx shadcn@latest add <component>`
+- Components in `components/ui/`
+- Customize via Tailwind classes
+- Theme via CSS variables (see Theming section)
+
+---
+
+## UX Guidelines
+
+### Theming & Styling
+
+**Rule**: NO hardcoded colors/styles - use CSS variables
+
+```typescript
+// ✅ Correct: Use Tailwind + CSS variables
+<div className="bg-card text-primary border-primary/50" />
+
+// ❌ Wrong: Hardcoded colors
+<div style={{ background: '#1a1a1a', color: '#ffd700' }} />
+```
+
+**CSS Variables** (see [docs/THEMING.md](docs/THEMING.md)):
+```css
+--primary: 45 100% 50%       /* Gold */
+--magic-purple: 280 100% 70%
+--magic-blue: 210 100% 60%
+--card: 0 0% 10%            /* Dark background */
+```
+
+**Fonts**:
+- Titles: `font-cinzel` (uncial fantasy)
+- Body: `font-merriweather` (readable)
+- Stats: `font-mono` (monospace)
+
+### Mobile-First Rules
+
+1. **Touch Targets**: Minimum 44x44px (`.btn-mobile` class)
+2. **Viewport**: Test at 375px width minimum
+3. **Font Size**: Input min 16px (prevents iOS zoom)
+4. **Orientation**: Portrait only (PWA manifest)
+
+### Accessibility
+
+- Contrast: 4.5:1 text, 3:1 large text
+- ARIA labels on interactive elements
+- Keyboard navigation support
+- Screen reader testing
+
+### PWA Requirements
+
+- Icons: 192x192, 512x512 in `public/icons/`
+- Manifest: `app/manifest.ts` + `public/manifest.json`
+- Offline: IndexedDB for all character data
+- Service Worker: Auto-generated by Next.js
+
+---
+
+## Common Tasks
+
+### Adding a New Character Field
+
+1. **Domain**: Update `Character` interface in `src/domain/entities/Character.ts`
+2. **Migration**: Increment `CURRENT_VERSION` in `src/infrastructure/persistence/migrations.ts`, add migration
+3. **Service**: Add method in `CharacterService` if needed
+4. **Store**: Add action in appropriate slice
+5. **UI**: Update form/display components
+6. **Tests**: Add tests in `*.test.ts` files
+7. **Docs**: Update [docs/CHARACTER_SHEET.md](docs/CHARACTER_SHEET.md)
+
+### Data Migration Steps
+
+```typescript
+// src/infrastructure/persistence/migrations.ts
+export const CURRENT_VERSION = 11; // Increment
+
+export const migrations: Migration[] = [
+  // ... existing migrations
+  {
+    version: 11,
+    migrate: (data) => ({
+      ...data,
+      newField: data.newField ?? defaultValue, // Backward compatibility
+      version: 11,
+    }),
+  },
+];
+```
+
+Test in `tests/integration/data-migration.test.ts`
+
+### Creating Combat Features
+
+1. Logic in `src/domain/services/CombatService.ts` (formulas from [docs/COMBAT.md](docs/COMBAT.md))
+2. UI in `components/adventure/CombatInterface.tsx`
+3. Dice animations + visual feedback
+4. Test edge cases: ties, luck mechanics, weapon bonuses
+
+---
+
+## Testing Strategy
+
+## Testing Strategy
+
+- **293 tests** across domain, application, infrastructure, presentation layers
+- **Coverage**: Domain entities, services, slices, components, integration flows
+- **Tools**: Vitest + Testing Library + fake-indexeddb
+- **Mocks**: Auto-reset in `__mocks__/zustand/vanilla.ts`
+
+```bash
+pnpm test              # Run all tests
+pnpm test:coverage     # Coverage report
+pnpm test:ui           # Interactive UI
+```
+
+---
+
+## Key Documentation
+
+- [docs/COMBAT.md](docs/COMBAT.md) - Combat formulas + examples
+- [docs/CHARACTER_SHEET.md](docs/CHARACTER_SHEET.md) - Official character structure
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Detailed architecture + migrations
+- [docs/THEMING.md](docs/THEMING.md) - CSS variables + color palette
+
+---
+
+## Critical Rules
+
+1. **Game Fidelity**: NEVER invent mechanics - follow official book rules
+2. **Immutability**: Domain entities + Zustand store use immutable patterns
+3. **DRY**: Use helpers (`withChanges()`, `handleSliceError()`) to avoid duplication
+4. **Clean Architecture**: Respect layer boundaries (Domain ← Application ← Infrastructure → Presentation)
+5. **⚠️ NO BUSINESS LOGIC IN UI COMPONENTS** (see details below)
+6. **Type Safety**: TypeScript strict mode, proper typing in all layers
+7. **Mobile-First**: 375px minimum, 44px touch targets, 16px input font-size
+
+### Rule #5: NO BUSINESS LOGIC IN UI COMPONENTS
+
+**FORBIDDEN in React components** (`app/`, `components/`, `src/presentation/components/`):
+```typescript
+// ❌ Math calculations (except display formatting)
+const diff = newValue - oldValue;
+const total = items.reduce((sum, item) => sum + item.price, 0);
+const result = Math.floor(Math.random() * 6) + 1;
+
+// ❌ Complex conditionals (business logic)
+if (character.stats.endurance <= character.stats.pointsDeVieMax / 4) {
+  // Critical health logic
+}
+
+// ❌ Data transformations with logic
+const validItems = items.filter(item => item.type === 'weapon' && item.possessed);
+```
+
+**ALLOWED in React components**:
+```typescript
+// ✅ Simple display conditionals
+if (isLoading) return <Loading />;
+if (error) return <Error message={error} />;
+
+// ✅ Formatting for display only
+const formatted = new Date(character.updatedAt).toLocaleString();
+
+// ✅ Delegate to store/hooks
+const handleSave = async (value: number) => {
+  await updateStats({ endurance: value }); // No logic, just call
+};
+```
+
+**Where to put logic**:
+- **Domain** (`src/domain/`): Pure business logic (Character.isDead(), Stats.isCritical())
+- **Application** (`src/application/`): Orchestration (CharacterService.applyDamage())
+- **Slices** (`src/presentation/stores/slices/`): Coordination logic (calculateDiff, conditionals)
+- **Services** (`src/domain/services/`): Reusable logic (DiceService.roll(), CombatService)
+
+**All logic MUST have unit tests**. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed rules.
+
+---
 
 ## External Resources
 
-- [Next.js 16 Docs](https://nextjs.org/docs)
-- [shadcn/ui Components](https://ui.shadcn.com/docs)
-- [Tailwind CSS 4](https://tailwindcss.com/docs)
-- [La Saga de Dagda Books](https://www.lasagadedagda.fr/)
+- [Next.js 16](https://nextjs.org/docs) - App Router, React 19
+- [shadcn/ui](https://ui.shadcn.com/docs) - Component library
+- [Tailwind CSS 4](https://tailwindcss.com/docs) - Utility-first CSS
+- [Zustand 5](https://docs.pmnd.rs/zustand) - State management
+- [La Saga de Dagda](https://www.lasagadedagda.fr/) - Official gamebooks

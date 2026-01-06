@@ -20,6 +20,7 @@ interface UseCharacterResult {
   removeItem: (itemIndex: number) => Promise<void>;
   addBoulons: (amount: number) => Promise<void>;
   removeBoulons: (amount: number) => Promise<void>;
+  setBoulons: (newValue: number) => Promise<void>;
   goToParagraph: (paragraph: number) => Promise<void>;
   updateNotes: (notes: string) => Promise<void>;
   updateDaysElapsed: (days: number) => Promise<void>;
@@ -51,6 +52,7 @@ export function useCharacter(characterId: string | null): UseCharacterResult {
   const storeRemoveItem = useCharacterStore((state) => state.removeItem);
   const storeAddBoulons = useCharacterStore((state) => state.addBoulons);
   const storeRemoveBoulons = useCharacterStore((state) => state.removeBoulons);
+  const storeSetBoulons = useCharacterStore((state) => state.setBoulons);
   const storeGoToParagraph = useCharacterStore((state) => state.goToParagraph);
   const storeUpdateNotes = useCharacterStore((state) => state.updateNotes);
   const storeUpdateDaysElapsed = useCharacterStore((state) => state.updateDaysElapsed);
@@ -118,6 +120,11 @@ export function useCharacter(characterId: string | null): UseCharacterResult {
     removeBoulons: async (amount: number) => {
       if (!characterId) return;
       await storeRemoveBoulons(characterId, amount);
+    },
+
+    setBoulons: async (newValue: number) => {
+      if (!characterId) return;
+      await storeSetBoulons(characterId, newValue);
     },
 
     goToParagraph: async (paragraph: number) => {

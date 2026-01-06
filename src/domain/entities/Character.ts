@@ -143,6 +143,36 @@ export class Character {
     }
   }
 
+  /**
+   * Creates a new Character instance with specified changes
+   * Helper method to reduce duplication in mutation methods
+   */
+  private withChanges(changes: {
+    name?: string;
+    book?: number;
+    secondTalent?: string | undefined;
+    stats?: Stats;
+    inventory?: Inventory;
+    progress?: Progress;
+    notes?: string;
+  }): Character {
+    return new Character(
+      this.id,
+      changes.name ?? this._name,
+      changes.book ?? this.book,
+      this.talent,
+      changes.secondTalent !== undefined ? changes.secondTalent : this.secondTalent,
+      this.gameMode,
+      this.version,
+      this.createdAt,
+      new Date().toISOString(),
+      changes.stats ?? this.stats,
+      changes.inventory ?? this.inventory,
+      changes.progress ?? this.progress,
+      changes.notes ?? this._notes
+    );
+  }
+
   // Getters
   get name(): string {
     return this._name;
@@ -160,63 +190,21 @@ export class Character {
       throw new Error('Le nom du personnage ne peut pas être vide');
     }
     
-    return new Character(
-      this.id,
-      newName.trim(),
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      this.inventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ name: newName.trim() });
   }
 
   /**
    * Met à jour le livre du personnage
    */
   updateBook(newBook: number): Character {
-    return new Character(
-      this.id,
-      this._name,
-      newBook,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      this.inventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ book: newBook });
   }
 
   /**
    * Met à jour le second talent (Tome 2+)
    */
   updateSecondTalent(secondTalent: string | undefined): Character {
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      this.inventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ secondTalent });
   }
 
   /**
@@ -225,21 +213,7 @@ export class Character {
   updateStats(newStats: Partial<StatsData>): Character {
     const updatedStats = this.stats.update(newStats);
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      updatedStats,
-      this.inventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ stats: updatedStats });
   }
 
   /**
@@ -248,21 +222,7 @@ export class Character {
   takeDamage(damage: number): Character {
     const updatedStats = this.stats.takeDamage(damage);
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      updatedStats,
-      this.inventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ stats: updatedStats });
   }
 
   /**
@@ -271,21 +231,7 @@ export class Character {
   heal(amount: number): Character {
     const updatedStats = this.stats.heal(amount);
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      updatedStats,
-      this.inventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ stats: updatedStats });
   }
 
   /**
@@ -294,21 +240,7 @@ export class Character {
   decreaseChance(): Character {
     const updatedStats = this.stats.decreaseChance();
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      updatedStats,
-      this.inventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ stats: updatedStats });
   }
 
   /**
@@ -317,21 +249,7 @@ export class Character {
   equipWeapon(weapon: { name: string; attackPoints: number }): Character {
     const updatedInventory = this.inventory.equipWeapon(weapon);
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      updatedInventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ inventory: updatedInventory });
   }
 
   /**
@@ -340,21 +258,7 @@ export class Character {
   unequipWeapon(): Character {
     const updatedInventory = this.inventory.unequipWeapon();
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      updatedInventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ inventory: updatedInventory });
   }
 
   /**
@@ -363,21 +267,7 @@ export class Character {
   addItem(item: Partial<InventoryItem> & { name: string; possessed?: boolean }): Character {
     const updatedInventory = this.inventory.addItem(item);
 
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      updatedInventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ inventory: updatedInventory });
   }
 
   /**
@@ -386,21 +276,7 @@ export class Character {
   removeItem(index: number): Character {
     const updatedInventory = this.inventory.removeItem(index);
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      updatedInventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ inventory: updatedInventory });
   }
 
   /**
@@ -422,21 +298,7 @@ export class Character {
       updatedItems
     );
 
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      updatedInventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ inventory: updatedInventory });
   }
 
   /**
@@ -445,21 +307,7 @@ export class Character {
   addBoulons(amount: number): Character {
     const updatedInventory = this.inventory.addBoulons(amount);
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      updatedInventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ inventory: updatedInventory });
   }
 
   /**
@@ -468,21 +316,7 @@ export class Character {
   removeBoulons(amount: number): Character {
     const updatedInventory = this.inventory.removeBoulons(amount);
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      updatedInventory,
-      this.progress,
-      this._notes
-    );
+    return this.withChanges({ inventory: updatedInventory });
   }
 
   /**
@@ -491,21 +325,7 @@ export class Character {
   goToParagraph(paragraph: number): Character {
     const updatedProgress = this.progress.goToParagraph(paragraph);
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      this.inventory,
-      updatedProgress,
-      this._notes
-    );
+    return this.withChanges({ progress: updatedProgress });
   }
 
   /**
@@ -514,21 +334,7 @@ export class Character {
   updateDaysElapsed(days: number): Character {
     const updatedProgress = this.progress.updateDaysElapsed(days);
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      this.inventory,
-      updatedProgress,
-      this._notes
-    );
+    return this.withChanges({ progress: updatedProgress });
   }
 
   /**
@@ -537,42 +343,14 @@ export class Character {
   updateNextWakeUpParagraph(paragraph: number | undefined): Character {
     const updatedProgress = this.progress.updateNextWakeUpParagraph(paragraph);
     
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      this.inventory,
-      updatedProgress,
-      this._notes
-    );
+    return this.withChanges({ progress: updatedProgress });
   }
 
   /**
    * Met à jour les notes
    */
   updateNotes(notes: string): Character {
-    return new Character(
-      this.id,
-      this._name,
-      this.book,
-      this.talent,
-      this.secondTalent,
-      this.gameMode,
-      this.version,
-      this.createdAt,
-      new Date().toISOString(),
-      this.stats,
-      this.inventory,
-      this.progress,
-      notes
-    );
+    return this.withChanges({ notes });
   }
 
   /**

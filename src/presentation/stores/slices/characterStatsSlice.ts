@@ -1,6 +1,7 @@
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { StatsData } from '@/src/domain/value-objects/Stats';
 import type { CharacterListSlice } from './characterListSlice';
+import { handleSliceError } from './sliceHelpers';
 
 export interface CharacterStatsSlice {
   updateStats: (id: string, stats: Partial<StatsData>) => Promise<void>;
@@ -24,7 +25,7 @@ export const createCharacterStatsSlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -39,7 +40,7 @@ export const createCharacterStatsSlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -54,7 +55,7 @@ export const createCharacterStatsSlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
