@@ -1,5 +1,6 @@
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { CharacterListSlice } from './characterListSlice';
+import { handleSliceError } from './sliceHelpers';
 
 export type CharacterMetadataSlice = {
   updateName: (id: string, name: string) => Promise<void>;
@@ -27,7 +28,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -42,7 +43,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -57,7 +58,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -72,7 +73,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -87,7 +88,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -102,7 +103,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },
@@ -117,7 +118,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
           characters: { ...state.characters, [id]: updated },
         }));
       } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'Erreur de mise à jour' });
+        handleSliceError(set, error);
         throw error;
       }
     },

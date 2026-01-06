@@ -54,7 +54,7 @@ Adventure Tome est votre compagnon mobile pour vivre vos aventures épiques ! Cr
 
 [![Codecov Coverage](https://codecov.io/gh/bertrandgressier/adventure-tome/branch/main/graphs/sunburst.svg)](https://codecov.io/gh/bertrandgressier/adventure-tome)
 
-La couverture de tests est automatiquement mesurée et rapportée sur chaque Pull Request. L'architecture Clean permet une couverture élevée avec **71 tests unitaires** couvrant la logique métier (Domain & Application layers).
+La couverture de tests est automatiquement mesurée et rapportée sur chaque Pull Request. L'architecture Clean permet une couverture élevée avec **293 tests** couvrant toutes les couches : Domain, Application, Infrastructure et Presentation (stores, slices, composants).
 
 ## 📋 Prérequis
 
@@ -84,11 +84,11 @@ Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 ## 📖 Documentation
 
 - [📋 Fonctionnalités complètes](./docs/FEATURES.md)
-- [🏗️ Architecture technique](./docs/ARCHITECTURE.md)
+- [🏗️ Architecture technique](./docs/ARCHITECTURE.md) - **Consulter avant toute modification du domaine**
 - [📝 Format fiche personnage](./docs/CHARACTER_SHEET.md)
 - [⚔️ Règles de combat](./docs/COMBAT.md)
 - [🎨 Guide du thème](./docs/THEMING.md)
-- [📘 Guide de migration Clean Architecture](./docs/MIGRATION_GUIDE.md)
+- [🤖 Instructions pour agents IA](./AGENTS.md)
 
 ## ☕ Soutenir le projet
 

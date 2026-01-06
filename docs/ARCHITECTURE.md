@@ -19,6 +19,76 @@
 - **Web App Manifest** - Configuration PWA
 - **IndexedDB** - Stockage local structuré
 
+## Clean Architecture - Règles Strictes
+
+### ⚠️ RÈGLE #1 : PAS DE LOGIQUE MÉTIER DANS LES COMPOSANTS UI
+
+**Interdit** dans les composants React (Presentation layer):
+- ❌ Calculs mathématiques (sauf formatage d'affichage)
+- ❌ Logique conditionnelle complexe (if/else métier, switch/case)
+- ❌ Transformations de données (map/filter/reduce avec logique)
+- ❌ Validations métier
+- ❌ Génération de valeurs aléatoires (Math.random pour dés)
+- ❌ Manipulation d'état complexe (calcul de différence, aggregation)
+
+**Autorisé** dans les composants React:
+- ✅ Affichage conditionnel simple (isLoading, error)
+- ✅ Formatage visuel (dates, nombres pour affichage)
+- ✅ Gestion d'état UI local (modales, formulaires)
+- ✅ Appel de méthodes du store/hook (sans logique)
+- ✅ Event handlers qui délèguent au store
+
+**Où placer la logique**:
+1. **Domain Layer** (`src/domain/`) : Logique métier pure (Character, Stats, CombatService)
+2. **Application Layer** (`src/application/`) : Orchestration (CharacterService)
+3. **Slices** (`src/presentation/stores/slices/`) : Logique de coordination store
+
+**Exemple de violation**:
+```typescript
+// ❌ WRONG: Logique dans le composant
+function CharacterProgress() {
+  const handleUpdateBoulons = (newValue: number) => {
+    const diff = newValue - character.boulons; // ❌ Calcul métier
+    if (diff > 0) {                             // ❌ Logique conditionnelle
+      addBoulons(diff);
+    } else {
+      removeBoulons(Math.abs(diff));            // ❌ Math.abs
+    }
+  };
+}
+
+// ✅ CORRECT: Logique dans le slice
+// Composant:
+function CharacterProgress() {
+  const handleUpdateBoulons = (newValue: number) => {
+    setBoulons(newValue); // Simple appel, pas de logique
+  };
+}
+
+// Slice:
+export const createInventorySlice = () => ({
+  setBoulons: async (id: string, newValue: number) => {
+    const character = get().characters[id];
+    const diff = newValue - character.getInventory().boulons;
+    if (diff > 0) {
+      await service.addBoulons(id, diff);
+    } else if (diff < 0) {
+      await service.removeBoulons(id, Math.abs(diff));
+    }
+    // ...
+  }
+});
+```
+
+### RÈGLE #2 : TOUTE LOGIQUE DOIT ÊTRE TESTÉE
+
+- Domain entities : Tests unitaires obligatoires
+- Services : Tests unitaires obligatoires
+- Slices : Tests unitaires obligatoires
+- Composants UI : Tests d'intégration (pas de tests de logique métier)
+
+**Ratio cible** : 80%+ de couverture sur Domain/Application/Slices
+
 ## Structure du projet
 
 ```text
@@ -354,7 +424,7 @@ Le projet utilise un système de versioning et migration inspiré du pattern de 
 
 ```typescript
 // src/infrastructure/persistence/migrations.ts
-export const CURRENT_VERSION = 2;
+export const CURRENT_VERSION = 10;
 
 interface Migration {
   version: number;

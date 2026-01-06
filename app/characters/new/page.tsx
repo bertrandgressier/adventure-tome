@@ -8,6 +8,7 @@ import { trackCharacterCreation, trackDiceRoll } from '@/src/infrastructure/anal
 import { BookTag, BOOK_TITLES } from '@/components/ui/book-tag';
 import { TALENTS } from '@/src/presentation/constants/talents';
 import type { GameMode } from '@/src/domain/entities/Character';
+import { DiceService } from '@/src/domain/services/DiceService';
 
 const BOOKS = [1, 2, 3];
 
@@ -49,36 +50,14 @@ export default function NewCharacterPage() {
     pointsDeVieMax: 0,
   });
 
-  // Fonction pour lancer les dés (2d6)
-  const rollDice = () => {
-    return Math.floor(Math.random() * 6) + 1 + Math.floor(Math.random() * 6) + 1;
-  };
-
-  // Fonction pour lancer 1 dé
-  const rollOneDice = () => {
-    return Math.floor(Math.random() * 6) + 1;
-  };
-
-  // Générer toutes les stats selon les règles du livre
+  // Générer toutes les stats selon les règles du livre (utilise DiceService)
   const generateStats = () => {
-    // DEXTÉRITÉ : 7 (valeur fixe)
-    const dexterite = 7;
-    
-    // CHANCE : 1d6
-    const chance = rollOneDice();
-    
-    // POINTS DE VIE MAXIMUM : 2d6 × 4
-    const pointsDeVieMax = rollDice() * 4;
-
-    setStats({
-      dexterite,
-      chance,
-      pointsDeVieMax,
-    });
+    const generated = DiceService.generateCharacterStats();
+    setStats(generated);
 
     // Tracker les lancers de dés pour la création de personnage
-    trackDiceRoll('1d6', chance, 'character_creation_chance');
-    trackDiceRoll('2d6', pointsDeVieMax / 4, 'character_creation_hp');
+    trackDiceRoll('1d6', generated.chance, 'character_creation_chance');
+    trackDiceRoll('2d6', generated.pointsDeVieMax / 4, 'character_creation_hp');
   };
 
   const handleCreateCharacter = async () => {

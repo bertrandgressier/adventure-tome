@@ -32,7 +32,7 @@ interface CharacterProgressProps {
  * - Date de dernière mise à jour
  */
 export default function CharacterProgress({ characterId, onUpdate }: CharacterProgressProps) {
-  const { character, isLoading, error, goToParagraph, addBoulons, removeBoulons, updateBook } = useCharacter(characterId);
+  const { character, isLoading, error, goToParagraph, setBoulons, updateBook } = useCharacter(characterId);
   const [isBookDialogOpen, setIsBookDialogOpen] = useState(false);
 
   const handleUpdateProgress = async (paragraph: number) => {
@@ -41,15 +41,8 @@ export default function CharacterProgress({ characterId, onUpdate }: CharacterPr
   };
 
   const handleUpdateBoulons = async (newValue: number | null) => {
-    if (newValue === null || !character) return; // Boulons ne peut pas être null
-    const currentBoulons = character.getInventory().boulons;
-    const diff = newValue - currentBoulons;
-    
-    if (diff > 0) {
-      await addBoulons(diff);
-    } else if (diff < 0) {
-      await removeBoulons(Math.abs(diff));
-    }
+    if (newValue === null) return;
+    await setBoulons(newValue);
     onUpdate?.();
   };
 
