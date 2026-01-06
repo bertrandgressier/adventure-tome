@@ -1,3 +1,10 @@
+# [4.1.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.0.0...v4.1.0) (2026-01-06)
+
+
+### Features
+
+* unifier la gestion des armes avec AddItemModal ([#45](https://github.com/bertrandgressier/adventure-tome/issues/45)) ([3f3a9e3](https://github.com/bertrandgressier/adventure-tome/commit/3f3a9e3b26044ac6a72d2a1620ff42b02417504a))
+
 # [4.0.0](https://github.com/bertrandgressier/adventure-tome/compare/v3.4.1...v4.0.0) (2026-01-06)
 
 

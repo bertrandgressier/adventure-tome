@@ -12,6 +12,15 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 4.1.0
+*6 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- unifier la gestion des armes avec AddItemModal ([#45](https://github.com/bertrandgressier/adventure-tome/issues/45))
+
+---
+
 ## Version 4.0.0
 *6 janvier 2026*
 
