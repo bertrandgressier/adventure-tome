@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Question / Discussion
+    url: https://github.com/bertrandgressier/adventure-tome/discussions
+    about: Poser une question ou démarrer une discussion sur le projet
+  - name: 📖 Documentation
+    url: https://github.com/bertrandgressier/adventure-tome/blob/main/README.md
+    about: Consulter la documentation du projet
+  - name: 🎮 La Saga de Dagda
+    url: https://www.lasagadedagda.fr/
+    about: Site officiel des livres-jeux (règles et références)

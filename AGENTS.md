@@ -52,6 +52,29 @@ pnpm test:coverage    # Coverage report
 4. TypeScript compilation
 5. Production build
 
+### Creating Issues
+
+**TOUJOURS utiliser les templates GitHub** lors de la création d'issues :
+
+```bash
+# Récupérer et analyser une issue existante
+gh issue view 44
+
+# Créer une nouvelle issue avec template
+gh issue create --template feature.yml      # Nouvelle fonctionnalité
+gh issue create --template bug.yml          # Bug report
+gh issue create --template enhancement.yml  # Amélioration
+gh issue create --template refactor.yml     # Refactorisation
+```
+
+**Templates disponibles** (`.github/ISSUE_TEMPLATE/`) :
+- 🚀 **feature.yml** - Nouvelle fonctionnalité (objectif, étapes, livrables, edge cases)
+- 🐛 **bug.yml** - Bug report (reproduction, logs, sévérité, environnement)
+- ✨ **enhancement.yml** - Amélioration (comportement actuel vs proposé, mockups)
+- ♻️ **refactor.yml** - Refactorisation (étude d'impact, architecture, risques)
+
+**Guide complet** : [.github/ISSUE_TEMPLATE/USAGE_GUIDE.md](.github/ISSUE_TEMPLATE/USAGE_GUIDE.md)
+
 ---
 
 ## Architecture Globale

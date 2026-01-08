@@ -1,0 +1,169 @@
+name: ✨ Enhancement
+description: Améliorer une fonctionnalité existante
+title: "[Enhancement]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de proposer une amélioration ! Veuillez remplir les sections ci-dessous.
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: 🔄 Comportement actuel
+      description: Comment fonctionne actuellement la fonctionnalité ?
+      placeholder: |
+        Actuellement, le système de combat affiche uniquement le résultat final sans montrer les détails des calculs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-behavior
+    attributes:
+      label: ✨ Comportement proposé
+      description: Comment devrait fonctionner la fonctionnalité améliorée ?
+      placeholder: |
+        Le système de combat devrait afficher :
+        - Le jet de dés détaillé (2d6)
+        - Le bonus d'habileté
+        - Le bonus d'arme
+        - Le calcul final
+        
+        Cela permet au joueur de mieux comprendre les mécaniques de combat.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 🎯 Motivation
+      description: Pourquoi cette amélioration est-elle importante ?
+      placeholder: |
+        - Améliore la transparence du système
+        - Permet aux joueurs de vérifier les calculs
+        - Renforce l'immersion
+        - Facilite le debug
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: 🚀 Proposition d'implémentation
+      description: Comment pourrait-on implémenter cette amélioration ?
+      placeholder: |
+        ### Option 1: Affichage détaillé dans CombatInterface
+        
+        Fichier: `components/adventure/CombatInterface.tsx`
+        
+        - Ajouter un composant `CombatCalculationDetails`
+        - Afficher le breakdown des calculs
+        
+        ### Option 2: Tooltip au survol
+        
+        - Utiliser shadcn/ui Tooltip
+        - Afficher les détails au hover
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔀 Alternatives considérées
+      description: Quelles autres approches avez-vous envisagées ?
+      placeholder: |
+        - **Option 1**: Modal détaillée (trop intrusif)
+        - **Option 2**: Log dans la console (pas accessible)
+        - **Option 3**: Affichage inline (solution retenue)
+    validations:
+      required: false
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: 🎨 Mockups / Screenshots
+      description: Images ou descriptions visuelles de l'amélioration
+      placeholder: |
+        ```
+        ┌─────────────────────────────────┐
+        │ Combat Round 1                  │
+        │                                 │
+        │ Votre attaque: 15               │
+        │  └─ 2d6: [4] + [5] = 9          │
+        │  └─ Habileté: +4                │
+        │  └─ Arme (Épée): +2             │
+        │                                 │
+        │ Ennemi: 12                      │
+        │ ✅ Vous gagnez ce round !        │
+        └─────────────────────────────────┘
+        ```
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 📦 Scope
+      description: Quel domaine est concerné ?
+      multiple: true
+      options:
+        - ui
+        - ux
+        - inventory
+        - gameplay
+        - combat
+        - analytics
+        - performance
+        - accessibility
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 📊 Priorité
+      description: Quelle est l'urgence de cette amélioration ?
+      options:
+        - low (nice to have)
+        - medium (would improve experience)
+        - high (important for usability)
+        - critical (blocking issue)
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: size
+    attributes:
+      label: 📏 Taille estimée
+      description: Estimation de la complexité
+      options:
+        - size: small (< 1 jour)
+        - size: medium (1-3 jours)
+        - size: large (3-5 jours)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: additional-context
+    attributes:
+      label: 📋 Contexte additionnel
+      description: Informations supplémentaires
+      options:
+        - label: Cette amélioration nécessite une migration de données
+        - label: Cette amélioration impacte les performances
+        - label: Cette amélioration nécessite des tests A/B
+        - label: Cette amélioration est bloquée par une autre issue
+
+  - type: textarea
+    id: references
+    attributes:
+      label: 📚 Références
+      description: Liens vers la documentation ou des ressources externes
+      placeholder: |
+        - `docs/COMBAT.md` - Documentation actuelle du système de combat
+        - [UX Guidelines](https://example.com) - Standards d'interface
+        - Issue #42 - Issue liée
+    validations:
+      required: false
