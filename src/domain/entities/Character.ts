@@ -1,5 +1,6 @@
 import { Stats, StatsData } from '../value-objects/Stats';
 import { Inventory, InventoryData, InventoryItem, BOURSE_ITEM_NAME } from '../value-objects/Inventory';
+import { InventoryItemRef } from '../types/items';
 
 /**
  * Game Mode Types
@@ -265,7 +266,25 @@ export class Character {
    * Ajoute un objet à l'inventaire
    */
   addItem(item: Partial<InventoryItem> & { name: string; possessed?: boolean }): Character {
-    const updatedInventory = this.inventory.addItem(item);
+    const itemRef: InventoryItemRef = {
+      itemId: item.id || `legacy-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      quantity: item.quantity ?? 1,
+      possessed: item.possessed ?? true,
+    };
+
+    const isStackable = item.stackable ?? false;
+    const isBourse = item.name === BOURSE_ITEM_NAME;
+
+    const updatedInventory = this.inventory.addItem(itemRef, isStackable, isBourse, item.name);
+
+    return this.withChanges({ inventory: updatedInventory });
+  }
+
+  /**
+   * Ajoute un objet à l'inventaire via une référence au catalog
+   */
+  addItemWithRef(itemRef: InventoryItemRef, isStackable: boolean, isBourse: boolean): Character {
+    const updatedInventory = this.inventory.addItem(itemRef, isStackable, isBourse);
 
     return this.withChanges({ inventory: updatedInventory });
   }

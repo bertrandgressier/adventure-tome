@@ -3,6 +3,7 @@ import { ICharacterRepository } from '@/src/domain/repositories/ICharacterReposi
 import { StatsData } from '@/src/domain/value-objects/Stats';
 import { CharacterNotFoundError } from '@/src/domain/errors/DomainErrors';
 import type { InventoryItem } from '@/src/domain/value-objects/Inventory';
+import { InventoryItemRef } from '@/src/domain/types/items';
 
 /**
  * CharacterService - Application Service
@@ -157,6 +158,27 @@ export class CharacterService {
     }
 
     const updated = character.addItem(item);
+
+    await this.repository.save(updated);
+
+    return updated;
+  }
+
+  /**
+   * Ajoute un objet à l'inventaire via une référence au catalog
+   */
+  async addItemToInventoryWithRef(
+    id: string,
+    itemRef: InventoryItemRef,
+    isStackable: boolean,
+    isBourse: boolean
+  ): Promise<Character> {
+    const character = await this.repository.findById(id);
+    if (!character) {
+      throw new CharacterNotFoundError(id);
+    }
+
+    const updated = character.addItemWithRef(itemRef, isStackable, isBourse);
 
     await this.repository.save(updated);
 

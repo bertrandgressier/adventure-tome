@@ -8,8 +8,8 @@ import { createCharacterStatsSlice, type CharacterStatsSlice } from './slices/ch
 import { createCharacterInventorySlice, type CharacterInventorySlice } from './slices/characterInventorySlice';
 import { createCharacterMetadataSlice, type CharacterMetadataSlice } from './slices/characterMetadataSlice';
 import { createCharacterItemsSlice, type CharacterItemsSlice } from './slices/characterItemsSlice';
+import { createPersistedItemsCatalogSlice, type ItemsCatalogSlice } from './slices/itemsCatalogSlice';
 
-// Instance singleton du service
 let serviceInstance: CharacterService | null = null;
 
 function getService(): CharacterService {
@@ -20,15 +20,14 @@ function getService(): CharacterService {
   return serviceInstance;
 }
 
-// Type combiné du store (tous les slices)
 export type CharacterStore = CharacterListSlice &
   CharacterMutationSlice &
   CharacterStatsSlice &
   CharacterInventorySlice &
   CharacterMetadataSlice &
-  CharacterItemsSlice;
+  CharacterItemsSlice &
+  ItemsCatalogSlice;
 
-// Factory function pour créer un store (pattern Next.js SSR)
 export const createCharacterStore = () => {
   const service = getService();
 
@@ -41,6 +40,7 @@ export const createCharacterStore = () => {
         ...createCharacterInventorySlice(service)(set, get),
         ...createCharacterMetadataSlice(service)(set, get),
         ...createCharacterItemsSlice(service)(set, get),
+        ...createPersistedItemsCatalogSlice()(set, get),
       }),
       { name: 'CharacterStore', enabled: typeof window !== 'undefined' }
     )

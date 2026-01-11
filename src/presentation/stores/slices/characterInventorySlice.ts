@@ -1,18 +1,14 @@
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { CharacterListSlice } from './characterListSlice';
-import type { InventoryItem } from '@/src/domain/value-objects/Inventory';
-import { ITEMS_CATALOG } from '@/src/data/items-catalog';
-import { CatalogItem } from '@/src/domain/types/items';
+import type { ItemsCatalogSlice } from './itemsCatalogSlice';
+import type { InventoryItemRef } from '@/src/domain/types/items';
 import { handleSliceError } from './sliceHelpers';
+import { BOURSE_ITEM_ID } from '@/src/domain/value-objects/Inventory';
 
 export interface CharacterInventorySlice {
   equipWeapon: (
     id: string,
     weapon: { name: string; attackPoints: number } | null
-  ) => Promise<void>;
-  addItem: (
-    id: string,
-    item: Partial<InventoryItem> & { name: string; possessed?: boolean }
   ) => Promise<void>;
   addItemFromCatalog: (
     id: string,
@@ -21,7 +17,7 @@ export interface CharacterInventorySlice {
   ) => Promise<void>;
   addCustomItem: (
     id: string,
-    catalogItem: CatalogItem,
+    catalogItemId: string,
     quantity?: number
   ) => Promise<void>;
   removeItem: (id: string, itemIndex: number) => Promise<void>;
@@ -29,9 +25,10 @@ export interface CharacterInventorySlice {
   addBoulons: (id: string, amount: number) => Promise<void>;
   removeBoulons: (id: string, amount: number) => Promise<void>;
   setBoulons: (id: string, newValue: number) => Promise<void>;
+  getItemDetails: (itemRef: InventoryItemRef) => ReturnType<ItemsCatalogSlice['getItem']>;
 }
 
-type StoreState = CharacterInventorySlice & CharacterListSlice;
+type StoreState = CharacterInventorySlice & CharacterListSlice & ItemsCatalogSlice;
 type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;
 type GetState = () => StoreState;
 
@@ -57,15 +54,32 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
       }
     },
 
-    addItem: async (
+    addItemFromCatalog: async (
       id: string,
-      item: Partial<InventoryItem> & { name: string; possessed?: boolean }
+      catalogItemId: string,
+      quantity: number = 1
     ) => {
       const character = get().characters[id];
       if (!character) return;
 
+      const catalogItem = get().getItem(catalogItemId);
+      if (!catalogItem) {
+        throw new Error(`Item ${catalogItemId} not found in catalog`);
+      }
+
+      const itemRef: InventoryItemRef = {
+        itemId: catalogItem.id,
+        quantity: catalogItem.stackable ? quantity : 1,
+        possessed: true,
+      };
+
       try {
-        const updated = await service.addItemToInventory(id, item);
+        const updated = await service.addItemToInventoryWithRef(
+          id,
+          itemRef,
+          catalogItem.stackable ?? false,
+          catalogItem.id === BOURSE_ITEM_ID
+        );
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
         }));
@@ -75,65 +89,12 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
       }
     },
 
-    addItemFromCatalog: async (
+    addCustomItem: async (
       id: string,
       catalogItemId: string,
       quantity: number = 1
     ) => {
-      const character = get().characters[id];
-      if (!character) return;
-
-      const catalogItem = ITEMS_CATALOG.find((item) => item.id === catalogItemId);
-      if (!catalogItem) {
-        throw new Error(`Item ${catalogItemId} not found in catalog`);
-      }
-
-      const newItem: Partial<InventoryItem> & { name: string; possessed?: boolean } = {
-        id: catalogItem.id,
-        name: catalogItem.name,
-        type: catalogItem.type,
-        possessed: true,
-        effect: catalogItem.effect,
-        quantity: catalogItem.stackable ? quantity : 1,
-        stackable: catalogItem.stackable,
-        unique: catalogItem.unique,
-        disappearsOnTimeLoop: catalogItem.disappearsOnTimeLoop,
-        attackPoints: catalogItem.attackPoints,
-        healAmount: catalogItem.healAmount,
-        damageToEnemy: catalogItem.damageToEnemy,
-        statBonus: catalogItem.statBonus,
-        isQuestItem: catalogItem.isQuestItem,
-      };
-
-      await get().addItem(id, newItem);
-    },
-
-    addCustomItem: async (
-      id: string,
-      catalogItem: CatalogItem,
-      quantity: number = 1
-    ) => {
-      const character = get().characters[id];
-      if (!character) return;
-
-      const newItem: Partial<InventoryItem> & { name: string; possessed?: boolean } = {
-        id: catalogItem.id,
-        name: catalogItem.name,
-        type: catalogItem.type,
-        possessed: true,
-        effect: catalogItem.effect,
-        quantity: catalogItem.stackable ? quantity : 1,
-        stackable: catalogItem.stackable,
-        unique: catalogItem.unique,
-        disappearsOnTimeLoop: catalogItem.disappearsOnTimeLoop,
-        attackPoints: catalogItem.attackPoints,
-        healAmount: catalogItem.healAmount,
-        damageToEnemy: catalogItem.damageToEnemy,
-        statBonus: catalogItem.statBonus,
-        isQuestItem: catalogItem.isQuestItem,
-      };
-
-      await get().addItem(id, newItem);
+      await get().addItemFromCatalog(id, catalogItemId, quantity);
     },
 
     removeItem: async (id: string, itemIndex: number) => {
@@ -156,19 +117,17 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
       if (!character) return;
 
       try {
-        const items = character.getInventory().items;
-        const item = items[itemIndex];
-
-        if (!item) {
+        const itemRef = character.getInventory().items[itemIndex];
+        if (!itemRef) {
           throw new Error('Item non trouvé');
         }
 
-        if (!item.stackable) {
+        const catalogItem = get().getItem(itemRef.itemId);
+        if (!catalogItem || !catalogItem.stackable) {
           throw new Error('Cet item n\'est pas consommable');
         }
 
-        const quantity = item.quantity || 1;
-        if (quantity <= 1) {
+        if (itemRef.quantity <= 1) {
           await service.removeItemFromInventory(id, itemIndex);
         } else {
           const updated = await service.removeOneQuantity(id, itemIndex);
@@ -217,7 +176,6 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
       if (!character) return;
 
       try {
-        // Logique métier : calcul de la différence et choix de la méthode
         const currentBoulons = character.getInventory().boulons;
         const diff = newValue - currentBoulons;
 
@@ -226,9 +184,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
         } else if (diff < 0) {
           await service.removeBoulons(id, Math.abs(diff));
         }
-        // Si diff === 0, ne rien faire
 
-        // Recharger le personnage pour avoir l'état à jour
         const updated = await service.getCharacter(id);
         if (updated) {
           set((state) => ({
@@ -239,6 +195,10 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
         handleSliceError(set, error);
         throw error;
       }
+    },
+
+    getItemDetails: (itemRef: InventoryItemRef) => {
+      return get().getItem(itemRef.itemId);
     },
   });
 };

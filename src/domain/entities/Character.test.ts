@@ -242,7 +242,9 @@ describe('Character', () => {
       });
 
       expect(withItem.getInventory().items).toHaveLength(2);
-      expect(withItem.getInventory().items[1].name).toBe('Potion de soin');
+      expect(withItem.getInventory().items[1].itemId).toMatch(/^legacy-/);
+      expect(withItem.getInventory().items[1].quantity).toBe(1);
+      expect(withItem.getInventory().items[1].possessed).toBe(true);
     });
 
     it('devrait retirer un objet', () => {
@@ -265,7 +267,7 @@ describe('Character', () => {
       const removed = character.removeItem(1);
 
       expect(removed.getInventory().items).toHaveLength(2);
-      expect(removed.getInventory().items[1].name).toBe('Corde');
+      expect(removed.getInventory().items[1].itemId).toMatch(/^legacy-/);
     });
 
     it('devrait empêcher d\'ajouter un objet non-stackable déjà présent', () => {
@@ -370,7 +372,7 @@ describe('Character', () => {
       });
 
       const items = withMorePotions.getInventory().items;
-      const potion = items.find((i) => i.name === 'Potion de soin');
+      const potion = items.find((i) => i.itemId === 'tome1-potion-soin');
 
       expect(items).toHaveLength(2);
       expect(potion?.quantity).toBe(5);

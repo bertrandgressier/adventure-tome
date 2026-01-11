@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { CatalogItem, ItemType } from '@/src/domain/types/items';
 import { ItemTypeBadge } from './ItemTypeBadge';
-import { ITEMS_CATALOG } from '@/src/data/items-catalog';
+import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { AddCustomItemModal } from './AddCustomItemModal';
 
 type AddItemModalMode = 'inventory' | 'equipped';
@@ -30,7 +30,6 @@ interface AddItemModalProps {
   onAddItem: (catalogItem: CatalogItem, quantity?: number) => void;
   disabled?: boolean;
   currentTome: 1 | 2 | 3;
-  availableItems?: CatalogItem[];
   presentItemIds?: string[];
   mode?: AddItemModalMode;
   filterType?: ItemType;
@@ -42,7 +41,6 @@ export function AddItemModal({
   onAddItem,
   disabled,
   currentTome,
-  availableItems = ITEMS_CATALOG,
   presentItemIds = [],
   mode = 'inventory',
   filterType,
@@ -57,6 +55,9 @@ export function AddItemModal({
   const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState<ItemType | 'all'>(filterType || 'all');
   const [selectedTome, setSelectedTome] = useState<1 | 2 | 3 | 'all'>(currentTome);
+
+  const getAllItems = useCharacterStore((state) => state.getAllItems);
+  const availableItems = getAllItems();
 
   const handleAddCustomItem = async (catalogItem: CatalogItem, quantity?: number) => {
     await onAddItem(catalogItem, quantity);

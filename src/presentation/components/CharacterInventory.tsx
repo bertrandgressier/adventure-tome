@@ -4,12 +4,11 @@ import { useState } from 'react';
 import { Trash2, X, Minus } from 'lucide-react';
 import { useCharacter } from '@/src/presentation/hooks/useCharacter';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
-import { MAX_ITEMS, BOURSE_ITEM_NAME } from '@/src/domain/value-objects/Inventory';
+import { MAX_ITEMS, BOURSE_ITEM_ID } from '@/src/domain/value-objects/Inventory';
 import { ItemTypeBadge } from './ItemTypeBadge';
 import { ItemType } from '@/src/domain/types/items';
 import { AddItemModal } from './AddItemModal';
 import { Badge } from '@/components/ui/badge';
-import { ITEMS_CATALOG } from '@/src/data/items-catalog';
 
 interface CharacterInventoryProps {
   characterId: string;
@@ -24,17 +23,19 @@ export default function CharacterInventory({
   const addItemFromCatalog = useCharacterStore((state) => state.addItemFromCatalog);
   const addCustomItem = useCharacterStore((state) => state.addCustomItem);
   const consumeItem = useCharacterStore((state) => state.consumeItem);
-  const getAvailableItems = useCharacterStore((state) => state.getAvailableItems);
+  const getItemDetails = useCharacterStore((state) => state.getItemDetails);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
-  const availableItems = character ? getAvailableItems(characterId) : ITEMS_CATALOG;
 
   const handleDeleteItem = async (index: number) => {
     if (!character) return;
 
     const items = character.getInventory().items;
-    const item = items[index];
+    const itemRef = items[index];
+    const catalogItem = getItemDetails(itemRef);
 
-    if (!confirm(`Supprimer "${item.name}" de l'inventaire ?`)) {
+    if (!catalogItem) return;
+
+    if (!confirm(`Supprimer "${catalogItem.name}" de l'inventaire ?`)) {
       return;
     }
 
@@ -47,14 +48,16 @@ export default function CharacterInventory({
     if (!character) return;
 
     const items = character.getInventory().items;
-    const item = items[index];
+    const itemRef = items[index];
+    const catalogItem = getItemDetails(itemRef);
 
-    if (!confirm(`Consommer 1 "${item.name}" ?`)) {
+    if (!catalogItem) return;
+
+    if (!confirm(`Consommer 1 "${catalogItem.name}" ?`)) {
       return;
     }
 
-    const quantity = item.quantity || 1;
-    if (quantity <= 1) {
+    if (itemRef.quantity <= 1) {
       await removeItem(index);
     } else {
       await consumeItem(characterId, index);
@@ -65,9 +68,10 @@ export default function CharacterInventory({
 
   const handleItemClick = (index: number, e: React.MouseEvent) => {
     if (!character) return;
-    const item = character.getInventory().items[index];
+    const itemRef = character.getInventory().items[index];
+    const catalogItem = getItemDetails(itemRef);
 
-    if (item.name === BOURSE_ITEM_NAME) return;
+    if (catalogItem && catalogItem.id === BOURSE_ITEM_ID) return;
 
     e.stopPropagation();
     setSelectedItemIndex(selectedItemIndex === index ? null : index);
@@ -104,7 +108,7 @@ export default function CharacterInventory({
   const inventory = character.getInventory();
   const items = inventory.items;
   const isFull = items.length >= MAX_ITEMS;
-  const presentItemIds = items.filter((item) => item.possessed).map((item) => item.id);
+  const presentItemIds = items.filter((item) => item.possessed).map((item) => item.itemId);
 
   return (
     <div className="bg-card glow-border rounded-lg p-6" onClick={handleClickOutside}>
@@ -120,7 +124,7 @@ export default function CharacterInventory({
         <AddItemModal
           onAddItem={async (catalogItem, quantity) => {
             if (catalogItem.id.startsWith('custom-')) {
-              await addCustomItem(characterId, catalogItem, quantity);
+              await addCustomItem(characterId, catalogItem.id, quantity);
             } else {
               await addItemFromCatalog(characterId, catalogItem.id, quantity);
             }
@@ -128,7 +132,6 @@ export default function CharacterInventory({
           }}
           disabled={isFull}
           currentTome={character.book as 1 | 2 | 3}
-          availableItems={availableItems}
           presentItemIds={presentItemIds}
         />
       </div>
@@ -136,69 +139,86 @@ export default function CharacterInventory({
         <span className="text-sm text-muted-light">Aucun objet dans l&apos;inventaire</span>
       ) : (
         <div className="space-y-2">
-          {items.map((item, index) => (
-            <div
-              key={index}
-              className="relative"
-            >
+          {items.map((itemRef, index) => {
+            const catalogItem = getItemDetails(itemRef);
+
+            if (!catalogItem) {
+              return (
+                <div key={index} className="bg-background/50 rounded-lg p-3 opacity-50">
+                  <span className="text-sm text-muted-light">Item inconnu: {itemRef.itemId}</span>
+                  {itemRef.quantity > 1 && (
+                    <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                      ×{itemRef.quantity}
+                    </Badge>
+                  )}
+                </div>
+              );
+            }
+
+            return (
               <div
-                className={`bg-background rounded-lg p-3 transition-colors cursor-pointer ${
-                  selectedItemIndex === index ? 'ring-2 ring-primary/50' : 'hover:bg-background/80'
-                }`}
-                onClick={(e) => handleItemClick(index, e)}
+                key={index}
+                className="relative"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-[var(--font-merriweather)] text-light">
-                        {item.name}
-                      </span>
-                      {item.type === ItemType.ACTIVE && item.quantity && item.quantity > 1 && (
-                        <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                          ×{item.quantity}
-                        </Badge>
+                <div
+                  className={`bg-background rounded-lg p-3 transition-colors cursor-pointer ${
+                    selectedItemIndex === index ? 'ring-2 ring-primary/50' : 'hover:bg-background/80'
+                  }`}
+                  onClick={(e) => handleItemClick(index, e)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-[var(--font-merriweather)] text-light">
+                          {catalogItem.name}
+                        </span>
+                        {catalogItem.type === ItemType.ACTIVE && itemRef.quantity > 1 && (
+                          <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                            ×{itemRef.quantity}
+                          </Badge>
+                        )}
+                      </div>
+                      {catalogItem.effect && (
+                        <p className="text-xs text-muted-light mt-1 font-[var(--font-merriweather)]">
+                          {catalogItem.effect}
+                        </p>
                       )}
                     </div>
-                    {item.effect && (
-                      <p className="text-xs text-muted-light mt-1 font-[var(--font-merriweather)]">
-                        {item.effect}
-                      </p>
-                    )}
+                    <ItemTypeBadge type={catalogItem.type} showLabel={false} />
                   </div>
-                  <ItemTypeBadge type={item.type} showLabel={false} />
                 </div>
-              </div>
 
-               {selectedItemIndex === index && item.name !== BOURSE_ITEM_NAME && (
-                  <div
-                    className="absolute inset-0 bg-card/95 backdrop-blur-sm rounded-lg flex items-center justify-center gap-2 z-10"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={() => handleConsumeItem(index)}
-                      className="flex items-center gap-2 px-4 py-3 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors touch-manipulation active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={!item.stackable}
+                 {selectedItemIndex === index && catalogItem.id !== BOURSE_ITEM_ID && (
+                    <div
+                      className="absolute inset-0 bg-card/95 backdrop-blur-sm rounded-lg flex items-center justify-center gap-2 z-10"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <Minus className="w-4 h-4" />
-                      <span className="text-sm font-[var(--font-merriweather)]">Consommer</span>
-                    </button>
-                    <button
-                      onClick={() => handleDeleteItem(index)}
-                      className="flex items-center gap-2 px-4 py-3 bg-destructive/20 hover:bg-destructive/30 text-destructive rounded-lg transition-colors touch-manipulation active:scale-95"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span className="text-sm font-[var(--font-merriweather)]">Supprimer</span>
-                    </button>
-                    <button
-                      onClick={() => setSelectedItemIndex(null)}
-                      className="flex items-center justify-center p-3 bg-muted/50 hover:bg-muted/70 text-muted-light rounded-lg transition-colors touch-manipulation active:scale-95"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-             </div>
-          ))}
+                      <button
+                        onClick={() => handleConsumeItem(index)}
+                        className="flex items-center gap-2 px-4 py-3 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors touch-manipulation active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={!catalogItem.stackable}
+                      >
+                        <Minus className="w-4 h-4" />
+                        <span className="text-sm font-[var(--font-merriweather)]">Consommer</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteItem(index)}
+                        className="flex items-center gap-2 px-4 py-3 bg-destructive/20 hover:bg-destructive/30 text-destructive rounded-lg transition-colors touch-manipulation active:scale-95"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="text-sm font-[var(--font-merriweather)]">Supprimer</span>
+                      </button>
+                      <button
+                        onClick={() => setSelectedItemIndex(null)}
+                        className="flex items-center justify-center p-3 bg-muted/50 hover:bg-muted/70 text-muted-light rounded-lg transition-colors touch-manipulation active:scale-95"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+               </div>
+            );
+          })}
         </div>
       )}
     </div>

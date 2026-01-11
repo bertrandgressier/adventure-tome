@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { ItemType } from '@/src/domain/types/items';
 import { CatalogItem } from '@/src/domain/types/items';
-import { useCustomItemsCatalog } from '@/src/presentation/stores/customItemsCatalogStore';
+import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 
 interface AddCustomItemModalProps {
   open: boolean;
@@ -39,7 +39,7 @@ export function AddCustomItemModal({
   currentTome,
   defaultType = ItemType.BASIC,
 }: AddCustomItemModalProps) {
-  const addCustomItemToCatalog = useCustomItemsCatalog((state) => state.addCustomItem);
+  const addCustomItemToCatalog = useCharacterStore((state) => state.addCustomItem);
   const [name, setName] = useState('');
   const [type, setType] = useState<ItemType>(defaultType);
   const [effect, setEffect] = useState('');

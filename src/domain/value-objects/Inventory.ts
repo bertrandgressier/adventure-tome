@@ -3,7 +3,7 @@
  * Représente l'inventaire d'un personnage
  */
 
-import { InventoryItem as DomainInventoryItem, ItemType } from '../types/items';
+import { InventoryItem as DomainInventoryItem, InventoryItemRef, ItemType } from '../types/items';
 
 export interface InventoryItem extends DomainInventoryItem {
   id: string;
@@ -35,17 +35,18 @@ export interface Weapon {
 export interface InventoryData {
   boulons: number;
   weapon?: Weapon;
-  items: InventoryItem[];
+  items: InventoryItemRef[];
 }
 
 export const MAX_ITEMS = 14;
+export const BOURSE_ITEM_ID = 'tome1-bourse';
 export const BOURSE_ITEM_NAME = 'Bourse';
 
 export class Inventory {
   constructor(
     public readonly boulons: number,
     public readonly weapon: Weapon | undefined,
-    public readonly items: readonly InventoryItem[]
+    public readonly items: readonly InventoryItemRef[]
   ) {
     this.validate();
   }
@@ -54,20 +55,17 @@ export class Inventory {
     if (this.boulons < 0) {
       throw new Error('Le nombre de boulons ne peut pas être négatif');
     }
-    
+
     if (this.weapon && this.weapon.attackPoints < 0) {
       throw new Error('Les points d\'attaque de l\'arme ne peuvent pas être négatifs');
     }
   }
 
-  /**
-   * Ajoute des boulons
-   */
   addBoulons(amount: number): Inventory {
     if (amount < 0) {
       throw new Error('Le montant à ajouter ne peut pas être négatif');
     }
-    
+
     return new Inventory(
       this.boulons + amount,
       this.weapon,
@@ -75,18 +73,15 @@ export class Inventory {
     );
   }
 
-  /**
-   * Retire des boulons
-   */
   removeBoulons(amount: number): Inventory {
     if (amount < 0) {
       throw new Error('Le montant à retirer ne peut pas être négatif');
     }
-    
+
     if (this.boulons < amount) {
       throw new Error('Pas assez de boulons');
     }
-    
+
     return new Inventory(
       this.boulons - amount,
       this.weapon,
@@ -94,14 +89,11 @@ export class Inventory {
     );
   }
 
-  /**
-   * Équipe une arme (remplace l'arme actuelle)
-   */
   equipWeapon(weapon: Weapon): Inventory {
     if (weapon.attackPoints < 0) {
       throw new Error('Les points d\'attaque de l\'arme ne peuvent pas être négatifs');
     }
-    
+
     return new Inventory(
       this.boulons,
       weapon,
@@ -109,9 +101,6 @@ export class Inventory {
     );
   }
 
-  /**
-   * Retire l'arme équipée
-   */
   unequipWeapon(): Inventory {
     return new Inventory(
       this.boulons,
@@ -120,79 +109,50 @@ export class Inventory {
     );
   }
 
-  /**
-   * Ajoute un objet à l'inventaire
-   */
-  addItem(item: Partial<InventoryItem> & { name: string; possessed?: boolean }): Inventory {
-    const itemToAdd: InventoryItem = {
-      id: item.id || `legacy-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-      name: item.name,
-      type: item.type || ItemType.BASIC,
-      possessed: item.possessed ?? true,
-      effect: item.effect,
-      quantity: item.quantity ?? 1,
-      stackable: item.stackable ?? false,
-      unique: item.unique ?? false,
-      disappearsOnTimeLoop: item.disappearsOnTimeLoop ?? false,
-      attackPoints: item.attackPoints,
-      healAmount: item.healAmount,
-      damageToEnemy: item.damageToEnemy,
-      statBonus: item.statBonus,
-      isQuestItem: item.isQuestItem ?? false,
-    };
-
+  addItem(itemRef: InventoryItemRef, isStackable: boolean, isBourse: boolean, itemName?: string): Inventory {
     if (this.items.length >= MAX_ITEMS) {
       throw new Error(`Inventaire plein (${MAX_ITEMS} objets maximum)`);
     }
 
-    // Empêcher d'ajouter une deuxième bourse
-    if (itemToAdd.name === BOURSE_ITEM_NAME) {
-      const hasBourse = this.items.some((i) => i.name === BOURSE_ITEM_NAME);
+    if (isBourse) {
+      const hasBourse = this.items.some((i) => i.itemId === BOURSE_ITEM_ID);
       if (hasBourse) {
         throw new Error('La bourse est déjà présente dans l\'inventaire');
       }
     }
 
-    // Gérer les items stackables et uniques
-    const existingItemIndex = this.items.findIndex((i) => i.id === itemToAdd.id && i.possessed);
+    const existingItemIndex = this.items.findIndex((i) => i.itemId === itemRef.itemId && i.possessed);
 
     if (existingItemIndex >= 0) {
-      const existingItem = this.items[existingItemIndex];
-
-      // Si l'item est stackable, augmenter la quantité
-      if (itemToAdd.stackable && itemToAdd.quantity) {
+      if (isStackable) {
         const updatedItems = [...this.items];
         updatedItems[existingItemIndex] = {
-          ...existingItem,
-          quantity: (existingItem.quantity || 0) + itemToAdd.quantity,
+          ...updatedItems[existingItemIndex],
+          quantity: updatedItems[existingItemIndex].quantity + itemRef.quantity,
         };
         return new Inventory(this.boulons, this.weapon, updatedItems);
       }
 
-      // Si l'item n'est pas stackable, empêcher l'ajout
-      throw new Error(`${itemToAdd.name} est déjà dans l'inventaire`);
+      throw new Error(`${itemName ?? 'Cet item'} est déjà dans l\'inventaire`);
     }
 
     return new Inventory(
       this.boulons,
       this.weapon,
-      [...this.items, itemToAdd]
+      [...this.items, itemRef]
     );
   }
 
-  /**
-   * Retire un objet de l'inventaire
-   */
   removeItem(index: number): Inventory {
     if (index < 0 || index >= this.items.length) {
       throw new Error('Index d\'objet invalide');
     }
 
     const itemToRemove = this.items[index];
-    if (itemToRemove.name === BOURSE_ITEM_NAME) {
+    if (itemToRemove.itemId === BOURSE_ITEM_ID) {
       throw new Error('Impossible de jeter la bourse');
     }
-    
+
     return new Inventory(
       this.boulons,
       this.weapon,
@@ -200,9 +160,25 @@ export class Inventory {
     );
   }
 
-  /**
-   * Convertit en format de données
-   */
+  removeOneQuantity(index: number): Inventory {
+    if (index < 0 || index >= this.items.length) {
+      throw new Error('Index d\'objet invalide');
+    }
+
+    const item = this.items[index];
+    if (item.quantity <= 1) {
+      throw new Error('Impossible de réduire la quantité en dessous de 1');
+    }
+
+    const updatedItems = [...this.items];
+    updatedItems[index] = {
+      ...item,
+      quantity: item.quantity - 1,
+    };
+
+    return new Inventory(this.boulons, this.weapon, updatedItems);
+  }
+
   toData(): InventoryData {
     return {
       boulons: this.boulons,
@@ -211,14 +187,25 @@ export class Inventory {
     };
   }
 
-  /**
-   * Crée une instance depuis des données
-   */
   static fromData(data: InventoryData): Inventory {
     return new Inventory(
       data.boulons,
       data.weapon,
       data.items
+    );
+  }
+
+  static fromLegacyData(data: { boulons: number; weapon?: Weapon; items: InventoryItem[] }): Inventory {
+    const itemsRef: InventoryItemRef[] = data.items.map((item) => ({
+      itemId: item.id,
+      quantity: item.quantity ?? 1,
+      possessed: item.possessed,
+    }));
+
+    return new Inventory(
+      data.boulons,
+      data.weapon,
+      itemsRef
     );
   }
 }
