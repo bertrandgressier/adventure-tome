@@ -473,12 +473,11 @@ export class Character {
     
     // Initialiser la réputation à 0 pour le tome 2 si non fournie
     const statsData = { ...data.stats };
-    if (data.book === 2 && statsData.reputation === undefined) {
+     if (data.book === 2 && statsData.reputation === undefined) {
       statsData.reputation = 0;
     }
 
-    const initialInventory = new Inventory(0, undefined, []);
-    const inventoryWithBourse = initialInventory.addItem({ name: BOURSE_ITEM_NAME, possessed: true });
+    const initialInventory = new Inventory(0, undefined, []);    const inventoryWithBourse = initialInventory.addItem({ name: BOURSE_ITEM_NAME, possessed: true });
 
     return new Character(
       id,
