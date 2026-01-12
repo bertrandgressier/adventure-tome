@@ -256,6 +256,7 @@ export const migrations: Migration[] = [
         itemId: item.id,
         quantity: item.quantity ?? 1,
         possessed: item.possessed,
+        fallbackName: item.name,
       }));
 
       return {

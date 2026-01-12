@@ -79,4 +79,5 @@ export interface InventoryItemRef {
   itemId: string;
   quantity: number;
   possessed: boolean;
+  fallbackName?: string;
 }
