@@ -14,7 +14,7 @@ export interface CharacterListSlice {
 }
 
 type SetState = (partial: Partial<CharacterListSlice> | ((state: CharacterListSlice) => Partial<CharacterListSlice>)) => void;
-type GetState = () => CharacterListSlice & { loadCatalog: () => Promise<void> };
+type GetState = () => CharacterListSlice;
 
 export const createCharacterListSlice = (service: CharacterService) => {
   return (set: SetState, get: GetState): CharacterListSlice => ({
