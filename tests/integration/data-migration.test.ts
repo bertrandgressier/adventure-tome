@@ -634,4 +634,59 @@ describe('Migration des données - Compatibilité', () => {
     expect(customId1).toBeDefined();
     expect(customId2).toBeDefined();
   });
+
+  it('devrait préserver le nom des items inconnus dans fallbackName (migration v11)', () => {
+    // Données v10 avec des items qui n'existent pas dans le catalogue
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const v10Data: any = {
+      id: 'v11-test-123',
+      name: 'Test Character',
+      book: 1,
+      talent: 'instinct',
+      gameMode: 'mortal',
+      version: 10,
+      createdAt: '2025-01-01T10:00:00.000Z',
+      updatedAt: '2025-01-01T10:00:00.000Z',
+      stats: {
+        dexterite: 5,
+        chance: 5,
+        chanceInitiale: 5,
+        pointsDeVieMax: 20,
+        pointsDeVieActuels: 20,
+      },
+      inventory: {
+        boulons: 100,
+        items: [
+          { id: 'unknown-item-123', name: 'Item magique custom', type: 'special', possessed: true, quantity: 1 },
+          { id: 'unknown-item-456', name: 'Potion rare', type: 'active', possessed: true, quantity: 3, stackable: true },
+        ],
+      },
+      progress: {
+        currentParagraph: 1,
+        history: [1],
+        lastSaved: '2025-01-01T10:00:00.000Z',
+      },
+      notes: '',
+    };
+
+    const migratedData = migrateCharacter(v10Data);
+    const character = Character.fromData(migratedData);
+
+    // VÉRIFICATION: Version mise à jour
+    expect(character.version).toBe(11);
+
+    // VÉRIFICATION: Items migrés avec fallbackName
+    const inventory = character.getInventory();
+    expect(inventory.items.length).toBeGreaterThan(0);
+
+    const item1 = inventory.items.find((i: InventoryItemRef) => i.itemId === 'unknown-item-123');
+    expect(item1).toBeDefined();
+    expect(item1?.fallbackName).toBe('Item magique custom');
+    expect(item1?.quantity).toBe(1);
+
+    const item2 = inventory.items.find((i: InventoryItemRef) => i.itemId === 'unknown-item-456');
+    expect(item2).toBeDefined();
+    expect(item2?.fallbackName).toBe('Potion rare');
+    expect(item2?.quantity).toBe(3);
+  });
 });
