@@ -12,6 +12,22 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 4.2.0
+*12 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- add InventoryItemRef type for catalog-based inventory
+
+### 🐛 Corrections de bugs
+
+- add fallbackName to preserve unknown item names during v11 migration
+- correct GetState type in characterListSlice
+- implement custom items persistence and remove code duplication
+- update tests and linter for itemsCatalog refactoring
+
+---
+
 ## Version 4.1.0
 *6 janvier 2026*
 
