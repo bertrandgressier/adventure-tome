@@ -1,21 +1,6 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { persist } from 'zustand/middleware';
 import { CatalogItem } from '@/src/domain/types/items';
 import { ITEMS_CATALOG } from '@/src/data/items-catalog';
-
-export interface ItemsCatalogSlice {
-  catalog: Record<string, CatalogItem>;
-
-  getItem: (itemId: string) => CatalogItem | undefined;
-  getAllItems: () => CatalogItem[];
-  getItemsByTome: (tome: number) => CatalogItem[];
-  createCustomItem: (item: Omit<CatalogItem, 'id'>) => CatalogItem;
-  removeCustomItem: (itemId: string) => void;
-  initializeCatalog: () => Promise<void>;
-}
-
-type SetState = (partial: Partial<ItemsCatalogSlice> | ((state: ItemsCatalogSlice) => Partial<ItemsCatalogSlice>)) => void;
-type GetState = () => ItemsCatalogSlice;
+import { useCustomItemsStore } from '../customItemsStore';
 
 function generateCustomItemId(): string {
   return `custom-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -35,21 +20,33 @@ function buildCatalog(customItems: CatalogItem[]): Record<string, CatalogItem> {
   return catalog;
 }
 
-function filterCustomItems(catalog: Record<string, CatalogItem>): CatalogItem[] {
-  return Object.values(catalog).filter((item) => item.id.startsWith('custom-'));
+export interface ItemsCatalogSlice {
+  catalog: Record<string, CatalogItem>;
+
+  getItem: (itemId: string) => CatalogItem | undefined;
+  getAllItems: () => CatalogItem[];
+  getItemsByTome: (tome: number) => CatalogItem[];
+  createCustomItem: (item: Omit<CatalogItem, 'id'>) => CatalogItem;
+  removeCustomItem: (itemId: string) => void;
 }
 
+type SetState = (partial: Partial<ItemsCatalogSlice> | ((state: ItemsCatalogSlice) => Partial<ItemsCatalogSlice>)) => void;
+type GetState = () => ItemsCatalogSlice;
+
 export const createItemsCatalogSlice = () => {
-  return (set: SetState, get: GetState): ItemsCatalogSlice => ({
-    catalog: buildCatalog([]),
+  return (set: SetState, get: GetState): ItemsCatalogSlice => {
+    const customItems = useCustomItemsStore.getState().customItems;
 
-    getItem: (itemId: string) => {
-      return get().catalog[itemId];
-    },
+    return {
+      catalog: buildCatalog(customItems),
 
-    getAllItems: () => {
-      return Object.values(get().catalog);
-    },
+      getItem: (itemId: string) => {
+        return get().catalog[itemId];
+      },
+
+      getAllItems: () => {
+        return Object.values(get().catalog);
+      },
 
       getItemsByTome: (tome: number) => {
         return Object.values(get().catalog).filter((item) => item.tome === tome);
@@ -61,27 +58,24 @@ export const createItemsCatalogSlice = () => {
           ...item,
         };
 
-        set((state) => ({
-          catalog: { ...state.catalog, [newItem.id]: newItem },
+        useCustomItemsStore.getState().addCustomItem(newItem);
+
+        set(() => ({
+          catalog: buildCatalog([...useCustomItemsStore.getState().customItems, newItem]),
         }));
 
         return newItem;
       },
 
-    removeCustomItem: (itemId: string) => {
-      if (!itemId.startsWith('custom-')) return;
+      removeCustomItem: (itemId: string) => {
+        if (!itemId.startsWith('custom-')) return;
 
-      set((state) => {
-        const newCatalog = { ...state.catalog };
-        delete newCatalog[itemId];
-        return { catalog: newCatalog };
-      });
-    },
+        useCustomItemsStore.getState().removeCustomItem(itemId);
 
-    initializeCatalog: async () => {
-      const state = get();
-      const customItems = filterCustomItems(state.catalog);
-      set({ catalog: buildCatalog(customItems) });
-    },
-  });
+        set(() => ({
+          catalog: buildCatalog(useCustomItemsStore.getState().customItems),
+        }));
+      },
+    };
+  };
 };

@@ -149,11 +149,7 @@ export default function CharacterInventory({
         </div>
         <AddItemModal
           onAddItem={async (catalogItem, quantity) => {
-            if (catalogItem.id.startsWith('custom-')) {
-              await addItemFromCatalog(characterId, catalogItem.id, quantity);
-            } else {
-              await addItemFromCatalog(characterId, catalogItem.id, quantity);
-            }
+            await addItemFromCatalog(characterId, catalogItem.id, quantity);
             onUpdate?.();
           }}
           disabled={isFull}

@@ -146,19 +146,5 @@ describe('itemsCatalogSlice', () => {
     });
   });
 
-  describe('initializeCatalog()', () => {
-    it('should reload catalog with custom items preserved', async () => {
-      const customItem = slice.createCustomItem({
-        name: 'Preserved',
-        type: ItemType.BASIC,
-        tome: 1,
-      });
 
-      await slice.initializeCatalog();
-
-      const preservedItem = slice.getItem(customItem.id);
-      expect(preservedItem).toBeDefined();
-      expect(preservedItem?.name).toBe('Preserved');
-    });
-  });
 });
