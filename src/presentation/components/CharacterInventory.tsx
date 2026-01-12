@@ -34,7 +34,8 @@ export default function CharacterInventory({
     const catalogItem = getItemDetails(itemRef);
 
     if (!catalogItem) {
-      if (!confirm(`Supprimer l'item "${itemRef.itemId}" de l'inventaire ?`)) {
+      const itemName = itemRef.fallbackName || itemRef.itemId;
+      if (!confirm(`Supprimer l'item "${itemName}" de l'inventaire ?`)) {
         setSelectedItemIndex(null);
         return;
       }
@@ -63,7 +64,8 @@ export default function CharacterInventory({
     const catalogItem = getItemDetails(itemRef);
 
     if (!catalogItem) {
-      if (!confirm(`Consommer 1 item (item inconnu) ?`)) {
+      const itemName = itemRef.fallbackName || `Item inconnu (${itemRef.itemId})`;
+      if (!confirm(`Consommer 1 "${itemName}" ?`)) {
         setSelectedItemIndex(null);
         return;
       }
@@ -178,16 +180,16 @@ export default function CharacterInventory({
                  >
                    <div className="flex items-center gap-3">
                      <div className="flex-1">
-                       <div className="flex items-center gap-1.5">
-                         <span className="font-[var(--font-merriweather)] text-light">
-                           {catalogItem ? catalogItem.name : `Item inconnu: ${itemRef.itemId}`}
-                         </span>
-                         {itemRef.quantity > 1 && (
-                           <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                             ×{itemRef.quantity}
-                           </Badge>
-                         )}
-                       </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-[var(--font-merriweather)] text-light">
+                            {catalogItem ? catalogItem.name : (itemRef.fallbackName ?? `Item inconnu: ${itemRef.itemId}`)}
+                          </span>
+                          {itemRef.quantity > 1 && (
+                            <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                              ×{itemRef.quantity}
+                            </Badge>
+                          )}
+                        </div>
                        {catalogItem?.effect && (
                          <p className="text-xs text-muted-light mt-1 font-[var(--font-merriweather)]">
                            {catalogItem.effect}

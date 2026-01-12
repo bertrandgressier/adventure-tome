@@ -90,15 +90,13 @@ describe('DiceService', () => {
     });
 
     it('doit générer des valeurs différentes à chaque appel', () => {
-      const stats1 = DiceService.generateCharacterStats();
-      const stats2 = DiceService.generateCharacterStats();
+      const results = Array.from({ length: 100 }, () => DiceService.generateCharacterStats());
       
-      // Au moins une des valeurs doit être différente (probabilité très élevée)
-      const isDifferent = 
-        stats1.chance !== stats2.chance ||
-        stats1.pointsDeVieMax !== stats2.pointsDeVieMax;
+      const chances = new Set(results.map(r => r.chance));
+      const maxHPs = new Set(results.map(r => r.pointsDeVieMax));
       
-      expect(isDifferent).toBe(true);
+      expect(chances.size).toBeGreaterThan(1);
+      expect(maxHPs.size).toBeGreaterThan(1);
     });
   });
 
