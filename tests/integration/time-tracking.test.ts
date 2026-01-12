@@ -4,7 +4,6 @@ import { CharacterService } from '@/src/application/services/CharacterService';
 import { IndexedDBCharacterRepository } from '@/src/infrastructure/repositories/IndexedDBCharacterRepository';
 import { Character } from '@/src/domain/entities/Character';
 import { migrateCharacter } from '@/src/infrastructure/persistence/migrations';
-import type { CharacterDTO as LegacyCharacter } from '@/src/infrastructure/dto/CharacterDTO';
 
 describe('Integration: Time Tracking (Tome 2)', () => {
   let service: CharacterService;
@@ -93,7 +92,8 @@ describe('Integration: Time Tracking (Tome 2)', () => {
 
   it('devrait migrer correctement un personnage v7 vers v8 (ajout des champs)', () => {
     // Données v7 (avant l'ajout du time tracking)
-    const v7Data: LegacyCharacter = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const v7Data: any = {
       id: 'v7-legacy',
       name: 'Legacy Hero',
       book: 2,
@@ -128,7 +128,7 @@ describe('Integration: Time Tracking (Tome 2)', () => {
     const progress = character.getProgress();
 
     // Vérification
-    expect(character.version).toBe(10);
+    expect(character.version).toBe(11);
     expect(progress.daysElapsed).toBe(0); // Initialisé à 0
     expect(progress.nextWakeUpParagraph).toBeUndefined(); // Initialisé à undefined
   });

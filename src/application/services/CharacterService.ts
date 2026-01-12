@@ -297,19 +297,15 @@ export class CharacterService {
       throw new Error('Item non trouvé');
     }
 
-    if (!item.stackable) {
-      throw new Error('Cet item n\'est pas consommable');
-    }
-
     const quantity = item.quantity || 1;
     if (quantity <= 1) {
       throw new Error('Quantité invalide, utilisez removeItemFromInventory à la place');
     }
 
     const updated = character.updateItemQuantity(itemIndex, quantity - 1);
-    
+
     await this.repository.save(updated);
-    
+
     return updated;
   }
 

@@ -11,6 +11,7 @@ export interface CharacterItemsSlice {
 type StoreState = CharacterItemsSlice & CharacterListSlice & ItemsCatalogSlice & CharacterInventorySlice;
 type GetState = () => StoreState;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createCharacterItemsSlice = (_service: CharacterService) => {
   return (_set: SetState, get: GetState): CharacterItemsSlice => ({
     getAddableCustomItems: (characterId: string) => {
@@ -23,10 +24,11 @@ export const createCharacterItemsSlice = (_service: CharacterService) => {
         .map((item) => item.itemId);
 
       return allItems.filter((item) => {
-        if (item.id !== 'custom-' && !item.id.startsWith('custom-')) return false;
+        if (!item.id.startsWith('custom-')) return false;
         const isPresent = presentItemIds.includes(item.id);
+        const isStackable = item.stackable === true;
         if (!isPresent) return true;
-        return item.stackable === true;
+        return isStackable;
       });
     },
   });

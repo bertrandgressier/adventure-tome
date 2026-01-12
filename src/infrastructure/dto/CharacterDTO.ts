@@ -6,7 +6,7 @@
  *
  * Ce type est différent de l'entité Character (domain) qui contient la logique métier.
  */
-import { InventoryItem } from '@/src/domain/value-objects/Inventory';
+import { InventoryItemRef } from '@/src/domain/types/items';
 
 export interface CharacterDTO {
   id: string;
@@ -35,7 +35,7 @@ export interface CharacterDTO {
       name: string;
       attackPoints: number;
     };
-    items: InventoryItem[];
+    items: InventoryItemRef[];
   };
 
   progress: {

@@ -39,7 +39,7 @@ export function AddCustomItemModal({
   currentTome,
   defaultType = ItemType.BASIC,
 }: AddCustomItemModalProps) {
-  const addCustomItemToCatalog = useCharacterStore((state) => state.addCustomItem);
+  const createCustomItem = useCharacterStore((state) => state.createCustomItem);
   const [name, setName] = useState('');
   const [type, setType] = useState<ItemType>(defaultType);
   const [effect, setEffect] = useState('');
@@ -54,7 +54,7 @@ export function AddCustomItemModal({
       return;
     }
 
-    const customItem = addCustomItemToCatalog({
+    const customItem = createCustomItem({
       name: name.trim(),
       type,
       effect: effect.trim() || undefined,

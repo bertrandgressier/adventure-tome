@@ -1,14 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Trash2, X, Minus } from 'lucide-react';
 import { useCharacter } from '@/src/presentation/hooks/useCharacter';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { MAX_ITEMS, BOURSE_ITEM_ID } from '@/src/domain/value-objects/Inventory';
 import { ItemTypeBadge } from './ItemTypeBadge';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ItemType } from '@/src/domain/types/items';
 import { AddItemModal } from './AddItemModal';
 import { Badge } from '@/components/ui/badge';
+import { ItemActionsOverlay } from './ItemActionsOverlay';
 
 interface CharacterInventoryProps {
   characterId: string;
@@ -21,7 +22,6 @@ export default function CharacterInventory({
 }: CharacterInventoryProps) {
   const { character, isLoading, error, removeItem } = useCharacter(characterId);
   const addItemFromCatalog = useCharacterStore((state) => state.addItemFromCatalog);
-  const addCustomItem = useCharacterStore((state) => state.addCustomItem);
   const consumeItem = useCharacterStore((state) => state.consumeItem);
   const getItemDetails = useCharacterStore((state) => state.getItemDetails);
   const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
@@ -33,15 +33,26 @@ export default function CharacterInventory({
     const itemRef = items[index];
     const catalogItem = getItemDetails(itemRef);
 
-    if (!catalogItem) return;
-
-    if (!confirm(`Supprimer "${catalogItem.name}" de l'inventaire ?`)) {
-      return;
+    if (!catalogItem) {
+      if (!confirm(`Supprimer l'item "${itemRef.itemId}" de l'inventaire ?`)) {
+        setSelectedItemIndex(null);
+        return;
+      }
+    } else {
+      if (!confirm(`Supprimer "${catalogItem.name}" de l'inventaire ?`)) {
+        setSelectedItemIndex(null);
+        return;
+      }
     }
 
-    await removeItem(index);
-    setSelectedItemIndex(null);
-    onUpdate?.();
+    try {
+      await removeItem(index);
+      setSelectedItemIndex(null);
+      onUpdate?.();
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      alert(`Erreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+    }
   };
 
   const handleConsumeItem = async (index: number) => {
@@ -51,9 +62,24 @@ export default function CharacterInventory({
     const itemRef = items[index];
     const catalogItem = getItemDetails(itemRef);
 
-    if (!catalogItem) return;
+    if (!catalogItem) {
+      if (!confirm(`Consommer 1 item (item inconnu) ?`)) {
+        setSelectedItemIndex(null);
+        return;
+      }
+
+      if (itemRef.quantity <= 1) {
+        await removeItem(index);
+      } else {
+        await consumeItem(characterId, index);
+      }
+      setSelectedItemIndex(null);
+      onUpdate?.();
+      return;
+    }
 
     if (!confirm(`Consommer 1 "${catalogItem.name}" ?`)) {
+      setSelectedItemIndex(null);
       return;
     }
 
@@ -124,7 +150,7 @@ export default function CharacterInventory({
         <AddItemModal
           onAddItem={async (catalogItem, quantity) => {
             if (catalogItem.id.startsWith('custom-')) {
-              await addCustomItem(characterId, catalogItem.id, quantity);
+              await addItemFromCatalog(characterId, catalogItem.id, quantity);
             } else {
               await addItemFromCatalog(characterId, catalogItem.id, quantity);
             }
@@ -137,90 +163,60 @@ export default function CharacterInventory({
       </div>
       {items.length === 0 ? (
         <span className="text-sm text-muted-light">Aucun objet dans l&apos;inventaire</span>
-      ) : (
-        <div className="space-y-2">
-          {items.map((itemRef, index) => {
-            const catalogItem = getItemDetails(itemRef);
+       ) : (
+         <div className="space-y-2">
+           {items.map((itemRef, index) => {
+             const catalogItem = getItemDetails(itemRef);
+             const isUnknown = !catalogItem;
 
-            if (!catalogItem) {
-              return (
-                <div key={index} className="bg-background/50 rounded-lg p-3 opacity-50">
-                  <span className="text-sm text-muted-light">Item inconnu: {itemRef.itemId}</span>
-                  {itemRef.quantity > 1 && (
-                    <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                      ×{itemRef.quantity}
-                    </Badge>
-                  )}
-                </div>
-              );
-            }
+             return (
+               <div
+                 key={index}
+                 className="relative"
+               >
+                 <div
+                   className={`bg-background rounded-lg p-3 transition-colors cursor-pointer ${
+                     selectedItemIndex === index ? 'ring-2 ring-primary/50' : 'hover:bg-background/80'
+                   } ${isUnknown ? 'bg-background/50' : ''}`}
+                   onClick={(e) => handleItemClick(index, e)}
+                 >
+                   <div className="flex items-center gap-3">
+                     <div className="flex-1">
+                       <div className="flex items-center gap-1.5">
+                         <span className="font-[var(--font-merriweather)] text-light">
+                           {catalogItem ? catalogItem.name : `Item inconnu: ${itemRef.itemId}`}
+                         </span>
+                         {itemRef.quantity > 1 && (
+                           <Badge variant="secondary" className="text-xs px-1.5 py-0">
+                             ×{itemRef.quantity}
+                           </Badge>
+                         )}
+                       </div>
+                       {catalogItem?.effect && (
+                         <p className="text-xs text-muted-light mt-1 font-[var(--font-merriweather)]">
+                           {catalogItem.effect}
+                         </p>
+                       )}
+                     </div>
+                     {catalogItem && <ItemTypeBadge type={catalogItem.type} showLabel={false} />}
+                   </div>
+                 </div>
 
-            return (
-              <div
-                key={index}
-                className="relative"
-              >
-                <div
-                  className={`bg-background rounded-lg p-3 transition-colors cursor-pointer ${
-                    selectedItemIndex === index ? 'ring-2 ring-primary/50' : 'hover:bg-background/80'
-                  }`}
-                  onClick={(e) => handleItemClick(index, e)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-[var(--font-merriweather)] text-light">
-                          {catalogItem.name}
-                        </span>
-                        {catalogItem.type === ItemType.ACTIVE && itemRef.quantity > 1 && (
-                          <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                            ×{itemRef.quantity}
-                          </Badge>
-                        )}
-                      </div>
-                      {catalogItem.effect && (
-                        <p className="text-xs text-muted-light mt-1 font-[var(--font-merriweather)]">
-                          {catalogItem.effect}
-                        </p>
-                      )}
-                    </div>
-                    <ItemTypeBadge type={catalogItem.type} showLabel={false} />
-                  </div>
-                </div>
-
-                 {selectedItemIndex === index && catalogItem.id !== BOURSE_ITEM_ID && (
-                    <div
-                      className="absolute inset-0 bg-card/95 backdrop-blur-sm rounded-lg flex items-center justify-center gap-2 z-10"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        onClick={() => handleConsumeItem(index)}
-                        className="flex items-center gap-2 px-4 py-3 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors touch-manipulation active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={!catalogItem.stackable}
-                      >
-                        <Minus className="w-4 h-4" />
-                        <span className="text-sm font-[var(--font-merriweather)]">Consommer</span>
-                      </button>
-                      <button
-                        onClick={() => handleDeleteItem(index)}
-                        className="flex items-center gap-2 px-4 py-3 bg-destructive/20 hover:bg-destructive/30 text-destructive rounded-lg transition-colors touch-manipulation active:scale-95"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="text-sm font-[var(--font-merriweather)]">Supprimer</span>
-                      </button>
-                      <button
-                        onClick={() => setSelectedItemIndex(null)}
-                        className="flex items-center justify-center p-3 bg-muted/50 hover:bg-muted/70 text-muted-light rounded-lg transition-colors touch-manipulation active:scale-95"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
+                 {selectedItemIndex === index && itemRef.itemId !== BOURSE_ITEM_ID && (
+                   <ItemActionsOverlay
+                     showConsume={catalogItem?.stackable ?? false}
+                     consumeDisabled={isUnknown}
+                     deleteDisabled={false}
+                     onConsume={() => handleConsumeItem(index)}
+                     onDelete={() => handleDeleteItem(index)}
+                     onClose={() => setSelectedItemIndex(null)}
+                   />
+                 )}
                </div>
-            );
-          })}
-        </div>
-      )}
+             );
+           })}
+         </div>
+       )}
     </div>
   );
 }

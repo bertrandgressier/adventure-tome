@@ -231,19 +231,26 @@ interface Character {
     pointsDeVieActuels: number;// PV actuels
   };
   
-  // Inventaire
+  // Inventaire (références au catalogue global)
   inventory: {
     boulons: number;           // Monnaie
     weapon?: {                 // Arme équipée (une seule)
       name: string;
       attackPoints: number;    // Points de dommage
     };
-    items: Array<{             // Objets (hors armes)
-      name: string;
-      possessed: boolean;
-      type?: 'item' | 'special';
+    items: Array<{             // Items (références: itemId + quantity)
+      itemId: string;         // ID de l'item dans le catalogue
+      quantity: number;         // Quantité (pour items consommables)
+      possessed: boolean;       // Possédé ou vu seulement
     }>;
   };
+  
+  // Bibliothèque d'items (statique + custom)
+  itemsCatalogSlice.ts  # Catalogue global d'items
+    // ITEM_CATALOG (JSON statique, non persisté)
+    // Custom items (persistés via zustand/persist)
+    // getItem(itemId), getAllItems(), getItemsByTome(tome)
+    // createCustomItem(item), removeCustomItem(itemId)
   
   // Progression
   progress: {

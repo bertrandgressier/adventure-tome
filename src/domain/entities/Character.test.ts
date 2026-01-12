@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Character } from './Character';
+import { ItemType } from '../types/items';
 
 describe('Character', () => {
   describe('create()', () => {
@@ -238,7 +239,7 @@ describe('Character', () => {
       const withItem = character.addItem({
         name: 'Potion de soin',
         possessed: true,
-        type: 'item',
+        type: ItemType.BASIC,
       });
 
       expect(withItem.getInventory().items).toHaveLength(2);
@@ -289,7 +290,7 @@ describe('Character', () => {
         id: 'test-item',
         name: 'Clé mystérieuse',
         possessed: true,
-        type: 'basic',
+        type: ItemType.BASIC,
         stackable: false,
       });
 
@@ -298,7 +299,7 @@ describe('Character', () => {
           id: 'test-item',
           name: 'Clé mystérieuse',
           possessed: true,
-          type: 'basic',
+          type: ItemType.BASIC,
           stackable: false,
         });
       }).toThrow('Clé mystérieuse est déjà dans l\'inventaire');
@@ -323,7 +324,7 @@ describe('Character', () => {
         id: 'unique-item',
         name: 'Bague de la 2ème chance',
         possessed: true,
-        type: 'special',
+        type: ItemType.SPECIAL,
         unique: true,
       });
 
@@ -332,7 +333,7 @@ describe('Character', () => {
           id: 'unique-item',
           name: 'Bague de la 2ème chance',
           possessed: true,
-          type: 'special',
+          type: ItemType.SPECIAL,
           unique: true,
         });
       }).toThrow('Bague de la 2ème chance est déjà dans l\'inventaire');
@@ -357,7 +358,7 @@ describe('Character', () => {
         id: 'tome1-potion-soin',
         name: 'Potion de soin',
         possessed: true,
-        type: 'active',
+        type: ItemType.ACTIVE,
         stackable: true,
         quantity: 3,
       });
@@ -366,7 +367,7 @@ describe('Character', () => {
         id: 'tome1-potion-soin',
         name: 'Potion de soin',
         possessed: true,
-        type: 'active',
+        type: ItemType.ACTIVE,
         stackable: true,
         quantity: 2,
       });

@@ -1,5 +1,5 @@
 import { Stats, StatsData } from '../value-objects/Stats';
-import { Inventory, InventoryData, InventoryItem, BOURSE_ITEM_NAME } from '../value-objects/Inventory';
+import { Inventory, InventoryData, InventoryItem, BOURSE_ITEM_NAME, BOURSE_ITEM_ID } from '../value-objects/Inventory';
 import { InventoryItemRef } from '../types/items';
 
 /**
@@ -477,7 +477,15 @@ export class Character {
       statsData.reputation = 0;
     }
 
-    const initialInventory = new Inventory(0, undefined, []);    const inventoryWithBourse = initialInventory.addItem({ name: BOURSE_ITEM_NAME, possessed: true });
+    const initialInventory = new Inventory(0, undefined, []);
+    const bourseItem = {
+      itemId: BOURSE_ITEM_ID,
+      id: BOURSE_ITEM_ID,
+      name: BOURSE_ITEM_NAME,
+      possessed: true,
+      quantity: 1,
+    };
+    const inventoryWithBourse = initialInventory.addItem(bourseItem, false, true, BOURSE_ITEM_NAME);
 
     return new Character(
       id,
@@ -486,7 +494,7 @@ export class Character {
       data.talent,
       data.secondTalent,
       data.gameMode,
-      10, // CURRENT_VERSION
+      11, // CURRENT_VERSION
       now,
       now,
       Stats.fromData(statsData),

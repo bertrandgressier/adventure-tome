@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { persist } from 'zustand/middleware';
 import { CatalogItem } from '@/src/domain/types/items';
 import { ITEMS_CATALOG } from '@/src/data/items-catalog';
@@ -8,7 +9,7 @@ export interface ItemsCatalogSlice {
   getItem: (itemId: string) => CatalogItem | undefined;
   getAllItems: () => CatalogItem[];
   getItemsByTome: (tome: number) => CatalogItem[];
-  addCustomItem: (item: Omit<CatalogItem, 'id'>) => CatalogItem;
+  createCustomItem: (item: Omit<CatalogItem, 'id'>) => CatalogItem;
   removeCustomItem: (itemId: string) => void;
   initializeCatalog: () => Promise<void>;
 }
@@ -50,22 +51,22 @@ export const createItemsCatalogSlice = () => {
       return Object.values(get().catalog);
     },
 
-    getItemsByTome: (tome: number) => {
-      return Object.values(get().catalog).filter((item) => item.tome === tome);
-    },
+      getItemsByTome: (tome: number) => {
+        return Object.values(get().catalog).filter((item) => item.tome === tome);
+      },
 
-    addCustomItem: (item: Omit<CatalogItem, 'id'>) => {
-      const newItem: CatalogItem = {
-        id: generateCustomItemId(),
-        ...item,
-      };
+      createCustomItem: (item: Omit<CatalogItem, 'id'>) => {
+        const newItem: CatalogItem = {
+          id: generateCustomItemId(),
+          ...item,
+        };
 
-      set((state) => ({
-        catalog: { ...state.catalog, [newItem.id]: newItem },
-      }));
+        set((state) => ({
+          catalog: { ...state.catalog, [newItem.id]: newItem },
+        }));
 
-      return newItem;
-    },
+        return newItem;
+      },
 
     removeCustomItem: (itemId: string) => {
       if (!itemId.startsWith('custom-')) return;
@@ -82,17 +83,5 @@ export const createItemsCatalogSlice = () => {
       const customItems = filterCustomItems(state.catalog);
       set({ catalog: buildCatalog(customItems) });
     },
-  });
-};
-
-export const createPersistedItemsCatalogSlice = () => {
-  return persist(createItemsCatalogSlice(), {
-    name: 'items-catalog',
-    version: 1,
-    partialize: (state) => ({
-      catalog: Object.fromEntries(
-        Object.entries(state.catalog).filter(([key]) => key.startsWith('custom-'))
-      ),
-    }),
   });
 };

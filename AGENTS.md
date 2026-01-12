@@ -271,8 +271,42 @@ slices/
   characterStatsSlice.ts      # Stats updates (updateStats, applyDamage, heal)
   characterInventorySlice.ts  # Inventory (equipWeapon, addItem, removeItem)
   characterMetadataSlice.ts   # Metadata (updateName, notes, progress)
-  characterItemsSlice.ts      # Custom items catalog
+  characterItemsSlice.ts      # Filter items for "Add Item" modal (custom items that can be added)
 ```
+
+### Slice Pattern: itemsCatalogSlice
+
+**Purpose**: Centralized items catalog combining static catalog (`ITEMS_CATALOG`) + custom items (persisted)
+
+```typescript
+export interface ItemsCatalogSlice {
+  catalog: Record<string, CatalogItem>;  // itemId → definition
+
+  // Getters
+  getItem: (itemId: string) => CatalogItem | undefined;
+  getAllItems: () => CatalogItem[];
+  getItemsByTome: (tome: number) => CatalogItem[];
+
+  // Custom items (persisted via zustand/persist)
+  createCustomItem: (item: Omit<CatalogItem, 'id'>) => CatalogItem;
+  removeCustomItem: (itemId: string) => void;
+  initializeCatalog: () => Promise<void>;
+}
+```
+
+**Usage in components**:
+```typescript
+const catalogItem = useCharacterStore((state) => state.getItem(itemId));
+const allItems = useCharacterStore((state) => state.getAllItems());
+const createCustomItem = useCharacterStore((state) => state.createCustomItem);
+```
+
+**Usage in slices** (e.g., `characterInventorySlice`):
+```typescript
+const catalogItem = get().getItem(catalogItemId);
+```
+
+**Note**: `customItemsCatalogStore.ts` was removed - this slice now handles both static catalog (loaded from `ITEMS_CATALOG`) and custom items (persisted).
 
 ### Slice Pattern
 

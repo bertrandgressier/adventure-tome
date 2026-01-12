@@ -56,8 +56,7 @@ export function AddItemModal({
   const [selectedType, setSelectedType] = useState<ItemType | 'all'>(filterType || 'all');
   const [selectedTome, setSelectedTome] = useState<1 | 2 | 3 | 'all'>(currentTome);
 
-  const getAllItems = useCharacterStore((state) => state.getAllItems);
-  const availableItems = getAllItems();
+  const catalog = useCharacterStore((state) => state.catalog);
 
   const handleAddCustomItem = async (catalogItem: CatalogItem, quantity?: number) => {
     await onAddItem(catalogItem, quantity);
@@ -70,8 +69,9 @@ export function AddItemModal({
     return item.stackable === true;
   };
 
-  const filteredItems = useMemo(() => {
-    return availableItems.filter((item) => {
+  const availableItems = useMemo(() => {
+    const allItems = Object.values(catalog);
+    return allItems.filter((item) => {
       const isBourse = item.name === 'Bourse';
       const isWeapon = item.type === ItemType.WEAPON;
       const matchesSearch =
@@ -82,7 +82,7 @@ export function AddItemModal({
         selectedTome === 'all' || item.tome === selectedTome;
       return !isBourse && (mode === 'equipped' ? true : !isWeapon) && matchesSearch && matchesType && matchesTome;
     });
-  }, [search, selectedType, selectedTome, availableItems, filterType, mode]);
+  }, [search, selectedType, selectedTome, catalog, filterType, mode]);
 
   const handleAddItem = (catalogItem: CatalogItem) => {
     onAddItem(catalogItem);
@@ -186,7 +186,7 @@ export function AddItemModal({
 
           <ScrollArea className="flex-1 pr-4 min-h-0">
             <div className="grid gap-2">
-              {filteredItems.map((item) => {
+              {availableItems.map((item) => {
                 const canAdd = canAddItem(item);
                 return (
                   <div
@@ -222,7 +222,7 @@ export function AddItemModal({
                 );
               })}
 
-              {filteredItems.length === 0 && (
+              {availableItems.length === 0 && (
                 <div className="text-center text-muted-foreground py-8">
                   Aucun item trouvé
                 </div>

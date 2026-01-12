@@ -2,10 +2,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AddCustomItemModal } from './AddCustomItemModal';
 import { ItemType } from '@/src/domain/types/items';
+import { CharacterStoreProvider } from '@/src/presentation/providers/character-store-provider';
 
 describe('AddCustomItemModal', () => {
   const mockOnAddCustomItem = vi.fn();
   const mockOnOpenChange = vi.fn();
+  const mockCurrentTome = 1 as const;
 
   beforeEach(() => {
     mockOnAddCustomItem.mockClear();
@@ -14,11 +16,14 @@ describe('AddCustomItemModal', () => {
 
   it('should render all required fields', () => {
     render(
-      <AddCustomItemModal
-        open={true}
-        onOpenChange={mockOnOpenChange}
-        onAddCustomItem={mockOnAddCustomItem}
-      />
+      <CharacterStoreProvider>
+        <AddCustomItemModal
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          onAddCustomItem={mockOnAddCustomItem}
+          currentTome={mockCurrentTome}
+        />
+      </CharacterStoreProvider>
     );
 
     expect(screen.getByLabelText(/nom de l'item/i)).toBeInTheDocument();
@@ -28,11 +33,14 @@ describe('AddCustomItemModal', () => {
 
   it('should validate that name is required', async () => {
     render(
-      <AddCustomItemModal
-        open={true}
-        onOpenChange={mockOnOpenChange}
-        onAddCustomItem={mockOnAddCustomItem}
-      />
+      <CharacterStoreProvider>
+        <AddCustomItemModal
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          onAddCustomItem={mockOnAddCustomItem}
+          currentTome={mockCurrentTome}
+        />
+      </CharacterStoreProvider>
     );
 
     const submitButton = screen.getByRole('button', { name: /créer l'item/i });
@@ -46,11 +54,14 @@ describe('AddCustomItemModal', () => {
 
   it('should create custom item and call onAddCustomItem', async () => {
     render(
-      <AddCustomItemModal
-        open={true}
-        onOpenChange={mockOnOpenChange}
-        onAddCustomItem={mockOnAddCustomItem}
-      />
+      <CharacterStoreProvider>
+        <AddCustomItemModal
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          onAddCustomItem={mockOnAddCustomItem}
+          currentTome={mockCurrentTome}
+        />
+      </CharacterStoreProvider>
     );
 
     const nameInput = screen.getByLabelText(/nom de l'item/i);
@@ -76,11 +87,14 @@ describe('AddCustomItemModal', () => {
 
   it('should show disappearsOnTimeLoop checkbox for BASIC type (default)', () => {
     render(
-      <AddCustomItemModal
-        open={true}
-        onOpenChange={mockOnOpenChange}
-        onAddCustomItem={mockOnAddCustomItem}
-      />
+      <CharacterStoreProvider>
+        <AddCustomItemModal
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          onAddCustomItem={mockOnAddCustomItem}
+          currentTome={mockCurrentTome}
+        />
+      </CharacterStoreProvider>
     );
 
     expect(screen.getByLabelText(/disparaît lors des resets temporels/i)).toBeInTheDocument();
@@ -88,11 +102,14 @@ describe('AddCustomItemModal', () => {
 
   it('should reset form when modal closes', async () => {
     render(
-      <AddCustomItemModal
-        open={true}
-        onOpenChange={mockOnOpenChange}
-        onAddCustomItem={mockOnAddCustomItem}
-      />
+      <CharacterStoreProvider>
+        <AddCustomItemModal
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          onAddCustomItem={mockOnAddCustomItem}
+          currentTome={mockCurrentTome}
+        />
+      </CharacterStoreProvider>
     );
 
     const nameInput = screen.getByLabelText(/nom de l'item/i);
@@ -106,11 +123,14 @@ describe('AddCustomItemModal', () => {
 
   it('should generate unique ID for custom items', async () => {
     render(
-      <AddCustomItemModal
-        open={true}
-        onOpenChange={mockOnOpenChange}
-        onAddCustomItem={mockOnAddCustomItem}
-      />
+      <CharacterStoreProvider>
+        <AddCustomItemModal
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          onAddCustomItem={mockOnAddCustomItem}
+          currentTome={mockCurrentTome}
+        />
+      </CharacterStoreProvider>
     );
 
     const nameInput = screen.getByLabelText(/nom de l'item/i);
@@ -129,11 +149,14 @@ describe('AddCustomItemModal', () => {
 
   it('should close dialog without calling onAddCustomItem when cancelled', async () => {
     render(
-      <AddCustomItemModal
-        open={true}
-        onOpenChange={mockOnOpenChange}
-        onAddCustomItem={mockOnAddCustomItem}
-      />
+      <CharacterStoreProvider>
+        <AddCustomItemModal
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          onAddCustomItem={mockOnAddCustomItem}
+          currentTome={mockCurrentTome}
+        />
+      </CharacterStoreProvider>
     );
 
     const nameInput = screen.getByLabelText(/nom de l'item/i);
@@ -148,11 +171,14 @@ describe('AddCustomItemModal', () => {
 
   it('should not submit when name is empty', async () => {
     render(
-      <AddCustomItemModal
-        open={true}
-        onOpenChange={mockOnOpenChange}
-        onAddCustomItem={mockOnAddCustomItem}
-      />
+      <CharacterStoreProvider>
+        <AddCustomItemModal
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          onAddCustomItem={mockOnAddCustomItem}
+          currentTome={mockCurrentTome}
+        />
+      </CharacterStoreProvider>
     );
 
     const submitButton = screen.getByRole('button', { name: /créer l'item/i });
@@ -163,11 +189,14 @@ describe('AddCustomItemModal', () => {
 
   it('should trim whitespace from name', async () => {
     render(
-      <AddCustomItemModal
-        open={true}
-        onOpenChange={mockOnOpenChange}
-        onAddCustomItem={mockOnAddCustomItem}
-      />
+      <CharacterStoreProvider>
+        <AddCustomItemModal
+          open={true}
+          onOpenChange={mockOnOpenChange}
+          onAddCustomItem={mockOnAddCustomItem}
+          currentTome={mockCurrentTome}
+        />
+      </CharacterStoreProvider>
     );
 
     const nameInput = screen.getByLabelText(/nom de l'item/i);

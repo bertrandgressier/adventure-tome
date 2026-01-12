@@ -23,6 +23,7 @@ export const CharacterStoreProvider = ({ children }: CharacterStoreProviderProps
 
   useEffect(() => {
     store.getState().loadAll();
+    store.getState().initializeCatalog();
   }, [store]);
 
   return (

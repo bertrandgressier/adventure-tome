@@ -2,6 +2,7 @@ import type { CharacterService } from '@/src/application/services/CharacterServi
 import type { CharacterListSlice } from './characterListSlice';
 import type { ItemsCatalogSlice } from './itemsCatalogSlice';
 import type { InventoryItemRef } from '@/src/domain/types/items';
+import type { InventoryItem } from '@/src/domain/value-objects/Inventory';
 import { handleSliceError } from './sliceHelpers';
 import { BOURSE_ITEM_ID } from '@/src/domain/value-objects/Inventory';
 
@@ -10,12 +11,11 @@ export interface CharacterInventorySlice {
     id: string,
     weapon: { name: string; attackPoints: number } | null
   ) => Promise<void>;
-  addItemFromCatalog: (
+  addItem: (
     id: string,
-    catalogItemId: string,
-    quantity?: number
+    item: Partial<InventoryItem> & { name: string; possessed?: boolean }
   ) => Promise<void>;
-  addCustomItem: (
+  addItemFromCatalog: (
     id: string,
     catalogItemId: string,
     quantity?: number
@@ -89,14 +89,6 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
       }
     },
 
-    addCustomItem: async (
-      id: string,
-      catalogItemId: string,
-      quantity: number = 1
-    ) => {
-      await get().addItemFromCatalog(id, catalogItemId, quantity);
-    },
-
     removeItem: async (id: string, itemIndex: number) => {
       const character = get().characters[id];
       if (!character) return;
@@ -123,7 +115,12 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
         }
 
         const catalogItem = get().getItem(itemRef.itemId);
-        if (!catalogItem || !catalogItem.stackable) {
+
+        if (!catalogItem) {
+          throw new Error('Cet item n\'est plus disponible dans le catalogue');
+        }
+
+        if (!catalogItem.stackable) {
           throw new Error('Cet item n\'est pas consommable');
         }
 
@@ -199,6 +196,24 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
 
     getItemDetails: (itemRef: InventoryItemRef) => {
       return get().getItem(itemRef.itemId);
+    },
+
+    addItem: async (
+      id: string,
+      item: Partial<InventoryItem> & { name: string; possessed?: boolean }
+    ) => {
+      const character = get().characters[id];
+      if (!character) return;
+
+      try {
+        const updated = await service.addItemToInventory(id, item);
+        set((state) => ({
+          characters: { ...state.characters, [id]: updated },
+        }));
+      } catch (error) {
+        handleSliceError(set, error);
+        throw error;
+      }
     },
   });
 };
