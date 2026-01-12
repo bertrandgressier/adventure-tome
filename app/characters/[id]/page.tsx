@@ -19,8 +19,6 @@ import CharacterNotes from '@/src/presentation/components/CharacterNotes';
 import DiceRoller from '@/components/character/DiceRoller';
 import { AddItemModal } from '@/src/presentation/components/AddItemModal';
 import { GameModeBadge } from '@/components/ui/game-mode-badge';
-import { useCustomItemsCatalog } from '@/src/presentation/stores/customItemsCatalogStore';
-import { ITEMS_CATALOG } from '@/src/data/items-catalog';
 
 export default function CharacterDetail() {
   const router = useRouter();
@@ -35,19 +33,15 @@ export default function CharacterDetail() {
   const updateName = useCharacterStore((state) => state.updateName);
   const equipWeapon = useCharacterStore((state) => state.equipWeapon);
   const applyDamage = useCharacterStore((state) => state.applyDamage);
-  
+
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
-  
+
   // Modal states
   const [showItemModal, setShowItemModal] = useState(false);
   const [showDiceModal, setShowDiceModal] = useState(false);
 
-  // Get all weapons (official + custom) for equipped mode
-  const customItemsCatalog = useCustomItemsCatalog((state) => state.customItems);
-  const allWeapons = [...ITEMS_CATALOG, ...customItemsCatalog].filter(
-    (item) => item.type === ItemType.WEAPON
-  );
+
 
   // Combat states
   const [showCombatSetup, setShowCombatSetup] = useState(false);
@@ -271,7 +265,6 @@ export default function CharacterDetail() {
           currentTome={character.book as 1 | 2 | 3}
           mode="equipped"
           filterType={ItemType.WEAPON}
-          availableItems={allWeapons}
         />
 
         {showDiceModal && (

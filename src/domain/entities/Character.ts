@@ -1,5 +1,6 @@
 import { Stats, StatsData } from '../value-objects/Stats';
-import { Inventory, InventoryData, InventoryItem, BOURSE_ITEM_NAME } from '../value-objects/Inventory';
+import { Inventory, InventoryData, InventoryItem, BOURSE_ITEM_NAME, BOURSE_ITEM_ID } from '../value-objects/Inventory';
+import { InventoryItemRef } from '../types/items';
 
 /**
  * Game Mode Types
@@ -265,7 +266,25 @@ export class Character {
    * Ajoute un objet à l'inventaire
    */
   addItem(item: Partial<InventoryItem> & { name: string; possessed?: boolean }): Character {
-    const updatedInventory = this.inventory.addItem(item);
+    const itemRef: InventoryItemRef = {
+      itemId: item.id || `legacy-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      quantity: item.quantity ?? 1,
+      possessed: item.possessed ?? true,
+    };
+
+    const isStackable = item.stackable ?? false;
+    const isBourse = item.name === BOURSE_ITEM_NAME;
+
+    const updatedInventory = this.inventory.addItem(itemRef, isStackable, isBourse, item.name);
+
+    return this.withChanges({ inventory: updatedInventory });
+  }
+
+  /**
+   * Ajoute un objet à l'inventaire via une référence au catalog
+   */
+  addItemWithRef(itemRef: InventoryItemRef, isStackable: boolean, isBourse: boolean): Character {
+    const updatedInventory = this.inventory.addItem(itemRef, isStackable, isBourse);
 
     return this.withChanges({ inventory: updatedInventory });
   }
@@ -454,12 +473,19 @@ export class Character {
     
     // Initialiser la réputation à 0 pour le tome 2 si non fournie
     const statsData = { ...data.stats };
-    if (data.book === 2 && statsData.reputation === undefined) {
+     if (data.book === 2 && statsData.reputation === undefined) {
       statsData.reputation = 0;
     }
 
     const initialInventory = new Inventory(0, undefined, []);
-    const inventoryWithBourse = initialInventory.addItem({ name: BOURSE_ITEM_NAME, possessed: true });
+    const bourseItem = {
+      itemId: BOURSE_ITEM_ID,
+      id: BOURSE_ITEM_ID,
+      name: BOURSE_ITEM_NAME,
+      possessed: true,
+      quantity: 1,
+    };
+    const inventoryWithBourse = initialInventory.addItem(bourseItem, false, true, BOURSE_ITEM_NAME);
 
     return new Character(
       id,
@@ -468,7 +494,7 @@ export class Character {
       data.talent,
       data.secondTalent,
       data.gameMode,
-      10, // CURRENT_VERSION
+      11, // CURRENT_VERSION
       now,
       now,
       Stats.fromData(statsData),

@@ -4,7 +4,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createCharacterInventorySlice } from './characterInventorySlice';
 import type { CharacterListSlice } from './characterListSlice';
 import { ItemType } from '@/src/domain/types/items';
-import { CatalogItem } from '@/src/domain/types/items';
 
 vi.mock('@/src/application/services/CharacterService');
 
@@ -21,7 +20,7 @@ describe('CharacterInventorySlice', () => {
     talent: 'instinct',
     gameMode: 'mortal',
     getInventory: vi.fn(() => ({
-      items: [{ name: 'Bourse', possessed: true, type: ItemType.BASIC, id: 'bourse' }],
+      items: [{ itemId: 'tome1-bourse', quantity: 1, possessed: true }],
       weapon: null,
       boulons: 0,
     })),
@@ -50,11 +49,60 @@ describe('CharacterInventorySlice', () => {
       }));
       return updated;
     }),
+    getItem: vi.fn((itemId: string) => {
+      if (itemId === 'tome1-potion-soin') {
+        return { id: 'tome1-potion-soin', name: 'Potion de soin', type: ItemType.ACTIVE, stackable: true };
+      }
+      if (itemId === 'potion') {
+        return { id: 'potion', name: 'Potion', type: ItemType.ACTIVE, stackable: true };
+      }
+      if (itemId === 'potions') {
+        return { id: 'potions', name: 'Potions', type: ItemType.ACTIVE, stackable: true };
+      }
+      if (itemId === 'sword') {
+        return { id: 'sword', name: 'Épée', type: ItemType.WEAPON, stackable: false };
+      }
+      if (itemId === 'custom-1234567890-abc123') {
+        return { id: 'custom-1234567890-abc123', name: 'Épée légendaire', type: ItemType.WEAPON, tome: 1, attackPoints: 3 };
+      }
+      if (itemId === 'custom-1234567890-potions') {
+        return { id: 'custom-1234567890-potions', name: 'Potion magique', type: ItemType.ACTIVE, tome: 2, stackable: true, healAmount: 5 };
+      }
+      if (itemId === 'custom-1234567890-unique') {
+        return { id: 'custom-1234567890-unique', name: 'Anneau unique', type: ItemType.SPECIAL, tome: 3, unique: true, statBonus: { chance: 2 } };
+      }
+      if (itemId === 'custom-1234567890-full') {
+        return { id: 'custom-1234567890-full', name: 'Item complet', type: ItemType.PASSIVE, tome: 2, effect: 'Donne des bonus', stackable: false, unique: true, disappearsOnTimeLoop: false, statBonus: { dexterite: 2, chance: 1 }, isQuestItem: true };
+      }
+      if (itemId === 'custom-1234567890-default') {
+        return { id: 'custom-1234567890-default', name: 'Potion', type: ItemType.ACTIVE, tome: 1, stackable: true };
+      }
+      if (itemId === 'custom-1234567890-error') {
+        return { id: 'custom-1234567890-error', name: 'Item avec erreur', type: ItemType.BASIC, tome: 1 };
+      }
+      return undefined;
+    }),
+    addItemFromCatalog: vi.fn(async (id: string, catalogItemId: string, quantity: number) => {
+      const catalogItem = mockInventorySlice.getItem(catalogItemId);
+      if (!catalogItem) throw new Error(`Item ${catalogItemId} not found in catalog`);
+      const itemRef = {
+        itemId: catalogItem.id,
+        quantity: catalogItem.stackable ? quantity : 1,
+        possessed: true,
+      };
+      const updated = await service.addItemToInventoryWithRef(id, itemRef, catalogItem.stackable ?? false, catalogItem.id === 'tome1-bourse');
+      mockSetState((state: any) => ({
+        ...state,
+        characters: { ...state.characters, [id]: updated },
+      }));
+      return updated;
+    }),
   };
 
   beforeEach(() => {
     service = {
       addItemToInventory: vi.fn(),
+      addItemToInventoryWithRef: vi.fn(),
       removeItemFromInventory: vi.fn(),
       equipWeapon: vi.fn(),
       unequipWeapon: vi.fn(),
@@ -64,6 +112,7 @@ describe('CharacterInventorySlice', () => {
     };
 
     service.addItemToInventory.mockResolvedValue(mockCharacter);
+    service.addItemToInventoryWithRef.mockResolvedValue(mockCharacter);
     service.removeItemFromInventory.mockResolvedValue(mockCharacter);
     service.equipWeapon.mockResolvedValue(mockCharacter);
     service.unequipWeapon.mockResolvedValue(mockCharacter);
@@ -130,137 +179,6 @@ describe('CharacterInventorySlice', () => {
     });
   });
 
-  describe('addCustomItem()', () => {
-    it('devrait ajouter un item personnalisé au personnage', async () => {
-      const customItem: CatalogItem = {
-        id: 'custom-1234567890-abc123',
-        name: 'Épée légendaire',
-        type: ItemType.WEAPON,
-        tome: 1,
-        attackPoints: 3,
-      };
-
-      await slice.addCustomItem('test-character-id', customItem, 1);
-
-      expect(service.addItemToInventory).toHaveBeenCalledWith(
-        'test-character-id',
-        expect.objectContaining({
-          id: 'custom-1234567890-abc123',
-          name: 'Épée légendaire',
-          type: ItemType.WEAPON,
-          possessed: true,
-          attackPoints: 3,
-        })
-      );
-    });
-
-    it('devrait gérer les items stackables personnalisés', async () => {
-      const stackableItem: CatalogItem = {
-        id: 'custom-1234567890-potions',
-        name: 'Potion magique',
-        type: ItemType.ACTIVE,
-        tome: 2,
-        stackable: true,
-        healAmount: 5,
-      };
-
-      await slice.addCustomItem('test-character-id', stackableItem, 5);
-
-      expect(service.addItemToInventory).toHaveBeenCalledWith(
-        'test-character-id',
-        expect.objectContaining({
-          quantity: 5,
-          stackable: true,
-        })
-      );
-    });
-
-    it('devrait gérer les items non-stackables', async () => {
-      const uniqueItem: CatalogItem = {
-        id: 'custom-1234567890-unique',
-        name: 'Anneau unique',
-        type: ItemType.SPECIAL,
-        tome: 3,
-        unique: true,
-        statBonus: { chance: 2 },
-      };
-
-      await slice.addCustomItem('test-character-id', uniqueItem, 10);
-
-      expect(service.addItemToInventory).toHaveBeenCalledWith(
-        'test-character-id',
-        expect.objectContaining({
-          quantity: 1,
-        })
-      );
-    });
-
-    it('devrait copier tous les champs pertinents de l\'item personnalisé', async () => {
-      const fullCustomItem: CatalogItem = {
-        id: 'custom-1234567890-full',
-        name: 'Item complet',
-        type: ItemType.PASSIVE,
-        tome: 2,
-        effect: 'Donne des bonus',
-        stackable: false,
-        unique: true,
-        disappearsOnTimeLoop: false,
-        statBonus: { dexterite: 2, chance: 1 },
-        isQuestItem: true,
-      };
-
-      await slice.addCustomItem('test-character-id', fullCustomItem);
-
-      expect(service.addItemToInventory).toHaveBeenCalledWith(
-        'test-character-id',
-        expect.objectContaining({
-          id: 'custom-1234567890-full',
-          name: 'Item complet',
-          type: ItemType.PASSIVE,
-          possessed: true,
-          effect: 'Donne des bonus',
-          stackable: false,
-          unique: true,
-          disappearsOnTimeLoop: false,
-          statBonus: { dexterite: 2, chance: 1 },
-          isQuestItem: true,
-        })
-      );
-    });
-
-    it('devrait respecter la quantité par défaut si non spécifiée', async () => {
-      const customItem: CatalogItem = {
-        id: 'custom-1234567890-default',
-        name: 'Potion',
-        type: ItemType.ACTIVE,
-        tome: 1,
-        stackable: true,
-      };
-
-      await slice.addCustomItem('test-character-id', customItem);
-
-      expect(service.addItemToInventory).toHaveBeenCalledWith(
-        'test-character-id',
-        expect.objectContaining({
-          quantity: 1,
-        })
-      );
-    });
-
-    it('devrait gérer les erreurs lors de l\'ajout', async () => {
-      const customItem: CatalogItem = {
-        id: 'custom-1234567890-error',
-        name: 'Item avec erreur',
-        type: ItemType.BASIC,
-        tome: 1,
-      };
-
-      service.addItemToInventory.mockRejectedValue(new Error('Inventaire plein'));
-
-      await expect(slice.addCustomItem('test-character-id', customItem)).rejects.toThrow();
-    });
-  });
-
   describe('removeItem()', () => {
     it('devrait supprimer un item via le service', async () => {
       await slice.removeItem('test-character-id', 0);
@@ -288,12 +206,13 @@ describe('CharacterInventorySlice', () => {
         ...mockCharacter,
         getInventory: vi.fn(() => ({
           items: [
-            { name: 'Potion', possessed: true, type: ItemType.ACTIVE, stackable: true, quantity: 3, id: 'potion' },
+            { itemId: 'potion', quantity: 3, possessed: true },
           ],
         })),
       };
 
       mockGetState.mockReturnValue({
+        ...mockInventorySlice,
         characters: {
           'test-character-id': itemWithQuantity,
         },
@@ -309,12 +228,13 @@ describe('CharacterInventorySlice', () => {
         ...mockCharacter,
         getInventory: vi.fn(() => ({
           items: [
-            { name: 'Potion', possessed: true, type: ItemType.ACTIVE, stackable: true, quantity: 1, id: 'potion' },
+            { itemId: 'potion', quantity: 1, possessed: true },
           ],
         })),
       };
 
       mockGetState.mockReturnValue({
+        ...mockInventorySlice,
         characters: {
           'test-character-id': itemWithOneQuantity,
         },
@@ -330,12 +250,13 @@ describe('CharacterInventorySlice', () => {
         ...mockCharacter,
         getInventory: vi.fn(() => ({
           items: [
-            { name: 'Épée', possessed: true, type: ItemType.WEAPON, stackable: false, id: 'sword' },
+            { itemId: 'sword', quantity: 1, possessed: true },
           ],
         })),
       };
 
       mockGetState.mockReturnValue({
+        ...mockInventorySlice,
         characters: {
           'test-character-id': nonStackableItem,
         },
@@ -346,6 +267,7 @@ describe('CharacterInventorySlice', () => {
 
     it('devrait lancer une erreur si l\'item n\'existe pas', async () => {
       mockGetState.mockReturnValue({
+        ...mockInventorySlice,
         characters: {
           'test-character-id': {
             ...mockCharacter,
@@ -412,68 +334,29 @@ describe('CharacterInventorySlice', () => {
   });
 
   describe('Cas d\'usage métier - Gestion de l\'inventaire', () => {
-    it('devrait permettre d\'ajouter un item custom créé par un MJ', async () => {
-      const customWeapon: CatalogItem = {
-        id: 'custom-mj-weapon',
-        name: 'Hache de combat',
-        type: ItemType.WEAPON,
-        tome: 1,
-        attackPoints: 4,
-      };
-
-      await slice.addCustomItem('test-character-id', customWeapon);
-
-      expect(service.addItemToInventory).toHaveBeenCalledWith(
-        'test-character-id',
-        expect.objectContaining({
-          name: 'Hache de combat',
-          type: ItemType.WEAPON,
-          attackPoints: 4,
-        })
-      );
-    });
-
-    it('devrait permettre d\'ajouter une potion custom stackable', async () => {
-      const customPotion: CatalogItem = {
-        id: 'custom-mj-potion',
-        name: 'Élixir de guérison',
-        type: ItemType.ACTIVE,
-        tome: 2,
-        stackable: true,
-        healAmount: 8,
-      };
-
-      await slice.addCustomItem('test-character-id', customPotion, 10);
-
-      expect(service.addItemToInventory).toHaveBeenCalledWith(
-        'test-character-id',
-        expect.objectContaining({
-          name: 'Élixir de guérison',
-          quantity: 10,
-          stackable: true,
-          healAmount: 8,
-        })
-      );
-    });
-
     it('devrait consommer une portion d\'un stackable', async () => {
       const itemWithStack = {
         ...mockCharacter,
         getInventory: vi.fn(() => ({
           items: [
             {
-              name: 'Potions',
-              possessed: true,
-              type: ItemType.ACTIVE,
-              stackable: true,
+              itemId: 'potions',
               quantity: 5,
-              id: 'potions',
+              possessed: true,
             },
           ],
         })),
       };
+      const catalogItem = {
+        id: 'potions',
+        name: 'Potions',
+        type: ItemType.ACTIVE,
+        stackable: true,
+      };
+      mockInventorySlice.getItem.mockReturnValue(catalogItem);
 
       mockGetState.mockReturnValue({
+        ...mockInventorySlice,
         characters: {
           'test-character-id': itemWithStack,
         },

@@ -6,27 +6,29 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import { createStore, type StoreApi } from 'zustand/vanilla';
 import { CharacterService } from '@/src/application/services/CharacterService';
 import { IndexedDBCharacterRepository } from '@/src/infrastructure/repositories/IndexedDBCharacterRepository';
 import { ItemType } from '@/src/domain/types/items';
-import { useCustomItemsCatalog } from '@/src/presentation/stores/customItemsCatalogStore';
+import { createItemsCatalogSlice } from '@/src/presentation/stores/slices/itemsCatalogSlice';
+import type { ItemsCatalogSlice } from '@/src/presentation/stores/slices/itemsCatalogSlice';
 
 describe('Integration: Custom Items Flow', () => {
   let service: CharacterService;
   let repository: IndexedDBCharacterRepository;
+  let itemsCatalogStore: StoreApi<ItemsCatalogSlice>;
 
   beforeEach(async () => {
     repository = new IndexedDBCharacterRepository();
     service = new CharacterService(repository);
-
-    useCustomItemsCatalog.setState({ customItems: [] });
+    itemsCatalogStore = createStore<ItemsCatalogSlice>()((set, get) => createItemsCatalogSlice()(set, get));
   });
 
   describe('Création d\'item personnalisé via Store', () => {
     it('devrait créer un item personnalisé et le retrouver', () => {
-      const { addCustomItem, getCustomItemById } = useCustomItemsCatalog.getState();
+      const state = itemsCatalogStore.getState();
 
-      const customItem = addCustomItem({
+      const customItem = state.createCustomItem({
         name: 'Épée de l\'ombre',
         type: ItemType.WEAPON,
         tome: 1,
@@ -34,14 +36,15 @@ describe('Integration: Custom Items Flow', () => {
       });
 
       expect(customItem.id).toBeDefined();
-      expect(customItem.id).toMatch(/^custom-\d+-[a-z0-9]+$/);
+      expect(customItem.id).toMatch(/^custom-/);
 
-      const retrieved = getCustomItemById(customItem.id);
-      expect(retrieved).toEqual(customItem);
+      const retrieved = state.getAllItems().filter(item => item.id.startsWith('custom-')).find(item => item.id === customItem.id);
+      expect(retrieved).toBeDefined();
+      expect(retrieved?.name).toBe('Épée de l\'ombre');
     });
 
     it('devrait créer un item personnalisé complexe', () => {
-      const { addCustomItem, getCustomItemById } = useCustomItemsCatalog.getState();
+      const state = itemsCatalogStore.getState();
 
       const complexItem = {
         name: 'Anneau de temps',
@@ -53,32 +56,33 @@ describe('Integration: Custom Items Flow', () => {
         statBonus: { chance: 3 },
       };
 
-      const created = addCustomItem(complexItem);
+      const created = state.createCustomItem(complexItem);
 
       expect(created.unique).toBe(true);
       expect(created.statBonus).toEqual({ chance: 3 });
 
-      const retrieved = getCustomItemById(created.id);
+      const retrieved = state.getAllItems().filter(item => item.id.startsWith('custom-')).find(item => item.id === created.id);
       expect(retrieved?.effect).toBe('Permet de voyager dans le temps');
     });
 
     it('devrait conserver les items personnalisés entre les appels', () => {
-      const { addCustomItem, getCustomItemById } = useCustomItemsCatalog.getState();
+      const state = itemsCatalogStore.getState();
 
-      const item1 = addCustomItem({
+      const item1 = state.createCustomItem({
         name: 'Premier item',
         type: ItemType.BASIC,
         tome: 1,
       });
 
-      const item2 = addCustomItem({
+      const item2 = state.createCustomItem({
         name: 'Deuxième item',
         type: ItemType.PASSIVE,
         tome: 2,
       });
 
-      const retrieved1 = getCustomItemById(item1.id);
-      const retrieved2 = getCustomItemById(item2.id);
+      const all = state.getAllItems().filter(item => item.id.startsWith('custom-'));
+      const retrieved1 = all.find(i => i.id === item1.id);
+      const retrieved2 = all.find(i => i.id === item2.id);
 
       expect(retrieved1?.name).toBe('Premier item');
       expect(retrieved2?.name).toBe('Deuxième item');
@@ -101,28 +105,29 @@ describe('Integration: Custom Items Flow', () => {
         },
       });
 
-      const customItem = useCustomItemsCatalog.getState().addCustomItem({
+      const customItem = itemsCatalogStore.getState().createCustomItem({
         name: 'Arme MJ',
         type: ItemType.WEAPON,
         tome: 1,
         attackPoints: 5,
       });
 
-      await service.addItemToInventory(character.id, {
-        id: customItem.id,
-        name: customItem.name,
-        type: customItem.type,
+      const itemRef = {
+        itemId: customItem.id,
+        quantity: 1,
         possessed: true,
-        attackPoints: customItem.attackPoints,
-      });
+      };
+
+      await service.addItemToInventoryWithRef(character.id, itemRef, false, false);
 
       const updated = await service.getCharacter(character.id);
       const items = updated?.getInventory().items || [];
 
-      const customWeapon = items.find((item) => item.id === customItem.id);
+      const customWeapon = items.find((item) => item.itemId === customItem.id);
       expect(customWeapon).toBeDefined();
-      expect(customWeapon?.name).toBe('Arme MJ');
-      expect(customWeapon?.attackPoints).toBe(5);
+      expect(customWeapon?.itemId).toBe(customItem.id);
+      expect(customWeapon?.quantity).toBe(1);
+      expect(customWeapon?.possessed).toBe(true);
     });
 
     it('devrait ajouter un item custom stackable avec quantité', async () => {
@@ -140,7 +145,7 @@ describe('Integration: Custom Items Flow', () => {
         },
       });
 
-      const customPotion = useCustomItemsCatalog.getState().addCustomItem({
+      const customPotion = itemsCatalogStore.getState().createCustomItem({
         name: 'Élixir puissant',
         type: ItemType.ACTIVE,
         tome: 2,
@@ -148,20 +153,18 @@ describe('Integration: Custom Items Flow', () => {
         healAmount: 10,
       });
 
-      await service.addItemToInventory(character.id, {
-        id: customPotion.id,
-        name: customPotion.name,
-        type: customPotion.type,
-        possessed: true,
-        stackable: true,
+      const itemRef = {
+        itemId: customPotion.id,
         quantity: 5,
-        healAmount: customPotion.healAmount,
-      });
+        possessed: true,
+      };
+
+      await service.addItemToInventoryWithRef(character.id, itemRef, true, false);
 
       const updated = await service.getCharacter(character.id);
       const items = updated?.getInventory().items || [];
 
-      const potionItem = items.find((item) => item.id === customPotion.id);
+      const potionItem = items.find((item) => item.itemId === customPotion.id);
       expect(potionItem).toBeDefined();
       expect(potionItem?.quantity).toBe(5);
     });
@@ -181,7 +184,7 @@ describe('Integration: Custom Items Flow', () => {
         },
       });
 
-      const customItem = useCustomItemsCatalog.getState().addCustomItem({
+      const customItem = itemsCatalogStore.getState().createCustomItem({
         name: 'Grimoire ancien',
         type: ItemType.PASSIVE,
         tome: 1,
@@ -189,22 +192,20 @@ describe('Integration: Custom Items Flow', () => {
         statBonus: { dexterite: 2 },
       });
 
-      await service.addItemToInventory(character.id, {
-        id: customItem.id,
-        name: customItem.name,
-        type: customItem.type,
+      const itemRef = {
+        itemId: customItem.id,
+        quantity: 1,
         possessed: true,
-        effect: customItem.effect,
-        statBonus: customItem.statBonus,
-      });
+      };
+
+      await service.addItemToInventoryWithRef(character.id, itemRef, false, false);
 
       const retrieved = await service.getCharacter(character.id);
       const items = retrieved?.getInventory().items || [];
 
-      const grimoire = items.find((item) => item.id === customItem.id);
+      const grimoire = items.find((item) => item.itemId === customItem.id);
       expect(grimoire).toBeDefined();
-      expect(grimoire?.name).toBe('Grimoire ancien');
-      expect(grimoire?.statBonus).toEqual({ dexterite: 2 });
+      expect(grimoire?.itemId).toBe(customItem.id);
     });
   });
 
@@ -224,7 +225,7 @@ describe('Integration: Custom Items Flow', () => {
         },
       });
 
-      const dungeonKey = useCustomItemsCatalog.getState().addCustomItem({
+      const dungeonKey = itemsCatalogStore.getState().createCustomItem({
         name: 'Clé du donjon',
         type: ItemType.SPECIAL,
         tome: 1,
@@ -233,21 +234,19 @@ describe('Integration: Custom Items Flow', () => {
         effect: 'Ouvre la porte du niveau inférieur',
       });
 
-      await service.addItemToInventory(character.id, {
-        id: dungeonKey.id,
-        name: dungeonKey.name,
-        type: dungeonKey.type,
+      const itemRef = {
+        itemId: dungeonKey.id,
+        quantity: 1,
         possessed: true,
-        unique: true,
-        isQuestItem: true,
-        effect: dungeonKey.effect,
-      });
+      };
+
+      await service.addItemToInventoryWithRef(character.id, itemRef, false, false);
 
       const updated = await service.getCharacter(character.id);
-      const keyItem = updated?.getInventory().items.find((item) => item.id === dungeonKey.id);
+      const keyItem = updated?.getInventory().items.find((item) => item.itemId === dungeonKey.id);
 
-      expect(keyItem?.unique).toBe(true);
-      expect(keyItem?.isQuestItem).toBe(true);
+      expect(keyItem).toBeDefined();
+      expect(keyItem?.quantity).toBe(1);
     });
 
     it('devrait permettre de créer des items manquants du catalogue', async () => {
@@ -265,26 +264,25 @@ describe('Integration: Custom Items Flow', () => {
         },
       });
 
-      const missingItem = useCustomItemsCatalog.getState().addCustomItem({
+      const missingItem = itemsCatalogStore.getState().createCustomItem({
         name: 'Torche magique',
         type: ItemType.BASIC,
         tome: 1,
         effect: 'S\'éteint jamais',
       });
 
-      await service.addItemToInventory(character.id, {
-        id: missingItem.id,
-        name: missingItem.name,
-        type: missingItem.type,
+      const itemRef = {
+        itemId: missingItem.id,
+        quantity: 1,
         possessed: true,
-        effect: missingItem.effect,
-      });
+      };
+
+      await service.addItemToInventoryWithRef(character.id, itemRef, false, false);
 
       const updated = await service.getCharacter(character.id);
-      const torch = updated?.getInventory().items.find((item) => item.id === missingItem.id);
+      const torch = updated?.getInventory().items.find((item) => item.itemId === missingItem.id);
 
-      expect(torch?.name).toBe('Torche magique');
-      expect(torch?.effect).toBe('S\'éteint jamais');
+      expect(torch).toBeDefined();
     });
 
     it('devrait gérer un item qui disparaît lors des resets temporels (Tome 3)', async () => {
@@ -302,7 +300,7 @@ describe('Integration: Custom Items Flow', () => {
         },
       });
 
-      const timeItem = useCustomItemsCatalog.getState().addCustomItem({
+      const timeItem = itemsCatalogStore.getState().createCustomItem({
         name: 'Parchemin temporel',
         type: ItemType.PASSIVE,
         tome: 3,
@@ -310,51 +308,51 @@ describe('Integration: Custom Items Flow', () => {
         effect: 'Contient des souvenirs futurs',
       });
 
-      await service.addItemToInventory(character.id, {
-        id: timeItem.id,
-        name: timeItem.name,
-        type: timeItem.type,
+      const itemRef = {
+        itemId: timeItem.id,
+        quantity: 1,
         possessed: true,
-        disappearsOnTimeLoop: true,
-        effect: timeItem.effect,
-      });
+      };
+
+      await service.addItemToInventoryWithRef(character.id, itemRef, false, false);
 
       const updated = await service.getCharacter(character.id);
-      const item = updated?.getInventory().items.find((i) => i.id === timeItem.id);
+      const item = updated?.getInventory().items.find((i) => i.itemId === timeItem.id);
 
-      expect(item?.disappearsOnTimeLoop).toBe(true);
+      expect(item).toBeDefined();
     });
   });
 
   describe('Suppression d\'item personnalisé', () => {
     it('devrait supprimer un item personnalisé du catalogue', () => {
-      const { addCustomItem, removeCustomItem, getCustomItemById } = useCustomItemsCatalog.getState();
+      const state = itemsCatalogStore.getState();
 
-      const item = addCustomItem({
+      const item = state.createCustomItem({
         name: 'Item à supprimer',
         type: ItemType.BASIC,
         tome: 1,
       });
 
-      expect(getCustomItemById(item.id)).toBeDefined();
+      expect(state.getAllItems().filter(i => i.id.startsWith('custom-')).find(i => i.id === item.id)).toBeDefined();
 
-      removeCustomItem(item.id);
+      state.removeCustomItem(item.id);
 
-      expect(getCustomItemById(item.id)).toBeUndefined();
+      expect(state.getAllItems().filter(i => i.id.startsWith('custom-')).find(i => i.id === item.id)).toBeUndefined();
     });
 
     it('devrait supprimer un item personnalisé sans affecter les autres items', () => {
-      const { addCustomItem, removeCustomItem, getCustomItemById } = useCustomItemsCatalog.getState();
+      const state = itemsCatalogStore.getState();
 
-      const item1 = addCustomItem({ name: 'Item 1', type: ItemType.BASIC, tome: 1 });
-      const item2 = addCustomItem({ name: 'Item 2', type: ItemType.BASIC, tome: 1 });
-      const item3 = addCustomItem({ name: 'Item 3', type: ItemType.BASIC, tome: 1 });
+      const item1 = state.createCustomItem({ name: 'Item 1', type: ItemType.BASIC, tome: 1 });
+      const item2 = state.createCustomItem({ name: 'Item 2', type: ItemType.BASIC, tome: 1 });
+      const item3 = state.createCustomItem({ name: 'Item 3', type: ItemType.BASIC, tome: 1 });
 
-      removeCustomItem(item2.id);
+      state.removeCustomItem(item2.id);
 
-      expect(getCustomItemById(item1.id)).toBeDefined();
-      expect(getCustomItemById(item2.id)).toBeUndefined();
-      expect(getCustomItemById(item3.id)).toBeDefined();
+      const all = state.getAllItems().filter(i => i.id.startsWith('custom-'));
+      expect(all.find(i => i.id === item1.id)).toBeDefined();
+      expect(all.find(i => i.id === item2.id)).toBeUndefined();
+      expect(all.find(i => i.id === item3.id)).toBeDefined();
     });
   });
 
@@ -374,19 +372,20 @@ describe('Integration: Custom Items Flow', () => {
         },
       });
 
+      const itemRef = {
+        itemId: 'non-existent-custom-id',
+        quantity: 1,
+        possessed: true,
+      };
+
       await expect(
-        service.addItemToInventory(character.id, {
-          id: 'non-existent-custom-id',
-          name: 'Fantôme',
-          type: ItemType.BASIC,
-          possessed: true,
-        })
+        service.addItemToInventoryWithRef(character.id, itemRef, false, false)
       ).resolves.not.toThrow();
 
       const updated = await service.getCharacter(character.id);
       const items = updated?.getInventory().items || [];
 
-      const ghostItem = items.find((item) => item.id === 'non-existent-custom-id');
+      const ghostItem = items.find((item) => item.itemId === 'non-existent-custom-id');
       expect(ghostItem).toBeDefined();
     });
   });

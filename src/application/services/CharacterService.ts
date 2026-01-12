@@ -3,6 +3,7 @@ import { ICharacterRepository } from '@/src/domain/repositories/ICharacterReposi
 import { StatsData } from '@/src/domain/value-objects/Stats';
 import { CharacterNotFoundError } from '@/src/domain/errors/DomainErrors';
 import type { InventoryItem } from '@/src/domain/value-objects/Inventory';
+import { InventoryItemRef } from '@/src/domain/types/items';
 
 /**
  * CharacterService - Application Service
@@ -164,6 +165,27 @@ export class CharacterService {
   }
 
   /**
+   * Ajoute un objet à l'inventaire via une référence au catalog
+   */
+  async addItemToInventoryWithRef(
+    id: string,
+    itemRef: InventoryItemRef,
+    isStackable: boolean,
+    isBourse: boolean
+  ): Promise<Character> {
+    const character = await this.repository.findById(id);
+    if (!character) {
+      throw new CharacterNotFoundError(id);
+    }
+
+    const updated = character.addItemWithRef(itemRef, isStackable, isBourse);
+
+    await this.repository.save(updated);
+
+    return updated;
+  }
+
+  /**
    * Change le paragraphe actuel
    */
   async goToParagraph(id: string, paragraph: number): Promise<Character> {
@@ -275,19 +297,15 @@ export class CharacterService {
       throw new Error('Item non trouvé');
     }
 
-    if (!item.stackable) {
-      throw new Error('Cet item n\'est pas consommable');
-    }
-
     const quantity = item.quantity || 1;
     if (quantity <= 1) {
       throw new Error('Quantité invalide, utilisez removeItemFromInventory à la place');
     }
 
     const updated = character.updateItemQuantity(itemIndex, quantity - 1);
-    
+
     await this.repository.save(updated);
-    
+
     return updated;
   }
 

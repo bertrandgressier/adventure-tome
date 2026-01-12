@@ -181,11 +181,11 @@ describe('Integration: CharacterService + IndexedDBRepository', () => {
     // Vérifier persistance
     const retrieved = await service.getCharacter(character.id);
     const items = retrieved?.getInventory().items || [];
-    
+
     expect(items).toHaveLength(3);
-    expect(items[0].name).toBe('Bourse');
-    expect(items[1].name).toBe('Corde');
-    expect(items[2].name).toBe('Potion');
+    expect(items[0].itemId).toBe('tome1-bourse');
+    expect(items[1].itemId).toBeDefined();
+    expect(items[2].itemId).toBeDefined();
   });
 
   it('devrait persister le changement de paragraphe', async () => {

@@ -47,7 +47,8 @@ export interface CatalogItem {
 }
 
 /**
- * Item dans l'inventaire d'un personnage
+ * Item dans l'inventaire d'un personnage (format historique avec duplication)
+ * @deprecated Use InventoryItemRef instead (inventory items should only reference catalog items)
  */
 export interface InventoryItem {
   id: string;
@@ -57,14 +58,25 @@ export interface InventoryItem {
   effect?: string;
 
   // Nouveaux champs
-  quantity?: number;                    // Pour items actifs stackables
-  stackable?: boolean;                 // Pour items actifs
-  unique?: boolean;                    // Pour items spéciaux
-  disappearsOnTimeLoop?: boolean;      // Pour Tome 3
+  quantity?: number;
+  stackable?: boolean;
+  unique?: boolean;
+  disappearsOnTimeLoop?: boolean;
 
   // Champs optionnels selon le type
-  attackPoints?: number;                // Pour armes
-  healAmount?: number;                  // Pour consommables
-  statBonus?: StatBonus;               // Pour passifs
-  isQuestItem?: boolean;               // Pour items de quête
+  attackPoints?: number;
+  healAmount?: number;
+  statBonus?: StatBonus;
+  isQuestItem?: boolean;
+  damageToEnemy?: number;
+}
+
+/**
+ * Référence à un item de l'inventaire d'un personnage
+ * Ne stocke que l'ID et la quantité, les autres données viennent du catalog
+ */
+export interface InventoryItemRef {
+  itemId: string;
+  quantity: number;
+  possessed: boolean;
 }

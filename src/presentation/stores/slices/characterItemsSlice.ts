@@ -1,60 +1,37 @@
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { CharacterListSlice } from './characterListSlice';
-import { ITEMS_CATALOG } from '@/src/data/items-catalog';
+import type { ItemsCatalogSlice } from './itemsCatalogSlice';
+import type { CharacterInventorySlice } from './characterInventorySlice';
 import { CatalogItem } from '@/src/domain/types/items';
-import { useCustomItemsCatalog } from '../customItemsCatalogStore';
 
 export interface CharacterItemsSlice {
-  getAvailableItems: (characterId: string) => CatalogItem[];
-  getCustomItems: (characterId: string) => CatalogItem[];
   getAddableCustomItems: (characterId: string) => CatalogItem[];
 }
 
-type StoreState = CharacterItemsSlice & CharacterListSlice;
+type StoreState = CharacterItemsSlice & CharacterListSlice & ItemsCatalogSlice & CharacterInventorySlice;
 type GetState = () => StoreState;
-type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const createCharacterItemsSlice = (_service: CharacterService) => {
   return (_set: SetState, get: GetState): CharacterItemsSlice => ({
-    getAvailableItems: (characterId: string) => {
-      const character = get().characters[characterId];
-      const customItems = useCustomItemsCatalog.getState().customItems;
-
-      if (!character) return [...ITEMS_CATALOG, ...customItems];
-
-      return [...ITEMS_CATALOG, ...customItems];
-    },
-
-    getCustomItems: (characterId: string) => {
-      const character = get().characters[characterId];
-      if (!character) return [];
-
-      const customItemsCatalog = useCustomItemsCatalog.getState().customItems;
-
-      const presentCustomItemIds = character.getInventory().items
-        .filter((item) => item.id.startsWith('custom-') && item.possessed)
-        .map((item) => item.id);
-
-      return customItemsCatalog.filter((item) => presentCustomItemIds.includes(item.id));
-    },
-
     getAddableCustomItems: (characterId: string) => {
       const character = get().characters[characterId];
       if (!character) return [];
 
-      const customItemsCatalog = useCustomItemsCatalog.getState().customItems;
-
+      const allItems = get().getAllItems();
       const presentItemIds = character.getInventory().items
         .filter((item) => item.possessed)
-        .map((item) => item.id);
+        .map((item) => item.itemId);
 
-      return customItemsCatalog.filter((item) => {
+      return allItems.filter((item) => {
+        if (!item.id.startsWith('custom-')) return false;
         const isPresent = presentItemIds.includes(item.id);
+        const isStackable = item.stackable === true;
         if (!isPresent) return true;
-        return item.stackable === true;
+        return isStackable;
       });
     },
   });
 };
+
+type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;

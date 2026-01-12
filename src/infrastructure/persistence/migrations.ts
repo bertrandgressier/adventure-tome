@@ -13,7 +13,7 @@
 
 import { BOURSE_ITEM_NAME } from '@/src/domain/value-objects/Inventory';
 
-export const CURRENT_VERSION = 10;
+export const CURRENT_VERSION = 11;
 
 /**
  * Legacy item type (pre-v10)
@@ -24,6 +24,26 @@ interface LegacyItem {
   possessed?: boolean;
   type?: 'item' | 'special';
   attackPoints?: number;
+}
+
+/**
+ * Full inventory item type (pre-v11)
+ */
+interface FullInventoryItem {
+  id: string;
+  name: string;
+  type: string;
+  possessed: boolean;
+  effect?: string;
+  quantity?: number;
+  stackable?: boolean;
+  unique?: boolean;
+  disappearsOnTimeLoop?: boolean;
+  attackPoints?: number;
+  healAmount?: number;
+  damageToEnemy?: number;
+  statBonus?: Record<string, number>;
+  isQuestItem?: boolean;
 }
 
 /**
@@ -77,6 +97,11 @@ export interface Migration {
  * - Migrate existing inventory items to have an ID and proper type (basic by default)
  * - Add all new item fields with default values (quantity, stackable, unique, etc.)
  * - Ensure backward compatibility with legacy inventory items
+ *
+ * Migration v10 → v11: Convert inventory items to references
+ * - Convert full inventory items to InventoryItemRef (itemId + quantity + possessed)
+ * - Remove duplication: items no longer store name, effect, type, etc.
+ * - Items are now looked up from the catalog at runtime
  */
 export const migrations: Migration[] = [
   {
@@ -219,6 +244,27 @@ export const migrations: Migration[] = [
           items: migratedItems,
         },
         version: 10,
+      };
+    },
+  },
+  {
+    version: 11,
+    migrate: (data) => {
+      const items = data.inventory?.items || [];
+
+      const migratedItems = items.map((item: FullInventoryItem) => ({
+        itemId: item.id,
+        quantity: item.quantity ?? 1,
+        possessed: item.possessed,
+      }));
+
+      return {
+        ...data,
+        inventory: {
+          ...data.inventory,
+          items: migratedItems,
+        },
+        version: 11,
       };
     },
   },

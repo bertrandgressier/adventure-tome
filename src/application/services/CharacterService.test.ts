@@ -46,7 +46,7 @@ describe('CharacterService', () => {
     it('devrait créer et sauvegarder un personnage', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'mortal',
         stats: {
@@ -71,7 +71,7 @@ describe('CharacterService', () => {
     it('devrait récupérer un personnage existant', async () => {
       const created = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'simplified',
         stats: {
@@ -99,7 +99,7 @@ describe('CharacterService', () => {
     it('devrait retourner tous les personnages', async () => {
       await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'narrative',
         stats: {
@@ -113,7 +113,7 @@ describe('CharacterService', () => {
 
       await service.createCharacter({
         name: 'Aragorn',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'discretion',
         gameMode: 'mortal',
         stats: {
@@ -135,7 +135,7 @@ describe('CharacterService', () => {
     it('devrait supprimer un personnage existant', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'simplified',
         stats: {
@@ -164,7 +164,7 @@ describe('CharacterService', () => {
     it('devrait mettre à jour le nom', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'mortal',
         stats: {
@@ -196,7 +196,7 @@ describe('CharacterService', () => {
     it('devrait mettre à jour les stats', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'narrative',
         stats: {
@@ -224,7 +224,7 @@ describe('CharacterService', () => {
     it('devrait appliquer des dégâts', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'simplified',
         stats: {
@@ -244,7 +244,7 @@ describe('CharacterService', () => {
     it('devrait soigner le personnage', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'mortal',
         stats: {
@@ -266,7 +266,7 @@ describe('CharacterService', () => {
     it('devrait équiper une arme', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'narrative',
         stats: {
@@ -294,7 +294,7 @@ describe('CharacterService', () => {
     it('devrait créer une copie du personnage', async () => {
       const original = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'simplified',
         stats: {
@@ -322,7 +322,7 @@ describe('CharacterService', () => {
     it('devrait retirer l\'arme équipée', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'mortal',
         stats: {
@@ -349,7 +349,7 @@ describe('CharacterService', () => {
     it('devrait ajouter un objet à l\'inventaire', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'narrative',
         stats: {
@@ -364,13 +364,12 @@ describe('CharacterService', () => {
       const updated = await service.addItemToInventory(character.id, {
         name: 'Potion de soin',
         possessed: true,
-        type: 'item',
       });
 
       const items = updated.getInventory().items;
       expect(items).toHaveLength(2);
-      expect(items[0].name).toBe('Bourse');
-      expect(items[1].name).toBe('Potion de soin');
+      expect(items[0].itemId).toBe('tome1-bourse');
+      expect(items[1].itemId).toBeDefined();
     });
   });
 
@@ -378,7 +377,7 @@ describe('CharacterService', () => {
     it('devrait supprimer un objet de l\'inventaire', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'mortal',
         stats: {
@@ -398,7 +397,7 @@ describe('CharacterService', () => {
       const removed = await service.removeItemFromInventory(character.id, 1);
 
       expect(removed.getInventory().items).toHaveLength(1);
-      expect(removed.getInventory().items[0].name).toBe('Bourse');
+      expect(removed.getInventory().items[0].itemId).toBe('tome1-bourse');
     });
   });
 
@@ -406,7 +405,7 @@ describe('CharacterService', () => {
     it('devrait ajouter des boulons', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'narrative',
         stats: {
@@ -426,7 +425,7 @@ describe('CharacterService', () => {
     it('devrait retirer des boulons', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'simplified',
         stats: {
@@ -449,7 +448,7 @@ describe('CharacterService', () => {
     it('devrait mettre à jour le paragraphe actuel', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'mortal',
         stats: {
@@ -473,7 +472,7 @@ describe('CharacterService', () => {
     it('devrait mettre à jour les notes du personnage', async () => {
       const character = await service.createCharacter({
         name: 'Gandalf',
-        book: 'La Harpe des Quatre Saisons',
+        book: 1,
         talent: 'instinct',
         gameMode: 'narrative',
         stats: {

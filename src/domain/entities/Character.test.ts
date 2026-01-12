@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Character } from './Character';
+import { ItemType } from '../types/items';
 
 describe('Character', () => {
   describe('create()', () => {
@@ -238,11 +239,13 @@ describe('Character', () => {
       const withItem = character.addItem({
         name: 'Potion de soin',
         possessed: true,
-        type: 'item',
+        type: ItemType.BASIC,
       });
 
       expect(withItem.getInventory().items).toHaveLength(2);
-      expect(withItem.getInventory().items[1].name).toBe('Potion de soin');
+      expect(withItem.getInventory().items[1].itemId).toMatch(/^legacy-/);
+      expect(withItem.getInventory().items[1].quantity).toBe(1);
+      expect(withItem.getInventory().items[1].possessed).toBe(true);
     });
 
     it('devrait retirer un objet', () => {
@@ -265,7 +268,7 @@ describe('Character', () => {
       const removed = character.removeItem(1);
 
       expect(removed.getInventory().items).toHaveLength(2);
-      expect(removed.getInventory().items[1].name).toBe('Corde');
+      expect(removed.getInventory().items[1].itemId).toMatch(/^legacy-/);
     });
 
     it('devrait empêcher d\'ajouter un objet non-stackable déjà présent', () => {
@@ -287,7 +290,7 @@ describe('Character', () => {
         id: 'test-item',
         name: 'Clé mystérieuse',
         possessed: true,
-        type: 'basic',
+        type: ItemType.BASIC,
         stackable: false,
       });
 
@@ -296,7 +299,7 @@ describe('Character', () => {
           id: 'test-item',
           name: 'Clé mystérieuse',
           possessed: true,
-          type: 'basic',
+          type: ItemType.BASIC,
           stackable: false,
         });
       }).toThrow('Clé mystérieuse est déjà dans l\'inventaire');
@@ -321,7 +324,7 @@ describe('Character', () => {
         id: 'unique-item',
         name: 'Bague de la 2ème chance',
         possessed: true,
-        type: 'special',
+        type: ItemType.SPECIAL,
         unique: true,
       });
 
@@ -330,7 +333,7 @@ describe('Character', () => {
           id: 'unique-item',
           name: 'Bague de la 2ème chance',
           possessed: true,
-          type: 'special',
+          type: ItemType.SPECIAL,
           unique: true,
         });
       }).toThrow('Bague de la 2ème chance est déjà dans l\'inventaire');
@@ -355,7 +358,7 @@ describe('Character', () => {
         id: 'tome1-potion-soin',
         name: 'Potion de soin',
         possessed: true,
-        type: 'active',
+        type: ItemType.ACTIVE,
         stackable: true,
         quantity: 3,
       });
@@ -364,13 +367,13 @@ describe('Character', () => {
         id: 'tome1-potion-soin',
         name: 'Potion de soin',
         possessed: true,
-        type: 'active',
+        type: ItemType.ACTIVE,
         stackable: true,
         quantity: 2,
       });
 
       const items = withMorePotions.getInventory().items;
-      const potion = items.find((i) => i.name === 'Potion de soin');
+      const potion = items.find((i) => i.itemId === 'tome1-potion-soin');
 
       expect(items).toHaveLength(2);
       expect(potion?.quantity).toBe(5);
