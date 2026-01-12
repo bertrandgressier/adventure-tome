@@ -14,6 +14,22 @@
 
 * **inventory:** add InventoryItemRef type for catalog-based inventory ([0c1915f](https://github.com/bertrandgressier/adventure-tome/commit/0c1915f5d7a2d8668df3863e9c65c135b81d512d)), closes [#54](https://github.com/bertrandgressier/adventure-tome/issues/54)
 
+# [4.2.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.1.0...v4.2.0) (2026-01-12)
+
+
+### Bug Fixes
+
+* add fallbackName to preserve unknown item names during v11 migration ([41f87aa](https://github.com/bertrandgressier/adventure-tome/commit/41f87aadc340b237f2b077157918c5dee66fd9c9))
+* **build:** resolve Inventory constructor call for new format ([838a062](https://github.com/bertrandgressier/adventure-tome/commit/838a062e482b051b635e40c17a31934dd0f5171f))
+* correct GetState type in characterListSlice ([e42cdf2](https://github.com/bertrandgressier/adventure-tome/commit/e42cdf24de10fae0f42121674e81eb1fdaf31b72))
+* implement custom items persistence and remove code duplication ([5e90e19](https://github.com/bertrandgressier/adventure-tome/commit/5e90e19022e2776073bb203bda701036a7cee518))
+* update tests and linter for itemsCatalog refactoring ([cc3adf5](https://github.com/bertrandgressier/adventure-tome/commit/cc3adf56626ad258aea1e660b67ef6dca3381344))
+
+
+### Features
+
+* **inventory:** add InventoryItemRef type for catalog-based inventory ([0c1915f](https://github.com/bertrandgressier/adventure-tome/commit/0c1915f5d7a2d8668df3863e9c65c135b81d512d)), closes [#54](https://github.com/bertrandgressier/adventure-tome/issues/54)
+
 # [4.1.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.0.0...v4.1.0) (2026-01-06)
 
 
