@@ -1,3 +1,19 @@
+# [4.4.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.3.0...v4.4.0) (2026-01-13)
+
+
+### Bug Fixes
+
+* Add size prop to EditableStatField for responsive input width ([e9363d7](https://github.com/bertrandgressier/adventure-tome/commit/e9363d7ba71d8b63aaae6167cb87af2167ba9979))
+* Add xs size option for tighter grid layout ([4c49a60](https://github.com/bertrandgressier/adventure-tome/commit/4c49a6012d2ee5191aa3f9a369ef91b9f9a66639))
+* Convert null to undefined for experience field type compatibility ([22301b9](https://github.com/bertrandgressier/adventure-tome/commit/22301b9e02720fca553915a5d06786fa76d061f4))
+* Initialize experience to 0 for Tome 3+ and increase input width ([c8c6894](https://github.com/bertrandgressier/adventure-tome/commit/c8c68943d2de57948701a28de8fb4d291dbd0ae0))
+
+
+### Features
+
+* Add experience tracking for Tome 3+ characters ([f6f1438](https://github.com/bertrandgressier/adventure-tome/commit/f6f1438acb53ba95d2c192c3d0fd2e5e879c2a40)), closes [#59](https://github.com/bertrandgressier/adventure-tome/issues/59)
+* add simplified issue templates with dev-ready variants ([34d5a4f](https://github.com/bertrandgressier/adventure-tome/commit/34d5a4f9a390eb4e917b604cf7d086c4db2f83ee))
+
 # [4.3.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.2.0...v4.3.0) (2026-01-13)
 
 

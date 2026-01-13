@@ -12,6 +12,23 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 4.4.0
+*13 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- Add experience tracking for Tome 3+ characters
+- add simplified issue templates with dev-ready variants
+
+### 🐛 Corrections de bugs
+
+- Add size prop to EditableStatField for responsive input width
+- Add xs size option for tighter grid layout
+- Convert null to undefined for experience field type compatibility
+- Initialize experience to 0 for Tome 3+ and increase input width
+
+---
+
 ## Version 4.3.0
 *13 janvier 2026*
 
