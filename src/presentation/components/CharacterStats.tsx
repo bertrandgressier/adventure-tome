@@ -154,7 +154,7 @@ export default function CharacterStats({ characterId, onUpdate }: CharacterStats
           <EditableStatField
             label="EXPÉRIENCE"
             value={statsData.experience ?? 0}
-            onSave={(value) => handleUpdate({ experience: value })}
+            onSave={(value) => handleUpdate({ experience: value === null ? undefined : value })}
             min={0}
             icon={<Star className="size-4" />}
             size="lg"
