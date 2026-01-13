@@ -150,11 +150,10 @@ export default function CharacterStats({ characterId, onUpdate }: CharacterStats
         <div className="mt-2">
           <EditableStatField
             label="EXPÉRIENCE"
-            value={statsData.experience ?? null}
-            onSave={(value) => handleUpdate({ experience: value === null ? undefined : value })}
+            value={statsData.experience ?? 0}
+            onSave={(value) => handleUpdate({ experience: value })}
             min={0}
             icon={<Star className="size-4" />}
-            placeholder="-"
           />
         </div>
       )}

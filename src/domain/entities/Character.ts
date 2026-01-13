@@ -470,11 +470,15 @@ export class Character {
   }): Character {
     const now = new Date().toISOString();
     const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    
+
     // Initialiser la réputation à 0 pour le tome 2 si non fournie
+    // Initialiser l'expérience à 0 pour le tome 3+ si non fournie
     const statsData = { ...data.stats };
-     if (data.book === 2 && statsData.reputation === undefined) {
+    if (data.book === 2 && statsData.reputation === undefined) {
       statsData.reputation = 0;
+    }
+    if (data.book >= 3 && statsData.experience === undefined) {
+      statsData.experience = 0;
     }
 
     const initialInventory = new Inventory(0, undefined, []);
