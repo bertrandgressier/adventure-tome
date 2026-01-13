@@ -17,7 +17,7 @@ describe('AddItemModal', () => {
         <AddItemModal onAddItem={onAddItem} currentTome={1} />
       </CharacterStoreProvider>
     );
-    expect(screen.getByRole('button', { name: /ajouter un item/i })).toBeInTheDocument();
+    expect(screen.getByTitle('Ajouter un item')).toBeInTheDocument();
   });
 
   it('should open dialog when button is clicked', async () => {
@@ -27,7 +27,7 @@ describe('AddItemModal', () => {
       </CharacterStoreProvider>
     );
 
-    const button = screen.getByRole('button', { name: /ajouter un item/i });
+    const button = screen.getByTitle('Ajouter un item');
     fireEvent.click(button);
 
     await waitFor(() => {
@@ -42,7 +42,7 @@ describe('AddItemModal', () => {
       </CharacterStoreProvider>
     );
 
-    const button = screen.getByRole('button', { name: /ajouter un item/i });
+    const button = screen.getByTitle('Ajouter un item');
     fireEvent.click(button);
 
     await waitFor(() => {
@@ -58,7 +58,7 @@ describe('AddItemModal', () => {
       </CharacterStoreProvider>
     );
 
-    const button = screen.getByRole('button', { name: /ajouter un item/i });
+    const button = screen.getByTitle('Ajouter un item');
     fireEvent.click(button);
 
     await waitFor(() => {
@@ -81,15 +81,22 @@ describe('AddItemModal', () => {
       </CharacterStoreProvider>
     );
 
-    const button = screen.getByRole('button', { name: /ajouter un item/i });
+    const button = screen.getByTitle('Ajouter un item');
     fireEvent.click(button);
 
     await waitFor(() => {
       expect(screen.getByText('Ajouter un item depuis le catalogue')).toBeInTheDocument();
     });
 
-    const activeButton = screen.getByRole('button', { name: 'Actifs' });
-    fireEvent.click(activeButton);
+    // Click on the type selector combobox
+    const typeSelectors = screen.getAllByRole('combobox');
+    const typeSelector = typeSelectors[1]; // Second combobox is the type selector
+    fireEvent.click(typeSelector);
+
+    await waitFor(() => {
+      const activeOption = screen.getByRole('option', { name: 'Actifs' });
+      fireEvent.click(activeOption);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Potion de soin')).toBeInTheDocument();
@@ -104,7 +111,7 @@ describe('AddItemModal', () => {
       </CharacterStoreProvider>
     );
 
-    const button = screen.getByRole('button', { name: /ajouter un item/i });
+    const button = screen.getByTitle('Ajouter un item');
     fireEvent.click(button);
 
     await waitFor(() => {
@@ -135,7 +142,7 @@ describe('AddItemModal', () => {
       </CharacterStoreProvider>
     );
 
-    const button = screen.getByRole('button', { name: /ajouter un item/i });
+    const button = screen.getByTitle('Ajouter un item');
     fireEvent.click(button);
 
     await waitFor(() => {
@@ -162,7 +169,7 @@ describe('AddItemModal', () => {
       </CharacterStoreProvider>
     );
 
-    const button = screen.getByRole('button', { name: /ajouter un item/i });
+    const button = screen.getByTitle('Ajouter un item');
     fireEvent.click(button);
 
     await waitFor(() => {
@@ -183,7 +190,7 @@ describe('AddItemModal', () => {
         <AddItemModal onAddItem={onAddItem} disabled currentTome={1} />
       </CharacterStoreProvider>
     );
-    const button = screen.getByRole('button', { name: /ajouter un item/i });
+    const button = screen.getByTitle('Ajouter un item');
     expect(button).toBeDisabled();
   });
 
@@ -194,7 +201,7 @@ describe('AddItemModal', () => {
       </CharacterStoreProvider>
     );
 
-    const button = screen.getByRole('button', { name: /ajouter un item/i });
+    const button = screen.getByTitle('Ajouter un item');
     fireEvent.click(button);
 
     await waitFor(() => {
