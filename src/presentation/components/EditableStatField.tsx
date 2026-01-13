@@ -13,6 +13,7 @@ interface EditableStatFieldProps {
   icon?: React.ReactNode;
   containerClassName?: string;
   placeholder?: string;
+  size?: 'xs' | 'sm' | 'lg';
 }
 
 /**
@@ -32,6 +33,7 @@ export default function EditableStatField({
   icon,
   containerClassName,
   placeholder = '-',
+  size = 'sm',
 }: EditableStatFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -109,7 +111,10 @@ export default function EditableStatField({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-12 bg-card border border-primary/50 rounded px-1 py-0.5 text-center font-[var(--font-geist-mono)] text-xl text-primary focus:outline-none focus:border-primary"
+              className={cn(
+                "bg-card border border-primary/50 rounded px-1 py-0.5 text-center font-[var(--font-geist-mono)] text-xl text-primary focus:outline-none focus:border-primary",
+                size === 'lg' ? "w-16" : size === 'sm' ? "w-12" : "w-10"
+              )}
               min={min}
             />
             <button onClick={save} className="text-green-400 hover:text-green-300 text-lg">✓</button>

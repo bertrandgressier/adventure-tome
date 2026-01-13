@@ -128,7 +128,7 @@ describe('Integration: Time Tracking (Tome 2)', () => {
     const progress = character.getProgress();
 
     // Vérification
-    expect(character.version).toBe(11);
+    expect(character.version).toBe(12);
     expect(progress.daysElapsed).toBe(0); // Initialisé à 0
     expect(progress.nextWakeUpParagraph).toBeUndefined(); // Initialisé à undefined
   });
