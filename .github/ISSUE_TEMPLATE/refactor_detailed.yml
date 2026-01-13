@@ -1,0 +1,205 @@
+name: ♻️ Refactor (Dev-Ready)
+description: Proposer une refactorisation détaillée du code existant, prête pour le développement
+title: "[Refactor]: "
+labels: ["type: refactor", "status: ready"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **Template Dev-Ready** : Pour des refactorisations détaillées et précises, prêtes à être développées.
+        
+        Pour une proposition simple par un humain, utilisez le template **Refactor** classique.
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: 🎯 Objectif Business
+      description: Quel problème technique cette refactorisation résout-elle ?
+      placeholder: |
+        Exemple: Refactoriser le système d'objets pour utiliser un pattern de référence par ID au lieu de stocker des copies complètes des objets dans chaque inventaire. Cela simplifie la gestion des objets et réduit la duplication de données.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 📋 Contexte
+      description: Quelle est la situation actuelle et pourquoi cette refactorisation est nécessaire ?
+      placeholder: |
+        Actuellement, le système d'objets duplique les données:
+        
+        ```typescript
+        // ❌ Actuel: Stocke des COPIES complètes dans l'inventaire
+        interface InventoryItem {
+          id: string;
+          name: string;
+          // ... autres propriétés dupliquées
+        }
+        ```
+        
+        **Problèmes actuels:**
+        1. **Duplication massive**: Chaque personnage stocke les mêmes propriétés
+        2. **Mise à jour difficile**: Modifier un objet du catalogue ne répercute pas
+        3. **Corruption potentielle**: Structure obsolète après modifications
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 💡 Solution proposée
+      description: Quelle approche technique proposez-vous ?
+      placeholder: |
+        ```typescript
+        // ✅ Proposé: Stocke uniquement des références
+        interface InventoryItemRef {
+          itemId: string;         // Référence vers la bibliothèque globale
+          quantity?: number;      // État spécifique à l'inventaire
+          possessed: boolean;     // État spécifique à l'inventaire
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: 📊 Étude d'Impact
+      description: Quels fichiers et systèmes seront affectés ?
+      placeholder: |
+        ### 1. Domain Layer Impact
+        
+        #### `src/domain/value-objects/Inventory.ts`
+        - **Changement**: `InventoryItem` devient `InventoryItemRef`
+        - **Impact**: Toutes les méthodes doivent être refaites
+        - **Complexité**: Élevée
+        
+        ### 2. Application Layer Impact
+        
+        #### `src/application/services/CharacterService.ts`
+        - **Changement**: Méthodes doivent accepter la nouvelle structure
+        - **Impact**: Élevé
+        - **Complexité**: Moyenne
+        
+        ### 3. Tests Impact
+        - Tests unitaires à adapter
+        - Tests d'intégration à refaire
+        - Migration tests requis
+    validations:
+      required: true
+
+  - type: textarea
+    id: architecture
+    attributes:
+      label: 📐 Architecture Proposée
+      description: Diagramme ou description du flux de données
+      placeholder: |
+        ### Flux de données actuel vs proposé
+        
+        ```
+        Actuel:
+        AddItemModal → Copie TOUTES les propriétés → IndexedDB
+        
+        Proposé:
+        AddItemModal → Garde { itemId, quantity } → IndexedDB
+        Affichage → Lookup dans catalogue
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: 🎯 Livrables
+      description: Liste des phases et livrables (checklist)
+      placeholder: |
+        ### Phase 1: Création du nouveau système
+        - [ ] Créer nouveau slice
+        - [ ] Tests pour le nouveau slice
+        
+        ### Phase 2: Refactor Domain Layer
+        - [ ] Renommer interfaces
+        - [ ] Adapter les tests
+        
+        ### Phase 3: Migration
+        - [ ] Créer migration
+        - [ ] Tests de migration
+      value: |
+        ### Phase 1:
+        - [ ] 
+        
+        ### Phase 2:
+        - [ ] 
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 🔗 Dépendances
+      description: Issues ou fonctionnalités dont cette refactorisation dépend
+      placeholder: |
+        - **V3**: Modal de création d'items personnalisés
+        - **Issue #45**: Refactorer l'ajout d'arme
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: ⚠️ Risques
+      description: Risques identifiés et stratégies de mitigation
+      placeholder: |
+        1. **Données existantes**: La migration peut échouer
+           - Mitigation: Backup avant migration, rollback plan
+        2. **Performance**: Lookups fréquents
+           - Mitigation: Map au lieu de Record
+        3. **Rétrocompatibilité**: Impossible de rollback
+           - Mitigation: Test sur staging d'abord
+    validations:
+      required: true
+
+  - type: textarea
+    id: benefits
+    attributes:
+      label: 📈 Avantages attendus
+      description: Bénéfices de cette refactorisation
+      placeholder: |
+        1. **Simplification**: Plus facile de gérer les objets
+        2. **Performance**: Moins de données stockées
+        3. **Maintenabilité**: Mise à jour centralisée
+        4. **Flexibilité**: Ajout de nouvelles propriétés simplifié
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 📦 Scope
+      description: Quel domaine est concerné ?
+      multiple: true
+      options:
+        - ui
+        - inventory
+        - gameplay
+        - combat
+        - data
+        - domain
+        - application
+        - infrastructure
+        - presentation
+    validations:
+      required: true
+
+  - type: dropdown
+    id: size
+    attributes:
+      label: 📏 Taille estimée
+      description: Estimation de la complexité
+      options:
+        - size: small (< 1 jour)
+        - size: medium (1-3 jours)
+        - size: large (3-5 jours)
+        - size: xlarge (> 5 jours)
+    validations:
+      required: true

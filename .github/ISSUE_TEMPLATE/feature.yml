@@ -3,135 +3,22 @@ description: Proposer une nouvelle fonctionnalité pour Adventure Tome
 title: "[Feature]: "
 labels: ["type: feature"]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Merci de proposer une nouvelle fonctionnalité ! Veuillez remplir les sections ci-dessous.
-
   - type: textarea
-    id: objective
+    id: description
     attributes:
-      label: 🎯 Objectif Business
-      description: Quelle valeur cette fonctionnalité apporte-t-elle au joueur ?
+      label: Description
+      description: Décrivez la fonctionnalité souhaitée simplement
       placeholder: |
-        Exemple: Permettre aux joueurs de supprimer des items personnalisés depuis l'interface, en s'assurant qu'ils ne sont plus utilisés par aucun personnage pour éviter la corruption de données.
+        Je veux pouvoir supprimer les items personnalisés que j'ai créés.
     validations:
       required: true
 
   - type: textarea
     id: context
     attributes:
-      label: 📋 Contexte
-      description: Quelle est la situation actuelle et pourquoi cette feature est nécessaire ?
+      label: Contexte
+      description: Pourquoi est-ce utile ? (optionnel)
       placeholder: |
-        Exemple:
-        Actuellement, une fois un item personnalisé créé via `AddCustomItemModal`, il est impossible de le supprimer de l'interface. Le joueur doit soit :
-        - Supprimer manuellement depuis LocalStorage (pas intuitif)
-        - Garder des items inutiles qui encombrent l'interface
-    validations:
-      required: true
-
-  - type: textarea
-    id: implementation
-    attributes:
-      label: 🚀 Étapes d'implémentation
-      description: Décrire les étapes techniques pour implémenter cette feature
-      placeholder: |
-        ### 1. Ajouter la fonctionnalité dans le composant
-        
-        Fichier: `src/presentation/components/MonComposant.tsx`
-        
-        ```typescript
-        // Code example
-        ```
-        
-        ### 2. Mettre à jour le store
-        
-        Fichier: `src/presentation/stores/slices/monSlice.ts`
-        
-        ### 3. Tests
-        
-        Créer `src/presentation/components/MonComposant.test.tsx`
-    validations:
-      required: true
-
-  - type: textarea
-    id: deliverables
-    attributes:
-      label: ✅ Livrables
-      description: Liste des éléments à livrer (checklist)
-      placeholder: |
-        - [ ] Composant mis à jour
-        - [ ] Store action créée
-        - [ ] Tests unitaires
-        - [ ] Tests d'intégration
-        - [ ] Documentation mise à jour
-      value: |
-        - [ ] 
-    validations:
-      required: true
-
-  - type: textarea
-    id: dependencies
-    attributes:
-      label: 🔗 Dépendances
-      description: Issues ou fonctionnalités dont cette feature dépend
-      placeholder: |
-        - **V3**: Modal de création d'items personnalisés (AddCustomItemModal)
-        - **Issue #42**: Système d'authentification
-    validations:
-      required: false
-
-  - type: dropdown
-    id: scope
-    attributes:
-      label: 📦 Scope
-      description: Quel domaine est concerné ?
-      multiple: true
-      options:
-        - ui
-        - inventory
-        - gameplay
-        - combat
-        - data
-        - i18n
-        - analytics
-        - pwa
-    validations:
-      required: true
-
-  - type: dropdown
-    id: size
-    attributes:
-      label: 📏 Taille estimée
-      description: Estimation de la complexité
-      options:
-        - size: small (< 1 jour)
-        - size: medium (1-3 jours)
-        - size: large (3-5 jours)
-        - size: xlarge (> 5 jours)
-    validations:
-      required: true
-
-  - type: textarea
-    id: edge-cases
-    attributes:
-      label: 🔍 Edge Cases
-      description: Cas limites à prendre en compte
-      placeholder: |
-        - **Tome 1** : `secondTalent` doit être `undefined` (jamais proposé)
-        - **Duplication** : Empêcher de choisir le même talent 2 fois
-        - **Migration** : Les personnages existants doivent migrer proprement
-    validations:
-      required: false
-
-  - type: textarea
-    id: references
-    attributes:
-      label: 📚 Références
-      description: Liens vers la documentation ou les règles du jeu
-      placeholder: |
-        - `docs/CHARACTER_SHEET.md:23-25` - Documentation actuelle des talents
-        - [La Saga de Dagda](https://www.lasagadedagda.fr/) - Règles officielles
+        Actuellement, une fois créé, on ne peut plus supprimer un item personnalisé.
     validations:
       required: false

@@ -3,206 +3,35 @@ description: Signaler un bug ou un comportement inattendu
 title: "[Bug]: "
 labels: ["type: bug"]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Merci de signaler ce bug ! Veuillez remplir les sections ci-dessous pour nous aider à le résoudre rapidement.
-
   - type: textarea
     id: description
     attributes:
-      label: 🐛 Description du bug
-      description: Description claire et concise du problème
+      label: Description du bug
+      description: Décrivez simplement ce qui ne va pas
       placeholder: |
-        Lorsque je crée un personnage du Tome 2 et que je sélectionne un second talent, l'application crash.
+        Quand je crée un personnage du Tome 2 et que je sélectionne un second talent, l'app crash.
     validations:
       required: true
 
   - type: textarea
     id: reproduction
     attributes:
-      label: 🔄 Étapes de reproduction
-      description: Comment reproduire le bug ?
+      label: Comment reproduire
+      description: Étapes simples pour reproduire
       placeholder: |
-        1. Aller sur '/characters/new'
-        2. Sélectionner 'Tome 2'
-        3. Remplir les informations du personnage
-        4. Sélectionner un premier talent
-        5. Sélectionner un second talent
-        6. Cliquer sur 'Créer le personnage'
-        7. Observer le crash
-      value: |
-        1. 
-        2. 
-        3. 
+        1. Créer un personnage
+        2. Sélectionner "Tome 2"
+        3. Choisir un second talent
+        4. Cliquer sur "Créer"
     validations:
       required: true
-
-  - type: textarea
-    id: expected
-    attributes:
-      label: ✅ Comportement attendu
-      description: Que devrait-il se passer normalement ?
-      placeholder: |
-        Le personnage devrait être créé avec les deux talents sélectionnés et redirigé vers la page du personnage.
-    validations:
-      required: true
-
-  - type: textarea
-    id: actual
-    attributes:
-      label: ❌ Comportement observé
-      description: Que se passe-t-il réellement ?
-      placeholder: |
-        L'application affiche une erreur "Cannot read property 'name' of undefined" et reste bloquée sur la page de création.
-    validations:
-      required: true
-
-  - type: textarea
-    id: screenshots
-    attributes:
-      label: 📸 Screenshots / Vidéo
-      description: Si applicable, ajoutez des captures d'écran ou vidéos
-      placeholder: |
-        Collez vos images ici ou glissez-déposez des fichiers.
-    validations:
-      required: false
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: 📝 Logs / Messages d'erreur
-      description: Console logs, stack traces, ou messages d'erreur
-      placeholder: |
-        ```
-        Error: Cannot read property 'name' of undefined
-          at CharacterService.createCharacter (CharacterService.ts:45)
-          at handleCreateCharacter (page.tsx:123)
-        ```
-      render: shell
-    validations:
-      required: false
-
-  - type: dropdown
-    id: severity
-    attributes:
-      label: 🔥 Sévérité
-      description: Quel est l'impact du bug ?
-      options:
-        - critical (bloque l'utilisation de l'app)
-        - high (fonctionnalité importante cassée)
-        - medium (fonctionnalité dégradée)
-        - low (problème mineur, workaround possible)
-      default: 2
-    validations:
-      required: true
-
-  - type: dropdown
-    id: browser
-    attributes:
-      label: 🌐 Navigateur
-      description: Sur quel(s) navigateur(s) le bug apparaît-il ?
-      multiple: true
-      options:
-        - Chrome
-        - Firefox
-        - Safari
-        - Edge
-        - Mobile Safari (iOS)
-        - Chrome Mobile (Android)
-        - Autre
-    validations:
-      required: true
-
-  - type: input
-    id: browser-version
-    attributes:
-      label: 📱 Version du navigateur
-      description: Quelle version du navigateur utilisez-vous ?
-      placeholder: ex. Chrome 120.0.6099.109
-    validations:
-      required: false
-
-  - type: dropdown
-    id: device
-    attributes:
-      label: 📱 Type d'appareil
-      description: Sur quel type d'appareil le bug apparaît-il ?
-      multiple: true
-      options:
-        - Desktop
-        - Mobile (iOS)
-        - Mobile (Android)
-        - Tablet (iOS)
-        - Tablet (Android)
-    validations:
-      required: true
-
-  - type: input
-    id: os-version
-    attributes:
-      label: 💻 Système d'exploitation
-      description: Version de votre OS
-      placeholder: ex. macOS 14.2, iOS 17.2, Windows 11
-    validations:
-      required: false
-
-  - type: dropdown
-    id: frequency
-    attributes:
-      label: 🔁 Fréquence
-      description: À quelle fréquence le bug se produit-il ?
-      options:
-        - always (100% du temps)
-        - often (> 50% du temps)
-        - sometimes (< 50% du temps)
-        - rarely (très occasionnel)
-      default: 0
-    validations:
-      required: true
-
-  - type: textarea
-    id: workaround
-    attributes:
-      label: 🔧 Workaround
-      description: Existe-t-il une solution de contournement ?
-      placeholder: |
-        Pour éviter le bug, ne pas sélectionner de second talent et le modifier après création.
-    validations:
-      required: false
 
   - type: textarea
     id: context
     attributes:
-      label: 📋 Contexte additionnel
-      description: Informations supplémentaires utiles
+      label: Contexte additionnel (optionnel)
+      description: Navigateur, appareil, ou autres détails utiles
       placeholder: |
-        - Le bug apparaît uniquement pour le Tome 2, pas le Tome 1
-        - J'ai testé avec plusieurs talents différents
-        - Le bug n'apparaît pas en mode incognito
+        Chrome sur Mac, iOS Safari...
     validations:
       required: false
-
-  - type: input
-    id: version
-    attributes:
-      label: 🏷️ Version de l'app
-      description: Quelle version d'Adventure Tome utilisez-vous ?
-      placeholder: ex. v1.5.0 (visible dans le footer ou package.json)
-    validations:
-      required: false
-
-  - type: checkboxes
-    id: checklist
-    attributes:
-      label: ✅ Checklist
-      description: Avez-vous vérifié ces points ?
-      options:
-        - label: J'ai cherché dans les issues existantes et ce bug n'a pas déjà été reporté
-          required: true
-        - label: J'ai testé avec la dernière version de l'application
-          required: false
-        - label: J'ai testé avec plusieurs navigateurs/appareils
-          required: false
-        - label: J'ai vérifié la console pour des erreurs JavaScript
-          required: false

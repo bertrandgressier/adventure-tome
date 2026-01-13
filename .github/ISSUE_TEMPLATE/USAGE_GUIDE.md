@@ -8,29 +8,42 @@ Ce guide vous montre comment utiliser les templates d'issues pour Adventure Tome
 
 Avant de créer une issue, déterminez son type :
 
-| Cas d'usage | Template |
-|-------------|----------|
-| Nouvelle fonctionnalité à développer | 🚀 **Feature Request** |
-| Amélioration d'une fonctionnalité existante | ✨ **Enhancement** |
-| Refactorisation du code | ♻️ **Refactor** |
-| Bug ou comportement inattendu | 🐛 **Bug Report** |
+| Cas d'usage | Template Simple | Template Dev-Ready |
+|-------------|-----------------|-------------------|
+| Nouvelle fonctionnalité | 🚀 **Feature Request** | 🚀 **Feature Request (Dev-Ready)** |
+| Bug | 🐛 **Bug Report** | 🐛 **Bug Report (Dev-Ready)** |
+| Amélioration | ✨ **Enhancement** | ✨ **Enhancement (Dev-Ready)** |
+| Refactorisation | ♻️ **Refactor** | ♻️ **Refactor (Dev-Ready)** |
+
+### 2. Choisir le bon template
+
+#### Template Simple (pour humain)
+- **Ultra simple** : 2-3 champs maximum
+- **Usage** : Quand vous (humain) créez une issue rapidement
+- **Avantage** : Pas de temps perdu à remplir des formulaires complexes
+
+#### Template Dev-Ready (pour AI/dév détaillé)
+- **Ultra détaillé** : Toutes les informations techniques précises
+- **Usage** : Quand vous voulez une issue prête à être développée immédiatement
+- **Labels** : Ajoute automatiquement `status: ready`
+- **Avantage** : L'AI ou un développeur peut commencer sans questions
 
 ### 2. Créer l'issue
 
 #### Option A : Via GitHub CLI (recommandé)
 
 ```bash
-# Créer une feature
+# Templates simples (pour humain)
 gh issue create --template feature.yml
-
-# Créer un bug report
 gh issue create --template bug.yml
-
-# Créer une amélioration
 gh issue create --template enhancement.yml
-
-# Créer un refactor
 gh issue create --template refactor.yml
+
+# Templates dev-ready (pour AI/issue détaillée)
+gh issue create --template feature_detailed.yml
+gh issue create --template bug_detailed.yml
+gh issue create --template enhancement_detailed.yml
+gh issue create --template refactor_detailed.yml
 ```
 
 #### Option B : Via l'interface web
@@ -235,10 +248,11 @@ size: small (< 1 jour)
 ## 🏷️ Gestion des labels
 
 ### Labels automatiques (via template)
-- `type: feature` - Ajouté par `feature.yml`
-- `type: refactor` - Ajouté par `refactor.yml`
-- `type: bug` - Ajouté par `bug.yml`
-- `enhancement` - Ajouté par `enhancement.yml`
+- `type: feature` - Ajouté par `feature.yml` et `feature_detailed.yml`
+- `type: refactor` - Ajouté par `refactor.yml` et `refactor_detailed.yml`
+- `type: bug` - Ajouté par `bug.yml` et `bug_detailed.yml`
+- `enhancement` - Ajouté par `enhancement.yml` et `enhancement_detailed.yml`
+- `status: ready` - Ajouté uniquement par les templates `*_detailed.yml`
 
 ### Labels à ajouter manuellement
 
@@ -265,6 +279,49 @@ gh issue edit <numéro> --add-label "priority: critical,scope: combat"
 **Refactor simple :**
 ```bash
 gh issue edit <numéro> --add-label "scope: presentation,size: small"
+```
+
+---
+
+## 🎓 Quand utiliser quel template ?
+
+### Utiliser le template SIMPLE quand :
+- ✅ Vous êtes un humain qui crée rapidement une issue
+- ✅ Vous voulez juste noter une idée pour plus tard
+- ✅ Les détails techniques seront définis plus tard
+- ✅ C'est une suggestion ou un brainstorming
+
+**Exemple simple** :
+```
+Feature: Je veux pouvoir supprimer mes items personnalisés
+Contexte: Actuellement une fois créé, on ne peut plus les supprimer
+```
+
+### Utiliser le template DEV-READY quand :
+- ✅ Vous voulez que l'IA développe immédiatement
+- ✅ Vous avez déjà pensé à tous les détails techniques
+- ✅ L'issue doit être assignée à un dev pour implémentation rapide
+- ✅ Vous avez des fichiers précis à modifier, des tests à écrire, etc.
+
+**Exemple dev-ready** :
+```
+Objectif: Permettre suppression items personnalisés avec vérif usage
+Contexte: Actuellement impossible, items encombrent l'interface
+Implémentation:
+  1. Ajouter bouton delete dans ItemCard (src/presentation/components/ItemCard.tsx)
+  2. Créer action removeCustomItem dans slice (src/presentation/stores/slices/characterItemsSlice.ts)
+  3. Vérifier usage dans tous les personnages avant suppression
+  4. Tests unitaires pour removeCustomItem
+Livrables:
+  - [ ] Bouton delete ajouté
+  - [ ] Action slice créée
+  - [ ] Vérification usage implémentée
+  - [ ] Tests unitaires
+Edge Cases:
+  - Item utilisé par un perso → bloquer avec message
+  - Item non utilisé → supprimer + confirmation
+Scope: ui, inventory
+Size: medium (1-3 jours)
 ```
 
 ---
@@ -297,6 +354,21 @@ gh issue edit <numéro> --add-label "scope: presentation,size: small"
 
 Si vous travaillez avec un agent AI (GitHub Copilot, etc.) :
 
+### Pour des issues simples
+```markdown
+Agent, crée une issue pour cette feature: [description]
+- Utilise le template simple (feature.yml)
+```
+
+### Pour des issues dev-ready
+```markdown
+Agent, crée une issue dev-ready pour cette feature: [description détaillée]
+- Utilise le template dev-ready (feature_detailed.yml)
+- Inclut toutes les étapes techniques, livrables, edge cases
+- Ajoute les labels appropriés
+```
+
+### Pour développer une issue existante
 ```markdown
 Agent, développe la feature issue #44, utilise gh pour récupérer le ticket.
 - Assure-toi que la branche est synchronisée avec main remote, rebase avec origin/main
@@ -309,7 +381,7 @@ Agent, développe la feature issue #44, utilise gh pour récupérer le ticket.
 - Ne commit pas, quand tout est ok, dis-le moi pour que je teste
 ```
 
-L'agent utilisera automatiquement les informations structurées du template !
+L'agent utilisera automatiquement les informations structurées du template dev-ready !
 
 ---
 
