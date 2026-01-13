@@ -72,7 +72,7 @@ describe('Migration des données - Compatibilité', () => {
     expect(character.book).toBe(legacyData.book);
     expect(character.talent).toBe(legacyData.talent);
     expect(character.gameMode).toBe('mortal');
-    expect(character.version).toBe(11); // Migrated to v11
+    expect(character.version).toBe(12); // Migrated to v12
     expect(character.createdAt).toBe(legacyData.createdAt);
     expect(character.notes).toBe(legacyData.notes);
 
@@ -157,7 +157,7 @@ describe('Migration des données - Compatibilité', () => {
 
     // VÉRIFICATION: gameMode et version
     expect(data.gameMode).toBe('simplified');
-    expect(data.version).toBe(11);
+    expect(data.version).toBe(12);
 
     // VÉRIFICATION: Structure stats
     expect(data.stats).toHaveProperty('dexterite');
@@ -420,10 +420,10 @@ describe('Migration des données - Compatibilité', () => {
     // La migration doit être appelée explicitement
     const migratedData = migrateCharacter(v3Data);
     const character = Character.fromData(migratedData);
-    
+
     // VÉRIFICATION: book converti en number
     expect(character.book).toBe(1); // "La Harpe des Quatre Saisons" → 1
-    expect(character.version).toBe(11); // Version mise à jour
+    expect(character.version).toBe(12); // Version mise à jour
     
     // Test avec autres titres
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -484,7 +484,7 @@ describe('Migration des données - Compatibilité', () => {
     const items = character.getInventory().items;
 
     // VÉRIFICATION: Bourse ajoutée
-    expect(character.version).toBe(11);
+    expect(character.version).toBe(12);
     expect(items).toHaveLength(2); // Bourse + Potion
     // Bourse was added in v6, then got a legacy ID in v10 migration
     expect(items[0].itemId).toMatch(/^legacy-/);
@@ -535,7 +535,7 @@ describe('Migration des données - Compatibilité', () => {
     const inventory = character.getInventory();
 
     // VÉRIFICATION: Version mise à jour
-    expect(character.version).toBe(11);
+    expect(character.version).toBe(12);
 
     // VÉRIFICATION: Items migrés avec nouveaux champs
     // Bourse + 3 items existants
@@ -673,7 +673,7 @@ describe('Migration des données - Compatibilité', () => {
     const character = Character.fromData(migratedData);
 
     // VÉRIFICATION: Version mise à jour
-    expect(character.version).toBe(11);
+    expect(character.version).toBe(12);
 
     // VÉRIFICATION: Items migrés avec fallbackName
     const inventory = character.getInventory();
@@ -688,5 +688,146 @@ describe('Migration des données - Compatibilité', () => {
     expect(item2).toBeDefined();
     expect(item2?.fallbackName).toBe('Potion rare');
     expect(item2?.quantity).toBe(3);
+  });
+
+  it('devrait initialiser l\'expérience à 0 pour Tome 3+ (migration v12)', () => {
+    // Données v11 (avant migration v12)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const v11Data: any = {
+      id: 'v12-test-123',
+      name: 'Personnage Tome 3',
+      book: 3,
+      talent: 'instinct',
+      gameMode: 'mortal',
+      version: 11,
+      createdAt: '2025-01-01T10:00:00.000Z',
+      updatedAt: '2025-01-01T10:00:00.000Z',
+      stats: {
+        dexterite: 7,
+        chance: 5,
+        chanceInitiale: 5,
+        pointsDeVieMax: 32,
+        pointsDeVieActuels: 32,
+        constitution: 5,
+        reputation: null,
+      },
+      inventory: {
+        boulons: 100,
+        items: [],
+      },
+      progress: {
+        currentParagraph: 1,
+        history: [1],
+        lastSaved: '2025-01-01T10:00:00.000Z',
+      },
+      notes: '',
+    };
+
+    const migratedData = migrateCharacter(v11Data);
+    const character = Character.fromData(migratedData);
+
+    // VÉRIFICATION: Version mise à jour
+    expect(character.version).toBe(12);
+
+    // VÉRIFICATION: Expérience initialisée à 0 pour Tome 3+
+    const stats = character.getStats();
+    expect(stats.experience).toBe(0);
+  });
+
+  it('devrait initialiser l\'expérience à null pour Tome 1-2 (migration v12)', () => {
+    // Données v11 pour Tome 1
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const v11DataTome1: any = {
+      id: 'v12-tome1-123',
+      name: 'Personnage Tome 1',
+      book: 1,
+      talent: 'instinct',
+      gameMode: 'mortal',
+      version: 11,
+      createdAt: '2025-01-01T10:00:00.000Z',
+      updatedAt: '2025-01-01T10:00:00.000Z',
+      stats: {
+        dexterite: 7,
+        chance: 5,
+        chanceInitiale: 5,
+        pointsDeVieMax: 32,
+        pointsDeVieActuels: 32,
+      },
+      inventory: {
+        boulons: 100,
+        items: [],
+      },
+      progress: {
+        currentParagraph: 1,
+        history: [1],
+        lastSaved: '2025-01-01T10:00:00.000Z',
+      },
+      notes: '',
+    };
+
+    const migratedDataTome1 = migrateCharacter(v11DataTome1);
+    const characterTome1 = Character.fromData(migratedDataTome1);
+
+    // VÉRIFICATION: Version mise à jour
+    expect(characterTome1.version).toBe(12);
+
+    // VÉRIFICATION: Expérience initialisée à undefined pour Tome 1
+    const statsTome1 = characterTome1.getStats();
+    expect(statsTome1.experience).toBeUndefined();
+
+    // Test avec Tome 2
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const v11DataTome2: any = { ...v11DataTome1, id: 'v12-tome2-123', book: 2, name: 'Personnage Tome 2' };
+    const migratedDataTome2 = migrateCharacter(v11DataTome2);
+    const characterTome2 = Character.fromData(migratedDataTome2);
+
+    expect(characterTome2.version).toBe(12);
+    const statsTome2 = characterTome2.getStats();
+    expect(statsTome2.experience).toBeUndefined();
+  });
+
+  it('devrait préserver l\'expérience existante lors de la migration v12', () => {
+    // Données v12 avec expérience déjà définie
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const v12Data: any = {
+      id: 'v12-preserve-123',
+      name: 'Personnage avec expérience',
+      book: 3,
+      talent: 'instinct',
+      gameMode: 'mortal',
+      version: 12,
+      createdAt: '2025-01-01T10:00:00.000Z',
+      updatedAt: '2025-01-01T10:00:00.000Z',
+      stats: {
+        dexterite: 7,
+        chance: 5,
+        chanceInitiale: 5,
+        pointsDeVieMax: 32,
+        pointsDeVieActuels: 32,
+        constitution: 5,
+        reputation: null,
+        experience: 42,
+      },
+      inventory: {
+        boulons: 100,
+        items: [],
+      },
+      progress: {
+        currentParagraph: 1,
+        history: [1],
+        lastSaved: '2025-01-01T10:00:00.000Z',
+      },
+      notes: '',
+    };
+
+    const migratedData = migrateCharacter(v12Data);
+    const character = Character.fromData(migratedData);
+
+    // VÉRIFICATION: Version inchangée (déjà v12)
+    expect(character.version).toBe(12);
+
+    // VÉRIFICATION: Expérience préservée
+    const stats = character.getStats();
+    expect(stats.experience).toBe(42);
   });
 });

@@ -11,6 +11,7 @@ export interface StatsData {
   chanceInitiale: number;
   pointsDeVieMax: number;
   pointsDeVieActuels: number;
+  experience?: number;
 }
 
 export class Stats {
@@ -21,7 +22,8 @@ export class Stats {
     public readonly chance: number,
     public readonly chanceInitiale: number,
     public readonly maxHealth: number,
-    public readonly currentHealth: number
+    public readonly currentHealth: number,
+    public readonly experience: number | null
   ) {
     this.validate();
   }
@@ -51,6 +53,9 @@ export class Stats {
     if (this.currentHealth > this.maxHealth) {
       throw new Error('Les points de vie actuels ne peuvent pas dépasser le maximum');
     }
+    if (this.experience !== null && this.experience < 0) {
+      throw new Error('L\'expérience doit être supérieure ou égale à 0');
+    }
   }
 
   /**
@@ -76,7 +81,8 @@ export class Stats {
       newStats.chance ?? this.chance,
       newStats.chanceInitiale ?? this.chanceInitiale,
       newMaxHealth,
-      newCurrentHealth
+      newCurrentHealth,
+      newStats.experience !== undefined ? (newStats.experience ?? null) : this.experience
     );
   }
 
@@ -91,7 +97,8 @@ export class Stats {
       Math.max(0, this.chance - 1),
       this.chanceInitiale,
       this.maxHealth,
-      this.currentHealth
+      this.currentHealth,
+      this.experience
     );
   }
 
@@ -102,7 +109,7 @@ export class Stats {
     if (damage < 0) {
       throw new Error('Les dégâts ne peuvent pas être négatifs');
     }
-    
+
     return new Stats(
       this.dexterite,
       this.constitution,
@@ -110,7 +117,8 @@ export class Stats {
       this.chance,
       this.chanceInitiale,
       this.maxHealth,
-      Math.max(0, this.currentHealth - damage)
+      Math.max(0, this.currentHealth - damage),
+      this.experience
     );
   }
 
@@ -121,7 +129,7 @@ export class Stats {
     if (amount < 0) {
       throw new Error('La quantité de soin ne peut pas être négative');
     }
-    
+
     return new Stats(
       this.dexterite,
       this.constitution,
@@ -129,7 +137,8 @@ export class Stats {
       this.chance,
       this.chanceInitiale,
       this.maxHealth,
-      Math.min(this.maxHealth, this.currentHealth + amount)
+      Math.min(this.maxHealth, this.currentHealth + amount),
+      this.experience
     );
   }
 
@@ -159,6 +168,7 @@ export class Stats {
       chanceInitiale: this.chanceInitiale,
       pointsDeVieMax: this.maxHealth,
       pointsDeVieActuels: this.currentHealth,
+      experience: this.experience ?? undefined,
     };
   }
 
@@ -173,7 +183,8 @@ export class Stats {
       data.chance,
       data.chanceInitiale,
       data.pointsDeVieMax,
-      data.pointsDeVieActuels
+      data.pointsDeVieActuels,
+      data.experience ?? null
     );
   }
 }

@@ -13,7 +13,7 @@
 
 import { BOURSE_ITEM_NAME } from '@/src/domain/value-objects/Inventory';
 
-export const CURRENT_VERSION = 11;
+export const CURRENT_VERSION = 12;
 
 /**
  * Legacy item type (pre-v10)
@@ -102,6 +102,10 @@ export interface Migration {
  * - Convert full inventory items to InventoryItemRef (itemId + quantity + possessed)
  * - Remove duplication: items no longer store name, effect, type, etc.
  * - Items are now looked up from the catalog at runtime
+ *
+ * Migration v11 → v12: Add experience field to stats
+ * - Add experience (optional) for Tome 3+ characters
+ * - Default to 0 for book >= 3, null for book < 3
  */
 export const migrations: Migration[] = [
   {
@@ -266,6 +270,22 @@ export const migrations: Migration[] = [
           items: migratedItems,
         },
         version: 11,
+      };
+    },
+  },
+  {
+    version: 12,
+    migrate: (data) => {
+      const currentExperience = data.stats?.experience;
+      const newExperience = currentExperience ?? (data.book >= 3 ? 0 : null);
+
+      return {
+        ...data,
+        stats: {
+          ...data.stats,
+          experience: newExperience,
+        },
+        version: 12,
       };
     },
   },

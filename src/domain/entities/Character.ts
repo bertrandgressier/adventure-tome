@@ -494,7 +494,7 @@ export class Character {
       data.talent,
       data.secondTalent,
       data.gameMode,
-      11, // CURRENT_VERSION
+      12, // CURRENT_VERSION
       now,
       now,
       Stats.fromData(statsData),

@@ -1,6 +1,6 @@
 'use client';
 
-import { Hand, Clover, Heart, Shield } from 'lucide-react';
+import { Hand, Clover, Heart, Shield, Star } from 'lucide-react';
 import { useCharacter } from '@/src/presentation/hooks/useCharacter';
 import EditableStatField from '@/src/presentation/components/EditableStatField';
 import { ReputationControl } from '@/components/adventure/ReputationControl';
@@ -58,6 +58,7 @@ export default function CharacterStats({ characterId, onUpdate }: CharacterStats
   const statsData = stats.toData();
   const showConstitution = character.book > 1;
   const showReputation = character.book === 2;
+  const showExperience = character.book >= 3;
 
   // Styles dynamiques pour les PV actuels
   const getPvStyles = () => {
@@ -140,6 +141,20 @@ export default function CharacterStats({ characterId, onUpdate }: CharacterStats
           <ReputationControl
             value={statsData.reputation}
             onChange={(value) => handleUpdate({ reputation: value })}
+          />
+        </div>
+      )}
+
+      {/* Ligne 4 : Expérience (Tome 3+) */}
+      {showExperience && (
+        <div className="mt-2">
+          <EditableStatField
+            label="EXPÉRIENCE"
+            value={statsData.experience ?? null}
+            onSave={(value) => handleUpdate({ experience: value === null ? undefined : value })}
+            min={0}
+            icon={<Star className="size-4" />}
+            placeholder="-"
           />
         </div>
       )}
