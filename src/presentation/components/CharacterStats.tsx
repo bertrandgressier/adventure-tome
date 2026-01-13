@@ -154,6 +154,7 @@ export default function CharacterStats({ characterId, onUpdate }: CharacterStats
             onSave={(value) => handleUpdate({ experience: value })}
             min={0}
             icon={<Star className="size-4" />}
+            size="lg"
           />
         </div>
       )}
