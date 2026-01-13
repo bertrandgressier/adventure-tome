@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { Plus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -104,112 +105,103 @@ export function AddItemModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {mode === 'inventory' && controlledOpen === undefined ? (
         <DialogTrigger asChild>
-          <Button disabled={disabled} className="shrink-0 whitespace-nowrap">
-            + Ajouter un item
-          </Button>
+          <button
+            disabled={disabled}
+            className="text-primary hover:text-yellow-300 transition-colors bg-primary/10 hover:bg-primary/20 rounded-lg p-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Ajouter un item"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
         </DialogTrigger>
       ) : null}
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>
-            {mode === 'equipped' ? 'Équiper une arme' : 'Ajouter un item depuis le catalogue'}
-          </DialogTitle>
-          <DialogDescription>
-            {mode === 'equipped'
-              ? 'Sélectionnez une arme dans le catalogue pour l\'équiper'
-              : 'Sélectionnez un item dans le catalogue pour l\'ajouter à votre inventaire'}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent 
+        className="max-w-2xl h-[calc(100dvh-2rem)] max-h-[calc(100dvh-2rem)] sm:h-[85vh] sm:max-h-[85vh] p-0 flex flex-col overflow-hidden"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <div className="flex flex-col h-full">
+          <DialogHeader className="shrink-0 px-4 pt-4 sm:px-6 sm:pt-6">
+            <DialogTitle className="text-base sm:text-lg">
+              {mode === 'equipped' ? 'Équiper une arme' : 'Ajouter un item depuis le catalogue'}
+            </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              {mode === 'equipped'
+                ? 'Sélectionnez une arme dans le catalogue pour l\'équiper'
+                : 'Sélectionnez un item dans le catalogue pour l\'ajouter à votre inventaire'}
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="flex flex-col max-h-[70vh]">
-          <Input
-            placeholder="Rechercher"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="mb-4"
-          />
+          <div className="flex flex-col gap-3 shrink-0 px-4 pt-4 sm:px-6 sm:pt-4">
+            <Input
+              placeholder="Rechercher"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-11 text-base"
+              autoFocus={false}
+            />
 
-          <Select
-            value={selectedTome === 'all' ? 'all' : selectedTome.toString()}
-            onValueChange={(value) => setSelectedTome(value === 'all' ? 'all' : (parseInt(value) as 1 | 2 | 3))}
-          >
-            <SelectTrigger className="w-[180px] mb-4">
-              <SelectValue placeholder="Sélectionner un tome" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">Tome 1</SelectItem>
-              <SelectItem value="2">Tome 2</SelectItem>
-              <SelectItem value="3">Tome 3</SelectItem>
-              <SelectItem value="all">Tous</SelectItem>
-            </SelectContent>
-          </Select>
+            <div className="flex gap-2">
+              <Select
+                value={selectedTome === 'all' ? 'all' : selectedTome.toString()}
+                onValueChange={(value) => setSelectedTome(value === 'all' ? 'all' : (parseInt(value) as 1 | 2 | 3))}
+              >
+                <SelectTrigger className="flex-1 sm:flex-none sm:w-[180px] h-11">
+                  <SelectValue placeholder="Sélectionner un tome" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Tome 1</SelectItem>
+                  <SelectItem value="2">Tome 2</SelectItem>
+                  <SelectItem value="3">Tome 3</SelectItem>
+                  <SelectItem value="all">Tous</SelectItem>
+                </SelectContent>
+              </Select>
 
-          {!filterType && (
-            <div className="flex gap-2 mb-4 flex-wrap">
-              <Button
-                variant={selectedType === 'all' ? 'default' : 'outline'}
-                onClick={() => setSelectedType('all')}
-                size="sm"
-              >
-                Tous
-              </Button>
-              <Button
-                variant={selectedType === ItemType.ACTIVE ? 'default' : 'outline'}
-                onClick={() => setSelectedType(ItemType.ACTIVE)}
-                size="sm"
-              >
-                Actifs
-              </Button>
-              <Button
-                variant={selectedType === ItemType.PASSIVE ? 'default' : 'outline'}
-                onClick={() => setSelectedType(ItemType.PASSIVE)}
-                size="sm"
-              >
-                Passifs
-              </Button>
-              <Button
-                variant={selectedType === ItemType.BASIC ? 'default' : 'outline'}
-                onClick={() => setSelectedType(ItemType.BASIC)}
-                size="sm"
-              >
-                Basiques
-              </Button>
-              <Button
-                variant={selectedType === ItemType.SPECIAL ? 'default' : 'outline'}
-                onClick={() => setSelectedType(ItemType.SPECIAL)}
-                size="sm"
-              >
-                Spéciaux
-              </Button>
+              {!filterType && (
+                <Select
+                  value={selectedType}
+                  onValueChange={(value) => setSelectedType(value as ItemType | 'all')}
+                >
+                  <SelectTrigger className="flex-1 sm:flex-none sm:w-[180px] h-11">
+                    <SelectValue placeholder="Type d'item" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les types</SelectItem>
+                    <SelectItem value={ItemType.ACTIVE}>Actifs</SelectItem>
+                    <SelectItem value={ItemType.PASSIVE}>Passifs</SelectItem>
+                    <SelectItem value={ItemType.BASIC}>Basiques</SelectItem>
+                    <SelectItem value={ItemType.SPECIAL}>Spéciaux</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-          )}
+          </div>
 
-          <ScrollArea className="flex-1 pr-4 min-h-0">
-            <div className="grid gap-2">
+          <div className="flex-1 min-h-0 overflow-hidden px-4 pt-3 sm:px-6 sm:pt-3">
+            <ScrollArea className="h-full">
+              <div className="grid gap-2 pr-4">
               {availableItems.map((item) => {
                 const canAdd = canAddItem(item);
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-center justify-between p-3 border rounded-lg ${
-                      canAdd ? 'hover:bg-accent cursor-pointer' : 'opacity-50 cursor-not-allowed bg-muted'
+                    className={`flex items-start sm:items-center gap-2 p-3 border rounded-lg ${
+                      canAdd ? 'hover:bg-accent active:bg-accent cursor-pointer' : 'opacity-50 cursor-not-allowed bg-muted'
                     }`}
                     onClick={() => canAdd && handleAddItem(item)}
                   >
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium truncate">{item.name}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-sm sm:text-base">{item.name}</span>
                         <ItemTypeBadge type={item.type} showLabel={false} />
                       </div>
                       {item.effect && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">
                           {item.effect}
                         </p>
                       )}
                     </div>
                     <Button
                       size="sm"
-                      className="shrink-0 ml-2"
+                      className="shrink-0 h-11 px-3 sm:px-4 text-xs sm:text-sm"
                       disabled={!canAdd}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -223,23 +215,26 @@ export function AddItemModal({
               })}
 
               {availableItems.length === 0 && (
-                <div className="text-center text-muted-foreground py-8">
+                <div className="text-center text-muted-foreground py-8 text-sm">
                   Aucun item trouvé
                 </div>
               )}
-            </div>
-          </ScrollArea>
+              </div>
+            </ScrollArea>
+          </div>
 
-          <Button
-            variant="outline"
-            className="w-full mt-4"
-            onClick={() => {
-              setCustomModalOpen(true);
-              setOpen(false);
-            }}
-          >
-            {mode === 'equipped' ? 'Créer une nouvelle arme' : 'Créer un item personnalisé'}
-          </Button>
+          <div className="shrink-0 px-4 pb-4 pt-3 sm:px-6 sm:pb-6 sm:pt-4">
+            <Button
+              variant="outline"
+              className="w-full h-11 text-xs sm:text-sm"
+              onClick={() => {
+                setCustomModalOpen(true);
+                setOpen(false);
+              }}
+            >
+              {mode === 'equipped' ? 'Créer une nouvelle arme' : 'Créer un item personnalisé'}
+            </Button>
+          </div>
         </div>
       </DialogContent>
 
