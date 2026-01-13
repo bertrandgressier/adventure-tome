@@ -1,3 +1,10 @@
+# [4.3.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.2.0...v4.3.0) (2026-01-13)
+
+
+### Features
+
+* améliorer l'UX mobile de la modale AddItemModal ([c52dacd](https://github.com/bertrandgressier/adventure-tome/commit/c52dacd1485be7ce93e34aa7440ff7980e89f57a))
+
 # [4.2.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.1.0...v4.2.0) (2026-01-12)
 
 

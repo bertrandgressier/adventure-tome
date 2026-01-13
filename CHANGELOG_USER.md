@@ -12,6 +12,15 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 4.3.0
+*13 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- améliorer l'UX mobile de la modale AddItemModal
+
+---
+
 ## Version 4.2.0
 *12 janvier 2026*
 
