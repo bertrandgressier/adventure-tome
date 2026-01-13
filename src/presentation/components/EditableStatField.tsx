@@ -13,7 +13,7 @@ interface EditableStatFieldProps {
   icon?: React.ReactNode;
   containerClassName?: string;
   placeholder?: string;
-  size?: 'sm' | 'lg';
+  size?: 'xs' | 'sm' | 'lg';
 }
 
 /**
@@ -113,7 +113,7 @@ export default function EditableStatField({
               onKeyDown={handleKeyDown}
               className={cn(
                 "bg-card border border-primary/50 rounded px-1 py-0.5 text-center font-[var(--font-geist-mono)] text-xl text-primary focus:outline-none focus:border-primary",
-                size === 'lg' ? "w-16" : "w-12"
+                size === 'lg' ? "w-16" : size === 'sm' ? "w-12" : "w-10"
               )}
               min={min}
             />

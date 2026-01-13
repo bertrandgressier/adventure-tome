@@ -113,6 +113,7 @@ export default function CharacterStats({ characterId, onUpdate }: CharacterStats
           onSave={(value) => handleUpdate({ dexterite: value ?? 1 })}
           min={1}
           icon={<Hand className="size-4" />}
+          size="xs"
         />
 
         {showConstitution && (
@@ -123,6 +124,7 @@ export default function CharacterStats({ characterId, onUpdate }: CharacterStats
             min={0}
             icon={<Shield className="size-4" />}
             placeholder="-"
+            size="xs"
           />
         )}
 
@@ -132,6 +134,7 @@ export default function CharacterStats({ characterId, onUpdate }: CharacterStats
           onSave={(value) => handleUpdate({ chance: value ?? 0 })}
           min={0}
           icon={<Clover className="size-4" />}
+          size="xs"
         />
       </div>
 
