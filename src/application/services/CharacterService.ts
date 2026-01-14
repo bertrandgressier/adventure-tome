@@ -322,7 +322,7 @@ export class CharacterService {
     const copy = Character.create({
       name: `${original.name} (Copie)`,
       book: original.book,
-      talent: original.talent,
+      talent: original.talentId,
       gameMode: original.gameMode,
       stats: original.getStats(),
     });
@@ -390,9 +390,41 @@ export class CharacterService {
     }
 
     const updated = character.updateSecondTalent(secondTalent);
-    
+
     await this.repository.save(updated);
-    
+
+    return updated;
+  }
+
+  /**
+   * Met à jour le niveau du talent principal
+   */
+  async updateTalentLevel(id: string, level: number): Promise<Character> {
+    const character = await this.repository.findById(id);
+    if (!character) {
+      throw new CharacterNotFoundError(id);
+    }
+
+    const updated = character.updateTalentLevel(level);
+
+    await this.repository.save(updated);
+
+    return updated;
+  }
+
+  /**
+   * Met à jour le niveau du second talent
+   */
+  async updateSecondTalentLevel(id: string, level: number): Promise<Character> {
+    const character = await this.repository.findById(id);
+    if (!character) {
+      throw new CharacterNotFoundError(id);
+    }
+
+    const updated = character.updateSecondTalentLevel(level);
+
+    await this.repository.save(updated);
+
     return updated;
   }
 }

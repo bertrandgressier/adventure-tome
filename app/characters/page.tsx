@@ -45,7 +45,7 @@ export default function CharactersPage() {
       await createCharacter({
         name: `${characterData.name} (Copie)`,
         book: characterData.book,
-        talent: characterData.talent,
+        talent: typeof characterData.talent === 'string' ? characterData.talent : characterData.talent.id,
         gameMode: characterData.gameMode,
         stats: characterData.stats,
       });

@@ -12,6 +12,16 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 4.5.0
+*14 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- Add talent levels for Tome 3 ([#85](https://github.com/bertrandgressier/adventure-tome/issues/85))
+- add OpenCode custom command for autonomous issue development
+
+---
+
 ## Version 4.4.0
 *13 janvier 2026*
 

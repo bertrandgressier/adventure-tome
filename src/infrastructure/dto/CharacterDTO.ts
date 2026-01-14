@@ -7,13 +7,14 @@
  * Ce type est différent de l'entité Character (domain) qui contient la logique métier.
  */
 import { InventoryItemRef } from '@/src/domain/types/items';
+import { TalentRef } from '@/src/domain/types/talents';
 
 export interface CharacterDTO {
   id: string;
   name: string;
   book: number;
-  talent: string;
-  secondTalent?: string; // For Tome 2+
+  talent: TalentRef;
+  secondTalent?: TalentRef; // For Tome 2+
   gameMode?: 'narrative' | 'simplified' | 'mortal'; // Optional for legacy data
   version?: number; // Optional for legacy data
   createdAt: string;

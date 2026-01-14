@@ -11,6 +11,7 @@ import { describe, it, expect } from 'vitest';
 import { Character } from '@/src/domain/entities/Character';
 import { migrateCharacter } from '@/src/infrastructure/persistence/migrations';
 import type { InventoryItemRef } from '@/src/domain/types/items';
+import { TalentData, normalizeTalent } from '@/src/domain/types/talents';
 
 // Legacy item format (pre-v10)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -70,9 +71,10 @@ describe('Migration des données - Compatibilité', () => {
     expect(character.id).toBe(legacyData.id);
     expect(character.name).toBe(legacyData.name);
     expect(character.book).toBe(legacyData.book);
-    expect(character.talent).toBe(legacyData.talent);
+    expect(character.talentId).toBe(legacyData.talent);
+    expect(character.talentLevel).toBe(1); // Default level from migration
     expect(character.gameMode).toBe('mortal');
-    expect(character.version).toBe(13); // Migrated to v13
+    expect(character.version).toBe(14); // Migrated to v13
     expect(character.createdAt).toBe(legacyData.createdAt);
     expect(character.notes).toBe(legacyData.notes);
 
@@ -157,7 +159,7 @@ describe('Migration des données - Compatibilité', () => {
 
     // VÉRIFICATION: gameMode et version
     expect(data.gameMode).toBe('simplified');
-    expect(data.version).toBe(13);
+    expect(data.version).toBe(14);
 
     // VÉRIFICATION: Structure stats
     expect(data.stats).toHaveProperty('dexterite');
@@ -368,7 +370,8 @@ describe('Migration des données - Compatibilité', () => {
     expect(serialized.id).toBe(originalData.id);
     expect(serialized.name).toBe(originalData.name);
     expect(serialized.book).toBe(originalData.book);
-    expect(serialized.talent).toBe(originalData.talent);
+    const originalTalentNormalized = normalizeTalent(originalData.talent);
+    expect(serialized.talent.id).toBe((originalTalentNormalized as TalentData).id);
     expect(serialized.createdAt).toBe(originalData.createdAt);
     // updatedAt est mis à jour automatiquement par toData()
     expect(serialized.updatedAt).toBeDefined();
@@ -423,8 +426,8 @@ describe('Migration des données - Compatibilité', () => {
 
     // VÉRIFICATION: book converti en number
     expect(character.book).toBe(1); // "La Harpe des Quatre Saisons" → 1
-    expect(character.version).toBe(13); // Version mise à jour
-    
+    expect(character.version).toBe(14); // Version mise à jour
+
     // Test avec autres titres
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const v3DataBook2: any = { ...v3Data, book: 'La Confrérie de NUADA', id: 'v3-2' };
@@ -484,7 +487,7 @@ describe('Migration des données - Compatibilité', () => {
     const items = character.getInventory().items;
 
     // VÉRIFICATION: Bourse ajoutée
-    expect(character.version).toBe(13);
+    expect(character.version).toBe(14);
     expect(items).toHaveLength(2); // Bourse + Potion
     // Bourse was added in v6, then got a legacy ID in v10 migration
     expect(items[0].itemId).toMatch(/^legacy-/);
@@ -535,7 +538,7 @@ describe('Migration des données - Compatibilité', () => {
     const inventory = character.getInventory();
 
     // VÉRIFICATION: Version mise à jour
-    expect(character.version).toBe(13);
+    expect(character.version).toBe(14);
 
     // VÉRIFICATION: Items migrés avec nouveaux champs
     // Bourse + 3 items existants
@@ -673,7 +676,7 @@ describe('Migration des données - Compatibilité', () => {
     const character = Character.fromData(migratedData);
 
     // VÉRIFICATION: Version mise à jour
-    expect(character.version).toBe(13);
+    expect(character.version).toBe(14);
 
     // VÉRIFICATION: Items migrés avec fallbackName
     const inventory = character.getInventory();
@@ -727,7 +730,7 @@ describe('Migration des données - Compatibilité', () => {
     const character = Character.fromData(migratedData);
 
     // VÉRIFICATION: Version mise à jour
-    expect(character.version).toBe(13);
+    expect(character.version).toBe(14);
 
     // VÉRIFICATION: Expérience initialisée à 0 pour Tome 3+
     const stats = character.getStats();
@@ -769,7 +772,7 @@ describe('Migration des données - Compatibilité', () => {
     const characterTome1 = Character.fromData(migratedDataTome1);
 
     // VÉRIFICATION: Version mise à jour
-    expect(characterTome1.version).toBe(13);
+    expect(characterTome1.version).toBe(14);
 
     // VÉRIFICATION: Expérience initialisée à undefined pour Tome 1
     const statsTome1 = characterTome1.getStats();
@@ -781,7 +784,7 @@ describe('Migration des données - Compatibilité', () => {
     const migratedDataTome2 = migrateCharacter(v11DataTome2);
     const characterTome2 = Character.fromData(migratedDataTome2);
 
-    expect(characterTome2.version).toBe(13);
+    expect(characterTome2.version).toBe(14);
     const statsTome2 = characterTome2.getStats();
     expect(statsTome2.experience).toBeUndefined();
   });
@@ -823,24 +826,164 @@ describe('Migration des données - Compatibilité', () => {
     const migratedData = migrateCharacter(v12Data);
     const character = Character.fromData(migratedData);
 
-    // VÉRIFICATION: Version inchangée (déjà v12 → v13)
-    expect(character.version).toBe(13);
+    // VÉRIFICATION: Version inchangée (déjà v13)
+    expect(character.version).toBe(14);
 
     // VÉRIFICATION: Expérience préservée
     const stats = character.getStats();
     expect(stats.experience).toBe(42);
   });
 
-  it('devrait initialiser l\'état et le statut à leurs valeurs par défaut pour Tome 3+ (migration v13)', () => {
-    // Données v12 (avant migration v13)
+  it('devrait migrer les talents string vers TalentData avec level=1 (migration v13)', () => {
+    // Données v12 avec talents en string
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const v12Data: any = {
       id: 'v13-test-123',
-      name: 'Personnage Tome 3',
+      name: 'Personnage v12',
       book: 3,
       talent: 'instinct',
+      secondTalent: 'discretion',
       gameMode: 'mortal',
       version: 12,
+      createdAt: '2025-01-01T10:00:00.000Z',
+      updatedAt: '2025-01-01T10:00:00.000Z',
+      stats: {
+        dexterite: 7,
+        chance: 5,
+        chanceInitiale: 5,
+        pointsDeVieMax: 32,
+        pointsDeVieActuels: 32,
+        constitution: 5,
+        reputation: null,
+        experience: 42,
+      },
+      inventory: {
+        boulons: 100,
+        items: [],
+      },
+      progress: {
+        currentParagraph: 1,
+        history: [1],
+        lastSaved: '2025-01-01T10:00:00.000Z',
+      },
+      notes: '',
+    };
+
+    const migratedData = migrateCharacter(v12Data);
+    const character = Character.fromData(migratedData);
+
+    // VÉRIFICATION: Version mise à jour
+    expect(character.version).toBe(14);
+
+    // VÉRIFICATION: Talents migrés vers TalentData avec level=1
+    expect(character.talentId).toBe('instinct');
+    expect(character.talentLevel).toBe(1);
+    expect(character.secondTalentId).toBe('discretion');
+    expect(character.secondTalentLevel).toBe(1);
+  });
+
+  it('devrait migrer les talents sans secondTalent vers TalentData (migration v13)', () => {
+    // Données v12 sans second talent
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const v12DataNoSecondTalent: any = {
+      id: 'v13-test-456',
+      name: 'Personnage v12 sans second',
+      book: 1,
+      talent: 'combat',
+      gameMode: 'mortal',
+      version: 12,
+      createdAt: '2025-01-01T10:00:00.000Z',
+      updatedAt: '2025-01-01T10:00:00.000Z',
+      stats: {
+        dexterite: 7,
+        chance: 5,
+        chanceInitiale: 5,
+        pointsDeVieMax: 32,
+        pointsDeVieActuels: 32,
+      },
+      inventory: {
+        boulons: 100,
+        items: [],
+      },
+      progress: {
+        currentParagraph: 1,
+        history: [1],
+        lastSaved: '2025-01-01T10:00:00.000Z',
+      },
+      notes: '',
+    };
+
+    const migratedData = migrateCharacter(v12DataNoSecondTalent);
+    const character = Character.fromData(migratedData);
+
+    // VÉRIFICATION: Version mise à jour
+    expect(character.version).toBe(14);
+
+    // VÉRIFICATION: Talent principal migré, secondTalent undefined
+    expect(character.talentId).toBe('combat');
+    expect(character.talentLevel).toBe(1);
+    expect(character.secondTalentId).toBeUndefined();
+    expect(character.secondTalentLevel).toBeUndefined();
+  });
+
+  it('devrait préserver les talents TalentData existants (migration v13)', () => {
+    // Données v13 avec talents déjà en format TalentData
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const v13Data: any = {
+      id: 'v13-preserve-123',
+      name: 'Personnage v13',
+      book: 3,
+      talent: { id: 'instinct', level: 2 },
+      secondTalent: { id: 'discretion', level: 3 },
+      gameMode: 'mortal',
+      version: 13,
+      createdAt: '2025-01-01T10:00:00.000Z',
+      updatedAt: '2025-01-01T10:00:00.000Z',
+      stats: {
+        dexterite: 7,
+        chance: 5,
+        chanceInitiale: 5,
+        pointsDeVieMax: 32,
+        pointsDeVieActuels: 32,
+        constitution: 5,
+        reputation: null,
+        experience: 42,
+      },
+      inventory: {
+        boulons: 100,
+        items: [],
+      },
+      progress: {
+        currentParagraph: 1,
+        history: [1],
+        lastSaved: '2025-01-01T10:00:00.000Z',
+      },
+      notes: '',
+    };
+
+    const migratedData = migrateCharacter(v13Data);
+    const character = Character.fromData(migratedData);
+
+    // VÉRIFICATION: Version inchangée (déjà v13)
+    expect(character.version).toBe(14);
+
+    // VÉRIFICATION: Talents TalentData préservés
+    expect(character.talentId).toBe('instinct');
+    expect(character.talentLevel).toBe(2);
+    expect(character.secondTalentId).toBe('discretion');
+    expect(character.secondTalentLevel).toBe(3);
+  });
+
+  it('devrait initialiser l\'état et le statut à leurs valeurs par défaut pour Tome 3+ (migration v14)', () => {
+    // Données v13 (avant migration v14)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const v13Data: any = {
+      id: 'v14-test-123',
+      name: 'Personnage Tome 3',
+      book: 3,
+      talent: { id: 'instinct', level: 1 },
+      gameMode: 'mortal',
+      version: 13,
       createdAt: '2025-01-01T10:00:00.000Z',
       updatedAt: '2025-01-01T10:00:00.000Z',
       stats: {
@@ -865,11 +1008,11 @@ describe('Migration des données - Compatibilité', () => {
       notes: '',
     };
 
-    const migratedData = migrateCharacter(v12Data);
+    const migratedData = migrateCharacter(v13Data);
     const character = Character.fromData(migratedData);
 
     // VÉRIFICATION: Version mise à jour
-    expect(character.version).toBe(13);
+    expect(character.version).toBe(14);
 
     // VÉRIFICATION: État initialisé à "" et Statut initialisé à "Apprenti" pour Tome 3+
     const stats = character.getStats();
@@ -877,16 +1020,16 @@ describe('Migration des données - Compatibilité', () => {
     expect(stats.statut).toBe("Apprenti");
   });
 
-  it('devrait initialiser l\'état et le statut à null pour Tome 1-2 (migration v13)', () => {
-    // Données v12 pour Tome 1
+  it('devrait initialiser l\'état et le statut à undefined pour Tome 1-2 (migration v14)', () => {
+    // Données v13 pour Tome 1
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const v12DataTome1: any = {
-      id: 'v13-tome1-123',
+    const v13DataTome1: any = {
+      id: 'v14-tome1-123',
       name: 'Personnage Tome 1',
       book: 1,
-      talent: 'instinct',
+      talent: { id: 'instinct', level: 1 },
       gameMode: 'mortal',
-      version: 12,
+      version: 13,
       createdAt: '2025-01-01T10:00:00.000Z',
       updatedAt: '2025-01-01T10:00:00.000Z',
       stats: {
@@ -908,11 +1051,11 @@ describe('Migration des données - Compatibilité', () => {
       notes: '',
     };
 
-    const migratedDataTome1 = migrateCharacter(v12DataTome1);
+    const migratedDataTome1 = migrateCharacter(v13DataTome1);
     const characterTome1 = Character.fromData(migratedDataTome1);
 
     // VÉRIFICATION: Version mise à jour
-    expect(characterTome1.version).toBe(13);
+    expect(characterTome1.version).toBe(14);
 
     // VÉRIFICATION: État et Statut initialisés à undefined pour Tome 1
     const statsTome1 = characterTome1.getStats();
@@ -921,26 +1064,26 @@ describe('Migration des données - Compatibilité', () => {
 
     // Test avec Tome 2
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const v12DataTome2: any = { ...v12DataTome1, id: 'v13-tome2-123', book: 2, name: 'Personnage Tome 2' };
-    const migratedDataTome2 = migrateCharacter(v12DataTome2);
+    const v13DataTome2: any = { ...v13DataTome1, id: 'v14-tome2-123', book: 2, name: 'Personnage Tome 2' };
+    const migratedDataTome2 = migrateCharacter(v13DataTome2);
     const characterTome2 = Character.fromData(migratedDataTome2);
 
-    expect(characterTome2.version).toBe(13);
+    expect(characterTome2.version).toBe(14);
     const statsTome2 = characterTome2.getStats();
     expect(statsTome2.etat).toBeUndefined();
     expect(statsTome2.statut).toBeUndefined();
   });
 
-  it('devrait préserver l\'état et le statut existants lors de la migration v13', () => {
-    // Données v13 avec état et statut déjà définis
+  it('devrait préserver l\'état et le statut existants lors de la migration v14', () => {
+    // Données v14 avec état et statut déjà définis
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const v13Data: any = {
-      id: 'v13-preserve-123',
+    const v14Data: any = {
+      id: 'v14-preserve-123',
       name: 'Personnage avec état et statut',
       book: 3,
-      talent: 'instinct',
+      talent: { id: 'instinct', level: 1 },
       gameMode: 'mortal',
-      version: 13,
+      version: 14,
       createdAt: '2025-01-01T10:00:00.000Z',
       updatedAt: '2025-01-01T10:00:00.000Z',
       stats: {
@@ -967,11 +1110,11 @@ describe('Migration des données - Compatibilité', () => {
       notes: '',
     };
 
-    const migratedData = migrateCharacter(v13Data);
+    const migratedData = migrateCharacter(v14Data);
     const character = Character.fromData(migratedData);
 
-    // VÉRIFICATION: Version inchangée (déjà v13)
-    expect(character.version).toBe(13);
+    // VÉRIFICATION: Version inchangée (déjà v14)
+    expect(character.version).toBe(14);
 
     // VÉRIFICATION: État et Statut préservés
     const stats = character.getStats();
