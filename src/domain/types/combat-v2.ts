@@ -1,6 +1,12 @@
-export type { CombatPhase } from './CombatPhase';
-export type { CombatActionType } from './CombatActionType';
-export type { WeaponAbilityTrigger } from './WeaponAbilityTrigger';
+import type { CombatPhase } from './CombatPhase';
+import type { CombatActionType } from './CombatActionType';
+import type { WeaponAbilityTrigger } from './WeaponAbilityTrigger';
+import type { CombatEventType } from './CombatEventType';
+
+export type { CombatPhase };
+export type { CombatActionType };
+export type { WeaponAbilityTrigger };
+export type { CombatEventType };
 
 export type {
   CombatantState,

@@ -4,6 +4,7 @@ import type { DiceRoll } from '../../types/combatants';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
+import { CombatEventType } from '../../types/CombatEventType';
 
 export interface ActionResolutionResult {
   state: CombatState;
@@ -26,7 +27,7 @@ export class AttackResolver {
     const events: CombatEvent[] = [];
 
     events.push({
-      type: 'attack_roll',
+      type: CombatEventType.ATTACK_ROLL,
       timestamp: new Date().toISOString(),
       round: state.roundNumber,
       attacker: isPlayerAttacking ? 'player' : 'enemy',
@@ -59,7 +60,7 @@ export class AttackResolver {
         );
 
         events.push({
-          type: 'damage_dealt',
+          type: CombatEventType.DAMAGE_DEALT,
           timestamp: new Date().toISOString(),
           round: state.roundNumber,
           attacker: 'player',

@@ -1,6 +1,7 @@
 import type { CombatPhase } from './CombatPhase';
 import type { CombatActionType } from './CombatActionType';
 import type { CombatantState, EnemyState, DiceRoll, PendingDamage, CombatConfig } from './combatants';
+import { CombatEventType } from './CombatEventType';
 
 export interface CombatState {
   id: string;
@@ -21,7 +22,7 @@ export interface CombatState {
 }
 
 export interface CombatEvent {
-  type: 'combat_start' | 'combat_end' | 'round_start' | 'round_end' | 'attack_roll' | 'damage_dealt' | 'heal' | 'ability_used' | 'luck_test' | 'flee';
+  type: CombatEventType;
   timestamp: string;
   round?: number;
   attacker?: 'player' | 'enemy';

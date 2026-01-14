@@ -69,15 +69,15 @@ describe('CombatEngine - Global Scenarios', () => {
   });
 
   it('should handle enemy attack with luck test', () => {
-    let state = CombatEngine.createInitialState(
+    const initialState = CombatEngine.createInitialState(
       'char-1',
       createPlayerConfig(),
       [{ ...createEnemyConfig(), dexterite: 7 }],
       createCombatConfig()
     );
 
-    const result1 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
-    state = result1.state;
+    const result1 = CombatEngine.resolve(initialState, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
+    let state = result1.state;
 
     expect(state.phase).toBe(CombatPhase.PLAYER_ATTACK);
     expect(state.lastRoll?.success).toBe(false);
@@ -110,15 +110,15 @@ describe('CombatEngine - Global Scenarios', () => {
   });
 
   it('should handle flee action', () => {
-    let state = CombatEngine.createInitialState(
+    const initialState = CombatEngine.createInitialState(
       'char-1',
       createPlayerConfig(),
       [createEnemyConfig()],
       createCombatConfig()
     );
 
-    const result = CombatEngine.resolve(state, { type: CombatActionType.FLEE });
-    state = result.state;
+    const result = CombatEngine.resolve(initialState, { type: CombatActionType.FLEE });
+    const state = result.state;
 
     expect(state.player.endurance).toBe(28);
     expect(state.phase).toBe(CombatPhase.DEFEAT);
@@ -126,19 +126,19 @@ describe('CombatEngine - Global Scenarios', () => {
   });
 
   it('should provide available actions based on phase', () => {
-    const state = CombatEngine.createInitialState(
+    const initialState = CombatEngine.createInitialState(
       'char-1',
       createPlayerConfig(),
       [createEnemyConfig()],
       createCombatConfig()
     );
 
-    const actions1 = CombatEngine.getAvailableActions(state);
+    const actions1 = CombatEngine.getAvailableActions(initialState);
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.ATTACK);
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.FLEE);
 
-    const result = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
-    state = result.state; // eslint-disable-line prefer-const
+    let result = CombatEngine.resolve(initialState, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
+    let state = result.state;
 
     const actions2 = CombatEngine.getAvailableActions(state);
     expect(actions2.map(a => a.action.type)).toContain(CombatActionType.REROLL);

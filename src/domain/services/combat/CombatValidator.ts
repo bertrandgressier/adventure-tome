@@ -1,6 +1,7 @@
-import type { CombatState, CombatEvent, AvailableAction } from '../../types/combat-v2';
+import type { CombatState, CombatEvent, AvailableAction, CombatAction } from '../../types/combat-v2';
 import { CombatPhase } from '../../types/CombatPhase';
 import { CombatActionType } from '../../types/CombatActionType';
+import { CombatEventType } from '../../types/CombatEventType';
 
 export class CombatValidator {
   static checkCombatEnd(state: CombatState): 'ongoing' | 'victory' | 'defeat' {
@@ -63,7 +64,7 @@ export class CombatValidator {
 
   static createCombatEndEvent(state: CombatState, result: 'victory' | 'defeat'): CombatEvent {
     return {
-      type: 'combat_end',
+      type: CombatEventType.COMBAT_END,
       timestamp: new Date().toISOString(),
       round: state.roundNumber,
       attacker: 'player',
@@ -73,7 +74,7 @@ export class CombatValidator {
 
   static createRoundStartEvent(roundNumber: number): CombatEvent {
     return {
-      type: 'round_start',
+      type: CombatEventType.ROUND_START,
       timestamp: new Date().toISOString(),
       round: roundNumber,
     };
@@ -81,7 +82,7 @@ export class CombatValidator {
 
   static createRoundEndEvent(roundNumber: number): CombatEvent {
     return {
-      type: 'round_end',
+      type: CombatEventType.ROUND_END,
       timestamp: new Date().toISOString(),
       round: roundNumber,
     };

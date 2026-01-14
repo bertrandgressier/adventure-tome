@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { DiceRoller } from '@/src/domain/services/combat/DiceRoller';
+import { DiceRoller, type DiceOverrides } from '@/src/domain/services/combat/DiceRoller';
+import type { DiceRoll } from '@/src/domain/types/combatants';
 
 describe('DiceRoller', () => {
   describe('rollHitDice', () => {

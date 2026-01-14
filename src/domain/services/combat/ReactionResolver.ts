@@ -3,6 +3,7 @@ import { CombatPhase } from '../../types/CombatPhase';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
+import { CombatEventType } from '../../types/CombatEventType';
 
 export interface ActionResolutionResult {
   state: CombatState;
@@ -21,7 +22,7 @@ export class ReactionResolver {
       events: [
         ...state.events,
         {
-          type: 'flee',
+          type: CombatEventType.FLEE,
           timestamp: new Date().toISOString(),
           round: state.roundNumber,
           attacker: 'player',
@@ -57,7 +58,7 @@ export class ReactionResolver {
 
     const events: CombatEvent[] = [
       {
-        type: 'attack_roll',
+        type: CombatEventType.ATTACK_ROLL,
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
         attacker: 'player',
@@ -78,7 +79,7 @@ export class ReactionResolver {
       );
 
       events.push({
-        type: 'damage_dealt',
+        type: CombatEventType.DAMAGE_DEALT,
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
         attacker: 'player',
@@ -121,7 +122,7 @@ export class ReactionResolver {
 
     const events: CombatEvent[] = [
       {
-        type: 'luck_test',
+        type: CombatEventType.LUCK_TEST,
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
         attacker: 'enemy',
@@ -129,7 +130,7 @@ export class ReactionResolver {
         luckResult: luckSuccess ? 'success' : 'failure',
       },
       {
-        type: 'damage_dealt',
+        type: CombatEventType.DAMAGE_DEALT,
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
         attacker: 'enemy',
