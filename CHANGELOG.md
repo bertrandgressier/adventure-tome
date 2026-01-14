@@ -1,3 +1,16 @@
+# [4.6.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.5.0...v4.6.0) (2026-01-14)
+
+
+### Bug Fixes
+
+* restore larger input widths for EditableStatField ([070989f](https://github.com/bertrandgressier/adventure-tome/commit/070989f3fcd2875d963173490191abcbd07ec3f8))
+* update CURRENT_VERSION to 14 after merge ([bf538d4](https://github.com/bertrandgressier/adventure-tome/commit/bf538d4ca38bd8bda49e96c5f6cec586d00f2b1b))
+
+
+### Features
+
+* add État and Statut fields for Tome 3+ (issue [#84](https://github.com/bertrandgressier/adventure-tome/issues/84)) ([05ea2a7](https://github.com/bertrandgressier/adventure-tome/commit/05ea2a74c9632c1533319f7588d8cc56f3499dc9))
+
 # [4.5.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.4.0...v4.5.0) (2026-01-14)
 
 
