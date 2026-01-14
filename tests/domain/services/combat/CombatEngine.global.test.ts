@@ -57,12 +57,18 @@ describe('CombatEngine - Global Scenarios', () => {
     const result2 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 1 });
     state = result2.state;
 
+    expect(state.phase).toBe(CombatPhase.ENEMY_ATTACK);
+    expect(state.pendingDamage?.amount).toBe(4);
+
+    const result3 = CombatEngine.resolve(state, { type: CombatActionType.SKIP });
+    state = result3.state;
+
     expect(state.phase).toBe(CombatPhase.PLAYER_TURN);
     expect(state.roundNumber).toBe(2);
     expect(state.player.endurance).toBe(26);
 
-    const result3 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
-    state = result3.state;
+    const result4 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
+    state = result4.state;
 
     expect(state.enemies[0].endurance).toBe(0);
     expect(CombatEngine.checkCombatEnd(state)).toBe('victory');
@@ -91,7 +97,7 @@ describe('CombatEngine - Global Scenarios', () => {
     expect(state.enemies[0].endurance).toBe(9);
     expect(state.usedReroll).toBe(true);
 
-    const result3 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
+    const result3 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 3 });
     state = result3.state;
 
     expect(state.phase).toBe(CombatPhase.ENEMY_ATTACK);

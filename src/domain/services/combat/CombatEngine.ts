@@ -5,6 +5,7 @@ import type {
 } from '../../types/combat-v2';
 import { CombatActionType } from '../../types/CombatActionType';
 import { CombatPhase } from '../../types/CombatPhase';
+import { CombatEventType } from '../../types/CombatEventType';
 import type { CombatantConfig, EnemyConfig } from '../../types/combatants';
 import type { DiceOverrides } from './DiceRoller';
 import { AttackResolver } from './AttackResolver';
@@ -54,7 +55,7 @@ export class CombatEngine {
       isFirstAttack: true,
       events: [
         {
-          type: 'combat_start',
+          type: CombatEventType.COMBAT_START,
           timestamp: new Date().toISOString(),
           round: 1,
         },

@@ -79,7 +79,7 @@ export class AttackResolver {
       }
     } else {
       if (!isPlayerAttacking) {
-        newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
+        newState = { ...newState, phase: CombatPhase.PLAYER_TURN };
       }
     }
 

@@ -113,11 +113,14 @@ export class ReactionResolver {
 
     const newEndurance = Math.max(0, state.player.endurance - damage);
 
+    const shouldIncrementRound = state.phase === CombatPhase.ENEMY_ATTACK;
+
     let newState: CombatState = {
       ...state,
       player: { ...state.player, endurance: newEndurance },
       pendingDamage: undefined,
       phase: CombatPhase.PLAYER_TURN,
+      roundNumber: shouldIncrementRound ? state.roundNumber + 1 : state.roundNumber,
     };
 
     const events: CombatEvent[] = [
@@ -138,8 +141,6 @@ export class ReactionResolver {
       },
     ];
 
-    newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
-
     return { state: newState, events };
   }
 
@@ -153,8 +154,6 @@ export class ReactionResolver {
       pendingDamage: undefined,
       phase: CombatPhase.PLAYER_TURN,
     };
-
-    newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
 
     return { state: newState, events: [] };
   }
@@ -171,9 +170,9 @@ export class ReactionResolver {
         ...state,
         player: { ...state.player, endurance: newEndurance },
         pendingDamage: undefined,
+        phase: CombatPhase.PLAYER_TURN,
+        roundNumber: state.roundNumber + 1,
       };
-
-      newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
     }
 
     return { state: newState, events: [] };
