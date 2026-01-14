@@ -4,9 +4,11 @@ on:
   pull_request:
     branches:
       - main
+      - 'epic/**'
   push:
     branches:
       - main
+      - 'epic/**'
   workflow_call:  # Permet d'être appelé par d'autres workflows
 
 jobs:
