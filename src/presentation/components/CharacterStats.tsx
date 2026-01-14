@@ -1,8 +1,9 @@
 'use client';
 
-import { Hand, Clover, Heart, Shield, Star } from 'lucide-react';
+import { Hand, Clover, Heart, Shield, Star, Activity, Crown } from 'lucide-react';
 import { useCharacter } from '@/src/presentation/hooks/useCharacter';
 import EditableStatField from '@/src/presentation/components/EditableStatField';
+import EditableTextField from '@/src/presentation/components/EditableTextField';
 import { ReputationControl } from '@/components/adventure/ReputationControl';
 
 interface CharacterStatsProps {
@@ -148,7 +149,29 @@ export default function CharacterStats({ characterId, onUpdate }: CharacterStats
         </div>
       )}
 
-      {/* Ligne 4 : Expérience (Tome 3+) */}
+      {/* Ligne 4 : État et Statut (Tome 3+) */}
+      {showExperience && (
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <EditableTextField
+            label="ÉTAT"
+            value={typeof statsData.etat === 'string' ? statsData.etat : ""}
+            onSave={(value) => handleUpdate({ etat: value === null ? "" : value })}
+            emptyDisplay="-"
+            placeholder=""
+            icon={<Activity className="size-4" />}
+          />
+          <EditableTextField
+            label="STATUT"
+            value={typeof statsData.statut === 'string' ? statsData.statut : "Apprenti"}
+            onSave={(value) => handleUpdate({ statut: value === null ? "" : value })}
+            emptyDisplay="-"
+            placeholder="Apprenti"
+            icon={<Crown className="size-4" />}
+          />
+        </div>
+      )}
+
+      {/* Ligne 5 : Expérience (Tome 3+) */}
       {showExperience && (
         <div className="mt-2">
           <EditableStatField

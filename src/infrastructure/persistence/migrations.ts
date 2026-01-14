@@ -13,7 +13,7 @@
 
 import { BOURSE_ITEM_NAME } from '@/src/domain/value-objects/Inventory';
 
-export const CURRENT_VERSION = 12;
+export const CURRENT_VERSION = 13;
 
 /**
  * Legacy item type (pre-v10)
@@ -106,6 +106,11 @@ export interface Migration {
  * Migration v11 → v12: Add experience field to stats
  * - Add experience (optional) for Tome 3+ characters
  * - Default to 0 for book >= 3, null for book < 3
+ *
+ * Migration v12 → v13: Add etat and statut fields to stats
+ * - Add etat (text, default "") for Tome 3+ characters
+ * - Add statut (text, default "Apprenti") for Tome 3+ characters
+ * - Default to null for book < 3
  */
 export const migrations: Migration[] = [
   {
@@ -286,6 +291,28 @@ export const migrations: Migration[] = [
           experience: newExperience,
         },
         version: 12,
+      };
+    },
+  },
+  {
+    version: 13,
+    migrate: (data) => {
+      const currentEtat = data.stats?.etat;
+      const currentStatut = data.stats?.statut;
+      const isEtatString = typeof currentEtat === 'string';
+      const isStatutString = typeof currentStatut === 'string';
+
+      const newEtat = isEtatString ? currentEtat : (data.book >= 3 ? "" : null);
+      const newStatut = isStatutString ? currentStatut : (data.book >= 3 ? "Apprenti" : null);
+
+      return {
+        ...data,
+        stats: {
+          ...data.stats,
+          etat: newEtat,
+          statut: newStatut,
+        },
+        version: 13,
       };
     },
   },
