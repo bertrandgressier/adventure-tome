@@ -1,4 +1,4 @@
-import type { CombatState, CombatEvent, AvailableAction, CombatAction } from '../../types/combat-v2';
+import type { CombatState, CombatEvent, AvailableAction } from '../../types/combat-v2';
 import { CombatPhase } from '../../types/CombatPhase';
 import { CombatActionType } from '../../types/CombatActionType';
 

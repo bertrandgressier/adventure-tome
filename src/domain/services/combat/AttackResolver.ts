@@ -1,7 +1,6 @@
 import type { CombatState, CombatEvent } from '../../types/combat-v2';
-import { CombatActionType } from '../../types/CombatActionType';
 import { CombatPhase } from '../../types/CombatPhase';
-import type { CombatantState, DiceRoll } from '../../types/combatants';
+import type { DiceRoll } from '../../types/combatants';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
@@ -23,7 +22,7 @@ export class AttackResolver {
     const diceRoll = DiceRoller.rollHitDice(diceOverrides?.hitDice);
     const hit = diceRoll.total <= dexterite;
 
-    let newState = { ...state };
+    const newState = { ...state };
     const events: CombatEvent[] = [];
 
     events.push({

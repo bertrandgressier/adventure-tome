@@ -3,7 +3,6 @@ import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
 import type { CombatantConfig, EnemyConfig } from '@/src/domain/types/combatants';
 import { CombatPhase } from '@/src/domain/types/CombatPhase';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
-import type { CombatState } from '@/src/domain/types/combat-state';
 
 function createPlayerConfig(): CombatantConfig {
   return {
@@ -138,7 +137,7 @@ describe('CombatEngine - Global Scenarios', () => {
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.ATTACK);
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.FLEE);
 
-    let result = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
+    const result = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
     state = result.state;
 
     const actions2 = CombatEngine.getAvailableActions(state);
