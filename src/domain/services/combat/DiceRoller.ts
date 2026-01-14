@@ -1,4 +1,5 @@
 import type { DiceRoll } from '../../types/combatants';
+import { DiceService } from '../DiceService';
 
 export interface DiceOverrides {
   hitDice?: [number, number];
@@ -17,9 +18,8 @@ export class DiceRoller {
       };
     }
 
-    const dice = Math.random() * 6 * 6;
-    const dice1 = Math.floor(dice / 6) + 1;
-    const dice2 = (dice % 6) + 1;
+    const dice1 = DiceService.roll1d6();
+    const dice2 = DiceService.roll1d6();
 
     return {
       dice1,
@@ -33,7 +33,7 @@ export class DiceRoller {
     if (override !== undefined) {
       return override;
     }
-    return Math.floor(Math.random() * 6) + 1;
+    return DiceService.roll1d6();
   }
 
   static calculateDamage(weaponBonus: number, damageDiceOverride?: number): number {

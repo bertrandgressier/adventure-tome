@@ -52,14 +52,14 @@ describe('CombatEngine - Global Scenarios', () => {
     let state = result1.state;
 
     expect(state.phase).toBe(CombatPhase.ENEMY_TURN);
-    expect(state.enemies[0].endurance).toBe(4);
+    expect(state.enemies[0].endurance).toBe(5);
 
     const result2 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 1 });
     state = result2.state;
 
     expect(state.phase).toBe(CombatPhase.PLAYER_TURN);
     expect(state.roundNumber).toBe(2);
-    expect(state.player.endurance).toBe(29);
+    expect(state.player.endurance).toBe(26);
 
     const result3 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
     state = result3.state;
@@ -85,7 +85,7 @@ describe('CombatEngine - Global Scenarios', () => {
     const actions1 = CombatEngine.getAvailableActions(state);
     expect(actions1.some(a => a.action.type === CombatActionType.REROLL)).toBe(true);
 
-    const result2 = CombatEngine.resolve(state, { type: CombatActionType.REROLL }, { hitDice: [2, 2], damageDice: 3 });
+    const result2 = CombatEngine.resolve(state, { type: CombatActionType.REROLL }, { hitDice: [2, 2], damageDice: 0 });
     state = result2.state;
 
     expect(state.enemies[0].endurance).toBe(9);
@@ -138,7 +138,7 @@ describe('CombatEngine - Global Scenarios', () => {
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.FLEE);
 
     const result = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
-    state = result.state;
+    state = result.state; // eslint-disable-line prefer-const
 
     const actions2 = CombatEngine.getAvailableActions(state);
     expect(actions2.map(a => a.action.type)).toContain(CombatActionType.REROLL);

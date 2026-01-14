@@ -22,7 +22,7 @@ export class AttackResolver {
     const diceRoll = DiceRoller.rollHitDice(diceOverrides?.hitDice);
     const hit = diceRoll.total <= dexterite;
 
-    const newState = { ...state };
+    let newState = { ...state };
     const events: CombatEvent[] = [];
 
     events.push({
@@ -40,9 +40,9 @@ export class AttackResolver {
     };
 
     if (isPlayerAttacking) {
-      newState.phase = PhaseManager.advancePhase(newState);
+      newState.phase = CombatPhase.PLAYER_ATTACK;
     } else {
-      newState.phase = PhaseManager.advancePhase(newState);
+      newState.phase = CombatPhase.ENEMY_ATTACK;
     }
 
     if (hit) {
@@ -65,6 +65,8 @@ export class AttackResolver {
           attacker: 'player',
           damage,
         });
+
+        newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
       } else {
         const pendingDamage: typeof state.pendingDamage = {
           amount: damage,
@@ -76,7 +78,7 @@ export class AttackResolver {
       }
     } else {
       if (!isPlayerAttacking) {
-        newState.phase = PhaseManager.advancePhase(newState);
+        newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
       }
     }
 
