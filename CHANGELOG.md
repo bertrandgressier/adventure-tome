@@ -1,3 +1,11 @@
+# [4.5.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.4.0...v4.5.0) (2026-01-14)
+
+
+### Features
+
+* Add talent levels for Tome 3 ([#85](https://github.com/bertrandgressier/adventure-tome/issues/85)) ([215f6d9](https://github.com/bertrandgressier/adventure-tome/commit/215f6d98c242dfcb0b6dddd81c8226a977014875))
+* **dev:** add OpenCode custom command for autonomous issue development ([8b88d02](https://github.com/bertrandgressier/adventure-tome/commit/8b88d0269a9d84586263b0a615256e938e54f8ae))
+
 # [4.4.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.3.0...v4.4.0) (2026-01-13)
 
 
