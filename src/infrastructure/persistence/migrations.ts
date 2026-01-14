@@ -14,7 +14,7 @@
 import { BOURSE_ITEM_NAME } from '@/src/domain/value-objects/Inventory';
 import { TalentRef } from '@/src/domain/types/talents';
 
-export const CURRENT_VERSION = 13;
+export const CURRENT_VERSION = 14;
 
 /**
  * Legacy item type (pre-v10)
@@ -113,6 +113,11 @@ export interface Migration {
  * - Convert secondTalent field from string to { id, level } object
  * - Default level to 1 for all existing characters
  * - Backward compatibility: TalentData can be string or object
+ *
+ * Migration v13 → v14: Add etat and statut fields to stats
+ * - Add etat (text, default "") for Tome 3+ characters
+ * - Add statut (text, default "Apprenti") for Tome 3+ characters
+ * - Default to null for book < 3
  */
 export const migrations: Migration[] = [
   {
@@ -312,6 +317,28 @@ export const migrations: Migration[] = [
         talent: normalizeTalent(data.talent) || { id: 'instinct', level: 1 },
         secondTalent: normalizeTalent(data.secondTalent),
         version: 13,
+      };
+    },
+  },
+  {
+    version: 14,
+    migrate: (data) => {
+      const currentEtat = data.stats?.etat;
+      const currentStatut = data.stats?.statut;
+      const isEtatString = typeof currentEtat === 'string';
+      const isStatutString = typeof currentStatut === 'string';
+
+      const newEtat = isEtatString ? currentEtat : (data.book >= 3 ? "" : null);
+      const newStatut = isStatutString ? currentStatut : (data.book >= 3 ? "Apprenti" : null);
+
+      return {
+        ...data,
+        stats: {
+          ...data.stats,
+          etat: newEtat,
+          statut: newStatut,
+        },
+        version: 14,
       };
     },
   },

@@ -12,6 +12,8 @@ export interface StatsData {
   pointsDeVieMax: number;
   pointsDeVieActuels: number;
   experience?: number;
+  etat?: string;
+  statut?: string;
 }
 
 export class Stats {
@@ -23,7 +25,9 @@ export class Stats {
     public readonly chanceInitiale: number,
     public readonly maxHealth: number,
     public readonly currentHealth: number,
-    public readonly experience: number | null
+    public readonly experience: number | null,
+    public readonly etat: string | null,
+    public readonly statut: string | null
   ) {
     this.validate();
   }
@@ -82,7 +86,9 @@ export class Stats {
       newStats.chanceInitiale ?? this.chanceInitiale,
       newMaxHealth,
       newCurrentHealth,
-      newStats.experience !== undefined ? (newStats.experience ?? null) : this.experience
+      newStats.experience !== undefined ? (newStats.experience ?? null) : this.experience,
+      newStats.etat !== undefined ? (newStats.etat || null) : this.etat,
+      newStats.statut !== undefined ? (newStats.statut || null) : this.statut
     );
   }
 
@@ -98,7 +104,9 @@ export class Stats {
       this.chanceInitiale,
       this.maxHealth,
       this.currentHealth,
-      this.experience
+      this.experience,
+      this.etat,
+      this.statut
     );
   }
 
@@ -118,7 +126,9 @@ export class Stats {
       this.chanceInitiale,
       this.maxHealth,
       Math.max(0, this.currentHealth - damage),
-      this.experience
+      this.experience,
+      this.etat,
+      this.statut
     );
   }
 
@@ -138,7 +148,9 @@ export class Stats {
       this.chanceInitiale,
       this.maxHealth,
       Math.min(this.maxHealth, this.currentHealth + amount),
-      this.experience
+      this.experience,
+      this.etat,
+      this.statut
     );
   }
 
@@ -169,6 +181,8 @@ export class Stats {
       pointsDeVieMax: this.maxHealth,
       pointsDeVieActuels: this.currentHealth,
       experience: this.experience ?? undefined,
+      etat: typeof this.etat === 'string' ? this.etat : undefined,
+      statut: typeof this.statut === 'string' ? this.statut : undefined,
     };
   }
 
@@ -184,7 +198,9 @@ export class Stats {
       data.chanceInitiale,
       data.pointsDeVieMax,
       data.pointsDeVieActuels,
-      data.experience ?? null
+      data.experience ?? null,
+      typeof data.etat === 'string' ? data.etat : null,
+      typeof data.statut === 'string' ? data.statut : null
     );
   }
 }

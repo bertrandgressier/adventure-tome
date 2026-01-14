@@ -116,8 +116,8 @@ export default function EditableStatField({
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               className={cn(
-                "bg-card border border-primary/50 rounded px-0.5 py-0 text-center font-[var(--font-geist-mono)] text-primary focus:outline-none focus:border-primary",
-                size === 'lg' ? "text-3xl w-14" : size === 'sm' ? "text-2xl w-10" : size === 'xs' ? "text-base w-8" : "text-3xl w-14"
+                "bg-card border border-primary/50 rounded px-1 py-0.5 text-center font-[var(--font-geist-mono)] text-primary focus:outline-none focus:border-primary",
+                size === 'lg' ? "text-3xl w-20" : size === 'sm' ? "text-2xl w-16" : size === 'xs' ? "text-lg w-12" : "text-3xl w-20"
               )}
               min={min}
             />
@@ -155,10 +155,10 @@ export default function EditableStatField({
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className={cn(
-              "bg-card border border-primary/50 rounded px-2 py-1 text-center font-[var(--font-geist-mono)] text-primary focus:outline-none focus:border-primary",
-              size === 'lg' ? "text-4xl w-20" : size === 'sm' ? "text-2xl w-16" : size === 'xs' ? "text-lg w-12" : "text-4xl w-20"
-            )}
+              className={cn(
+                "bg-card border border-primary/50 rounded px-2 py-1 text-center font-[var(--font-geist-mono)] text-primary focus:outline-none focus:border-primary",
+                size === 'lg' ? "text-4xl w-24" : size === 'sm' ? "text-2xl w-20" : size === 'xs' ? "text-lg w-16" : "text-4xl w-24"
+              )}
             min={min}
           />
           <button
