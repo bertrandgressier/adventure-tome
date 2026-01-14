@@ -550,7 +550,7 @@ export class Character {
       normalizeTalent(data.talent),
       data.secondTalent ? normalizeTalent(data.secondTalent) : undefined,
       data.gameMode,
-      13, // CURRENT_VERSION
+      14, // CURRENT_VERSION
       now,
       now,
       Stats.fromData(statsData),
