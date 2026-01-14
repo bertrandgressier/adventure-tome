@@ -68,6 +68,8 @@ export interface DiceRoll {
   total: number;
   modifier?: number;
   modifiedTotal?: number;
+  isDouble?: boolean;
+  success?: boolean;
 }
 
 export interface PendingDamage {
@@ -81,6 +83,7 @@ export interface CombatConfig {
   allowFlee: boolean;
   maxEnemies: number;
   damageFormula: string;
+  firstAttacker?: 'player' | 'enemy';
 }
 
 export interface CombatEvent {
@@ -98,7 +101,7 @@ export interface CombatEvent {
   result?: 'victory' | 'defeat';
 }
 
-export interface CombatStateV2 {
+export interface CombatState {
   id: string;
   characterId: string;
   player: CombatantState;
@@ -120,3 +123,41 @@ export interface CombatAction {
   type: CombatActionType;
   payload?: unknown;
 }
+
+export interface AvailableAction {
+  action: CombatAction;
+  enabled: boolean;
+  disabledReason?: string;
+}
+
+export interface DiceOverrides {
+  hitDice?: [number, number];
+  damageDice?: number;
+  luckDice?: [number, number];
+}
+
+export interface CombatantConfig {
+  name: string;
+  dexterite: number;
+  endurance: number;
+  enduranceMax: number;
+  chance: number;
+  weapon: CombatWeapon;
+}
+
+export interface EnemyConfig extends CombatantConfig {
+  isBoss: boolean;
+}
+
+export interface UsableItem {
+  itemId: string;
+  name: string;
+  quantity: number;
+  effect: ItemEffect;
+}
+
+export type ItemEffect = 
+  | { type: 'heal'; amount: number }
+  | { type: 'damage_enemy'; amount: number }
+  | { type: 'boost_dexterity'; amount: number; duration?: number }
+  | { type: 'boost_luck'; amount: number; duration?: number };
