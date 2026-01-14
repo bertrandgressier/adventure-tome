@@ -12,8 +12,9 @@
  */
 
 import { BOURSE_ITEM_NAME } from '@/src/domain/value-objects/Inventory';
+import { TalentRef } from '@/src/domain/types/talents';
 
-export const CURRENT_VERSION = 12;
+export const CURRENT_VERSION = 13;
 
 /**
  * Legacy item type (pre-v10)
@@ -106,6 +107,12 @@ export interface Migration {
  * Migration v11 → v12: Add experience field to stats
  * - Add experience (optional) for Tome 3+ characters
  * - Default to 0 for book >= 3, null for book < 3
+ *
+ * Migration v12 → v13: Convert talent strings to TalentData with level
+ * - Convert talent field from string to { id, level } object
+ * - Convert secondTalent field from string to { id, level } object
+ * - Default level to 1 for all existing characters
+ * - Backward compatibility: TalentData can be string or object
  */
 export const migrations: Migration[] = [
   {
@@ -286,6 +293,25 @@ export const migrations: Migration[] = [
           experience: newExperience,
         },
         version: 12,
+      };
+    },
+  },
+  {
+    version: 13,
+    migrate: (data) => {
+      const normalizeTalent = (talent: TalentRef | undefined) => {
+        if (!talent) return undefined;
+        if (typeof talent === 'string') {
+          return { id: talent, level: 1 };
+        }
+        return talent;
+      };
+
+      return {
+        ...data,
+        talent: normalizeTalent(data.talent) || { id: 'instinct', level: 1 },
+        secondTalent: normalizeTalent(data.secondTalent),
+        version: 13,
       };
     },
   },

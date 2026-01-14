@@ -195,10 +195,10 @@ export default function CharacterDetail() {
                 {character.name}
               </h1>
             )}
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-[var(--font-merriweather)] text-muted-light">
-                Talent : <span className="text-primary">{character.talent}</span>
-              </p>
+             <div className="flex items-center gap-2 flex-wrap">
+               <p className="font-[var(--font-merriweather)] text-muted-light">
+                 Talent : <span className="text-primary">{character.talentId}</span>
+               </p>
               <span className="text-muted-light">•</span>
               <GameModeBadge gameMode={character.gameMode} showLabel />
             </div>
