@@ -17,6 +17,7 @@ export interface CombatState {
   usedAbilities: Record<string, number>;
   usedReroll: boolean;
   isFirstAttack: boolean;
+  pendingExtraAttack?: boolean;
   config: CombatConfig;
   events: CombatEvent[];
 }

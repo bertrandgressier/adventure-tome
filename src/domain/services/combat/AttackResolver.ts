@@ -5,6 +5,7 @@ import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
 import { CombatEventType } from '../../types/CombatEventType';
+import { WeaponAbilityResolver } from './WeaponAbilityResolver';
 
 export interface ActionResolutionResult {
   state: CombatState;
@@ -47,7 +48,8 @@ export class AttackResolver {
     }
 
     if (hit) {
-      const damage = DiceRoller.calculateDamage(attacker.weapon.bonus, diceOverrides?.damageDice);
+      const abilityBonus = newState.pendingDamage?.abilityBonus || 0;
+      const damage = DiceRoller.calculateDamage(attacker.weapon.bonus, diceOverrides?.damageDice) + abilityBonus;
 
       if (isPlayerAttacking) {
         const targetEnemy = newState.enemies[newState.activeEnemyIndex];
@@ -67,6 +69,39 @@ export class AttackResolver {
           damage,
         });
 
+        if (newEnemyEndurance === 0) {
+          const killedEnemy = targetEnemy;
+          const killTrigger = WeaponAbilityResolver.checkTriggers(
+            newState,
+            'on_kill',
+            { killedEnemy }
+          );
+
+          if (killTrigger) {
+            const abilityResult = WeaponAbilityResolver.resolveAbility(
+              newState,
+              killTrigger.id,
+              { killedEnemy }
+            );
+            newState = abilityResult.state;
+            events.push(...abilityResult.events);
+          }
+        }
+
+        if (diceRoll.dice1 === diceRoll.dice2) {
+          const doubleTrigger = WeaponAbilityResolver.checkTriggers(
+            newState,
+            'on_double',
+            { roll: { ...diceRoll, isDouble: true, success: true } }
+          );
+
+          if (doubleTrigger) {
+            const abilityResult = WeaponAbilityResolver.resolveAbility(newState, doubleTrigger.id);
+            newState = abilityResult.state;
+            events.push(...abilityResult.events);
+          }
+        }
+
         newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
       } else {
         const pendingDamage: typeof state.pendingDamage = {
@@ -78,7 +113,19 @@ export class AttackResolver {
         newState.pendingDamage = pendingDamage;
       }
     } else {
-      if (!isPlayerAttacking) {
+      if (isPlayerAttacking) {
+        const missTrigger = WeaponAbilityResolver.checkTriggers(
+          newState,
+          'on_miss',
+          { roll: { ...diceRoll, isDouble: false, success: false } }
+        );
+
+        if (missTrigger) {
+          const abilityResult = WeaponAbilityResolver.resolveAbility(newState, missTrigger.id);
+          newState = abilityResult.state;
+          events.push(...abilityResult.events);
+        }
+      } else {
         newState = { ...newState, phase: CombatPhase.PLAYER_TURN };
       }
     }

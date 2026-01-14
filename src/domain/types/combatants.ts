@@ -63,6 +63,7 @@ export interface PendingDamage {
   amount: number;
   canUseLuck: boolean;
   canBlock: boolean;
+  abilityBonus?: number;
 }
 
 export interface CombatConfig {

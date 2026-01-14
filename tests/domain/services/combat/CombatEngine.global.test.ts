@@ -143,8 +143,8 @@ describe('CombatEngine - Global Scenarios', () => {
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.ATTACK);
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.FLEE);
 
-    let result = CombatEngine.resolve(initialState, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
-    let state = result.state;
+    const result = CombatEngine.resolve(initialState, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
+    const state = result.state;
 
     const actions2 = CombatEngine.getAvailableActions(state);
     expect(actions2.map(a => a.action.type)).toContain(CombatActionType.REROLL);
