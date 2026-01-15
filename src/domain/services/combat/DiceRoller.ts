@@ -4,7 +4,6 @@ import { DiceService } from '../DiceService';
 export interface DiceOverrides {
   hitDice?: [number, number];
   damageDice?: number;
-  luckDice?: [number, number];
 }
 
 export class DiceRoller {
@@ -36,8 +35,14 @@ export class DiceRoller {
     return DiceService.roll1d6();
   }
 
-  static calculateDamage(weaponBonus: number, damageDiceOverride?: number): number {
+  /**
+   * Calcule les dégâts selon la formule officielle : 1 + 1d6 + DOMMAGES ACTUELS
+   * @param totalDamageBonus DOMMAGES ACTUELS (arme + objets passifs)
+   * @param damageDiceOverride Override du dé (pour tests)
+   * @returns Total des dégâts infligés
+   */
+  static calculateDamage(totalDamageBonus: number, damageDiceOverride?: number): number {
     const damageDice = this.rollDamageDice(damageDiceOverride);
-    return 1 + damageDice + weaponBonus;
+    return 1 + damageDice + totalDamageBonus;
   }
 }

@@ -68,7 +68,7 @@ export class ReactionResolver {
     ];
 
     if (hit) {
-      const damage = DiceRoller.calculateDamage(state.player.weapon.bonus, diceOverrides?.damageDice);
+      const damage = DiceRoller.calculateDamage(state.player.totalDamageBonus, diceOverrides?.damageDice);
       const targetEnemy = newState.enemies[newState.activeEnemyIndex];
       const newEnemyEndurance = Math.max(0, targetEnemy.endurance - damage);
 
@@ -139,7 +139,7 @@ export class ReactionResolver {
       const finalState = { ...newState, phase: CombatPhase.PLAYER_TURN };
 
       if (hit) {
-        const damage = DiceRoller.calculateDamage(state.player.weapon.bonus);
+        const damage = DiceRoller.calculateDamage(state.player.totalDamageBonus);
         const targetEnemy = finalState.enemies[finalState.activeEnemyIndex];
         const newEnemyEndurance = Math.max(0, targetEnemy.endurance - damage);
 

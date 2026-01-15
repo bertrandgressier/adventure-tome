@@ -47,7 +47,7 @@ export class AttackResolver {
     }
 
     if (hit) {
-      const damage = DiceRoller.calculateDamage(attacker.weapon.bonus, diceOverrides?.damageDice);
+      const damage = DiceRoller.calculateDamage(attacker.totalDamageBonus, diceOverrides?.damageDice);
 
       if (isPlayerAttacking) {
         const targetEnemy = newState.enemies[newState.activeEnemyIndex];
