@@ -1,7 +1,6 @@
 import type {
   CombatState,
   CombatAction,
-  CombatEvent,
 } from '../../types/combat-v2';
 import { CombatActionType } from '../../types/CombatActionType';
 import { CombatPhase } from '../../types/CombatPhase';
@@ -11,11 +10,7 @@ import type { DiceOverrides } from './DiceRoller';
 import { AttackResolver } from './AttackResolver';
 import { ReactionResolver } from './ReactionResolver';
 import { CombatValidator } from './CombatValidator';
-
-export type CombatResult = {
-  state: CombatState;
-  events: CombatEvent[];
-};
+import type { CombatResult } from './types';
 
 export class CombatEngine {
   private static generateId(): string {

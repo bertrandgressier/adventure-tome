@@ -3,6 +3,7 @@ import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
 import type { CombatantConfig, EnemyConfig } from '@/src/domain/types/combatants';
 import { CombatPhase } from '@/src/domain/types/CombatPhase';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
+import { CombatEventType } from '@/src/domain/types/CombatEventType';
 
 function createPlayerConfig(): CombatantConfig {
   return {
@@ -128,7 +129,7 @@ describe('CombatEngine - Global Scenarios', () => {
 
     expect(state.player.endurance).toBe(28);
     expect(state.phase).toBe(CombatPhase.DEFEAT);
-    expect(result.events.some(e => e.type === 'flee')).toBe(true);
+    expect(result.events.some(e => e.type === CombatEventType.FLEE)).toBe(true);
   });
 
   it('should provide available actions based on phase', () => {
@@ -143,8 +144,8 @@ describe('CombatEngine - Global Scenarios', () => {
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.ATTACK);
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.FLEE);
 
-    let result = CombatEngine.resolve(initialState, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
-    let state = result.state;
+    const result = CombatEngine.resolve(initialState, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
+    const state = result.state;
 
     const actions2 = CombatEngine.getAvailableActions(state);
     expect(actions2.map(a => a.action.type)).toContain(CombatActionType.REROLL);

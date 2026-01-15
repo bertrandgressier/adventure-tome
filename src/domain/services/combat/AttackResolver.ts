@@ -1,15 +1,10 @@
 import type { CombatState, CombatEvent } from '../../types/combat-v2';
 import { CombatPhase } from '../../types/CombatPhase';
-import type { DiceRoll } from '../../types/combatants';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
 import { CombatEventType } from '../../types/CombatEventType';
-
-export interface ActionResolutionResult {
-  state: CombatState;
-  events: CombatEvent[];
-}
+import type { ActionResolutionResult } from './types';
 
 export class AttackResolver {
   static resolve(

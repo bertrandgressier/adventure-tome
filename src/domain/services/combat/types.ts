@@ -1,11 +1,7 @@
-import type { CombatAction, CombatState, CombatEvent } from '../../types/combat-state';
-import type { DiceRoll } from '../../types/combatants';
+import type { CombatState, CombatEvent, CombatAction } from '../../types/combat-state';
+import type { DiceOverrides } from './DiceRoller';
 
-export interface DiceOverrides {
-  hitDice?: [number, number];
-  damageDice?: number;
-  luckDice?: [number, number];
-}
+export type { DiceOverrides };
 
 export interface AvailableAction {
   action: CombatAction;
@@ -13,7 +9,16 @@ export interface AvailableAction {
   disabledReason?: string;
 }
 
-export interface CombatResult {
+/**
+ * Result of a combat action resolution.
+ * Returned by all resolvers (AttackResolver, ReactionResolver, etc.)
+ */
+export interface ActionResolutionResult {
   state: CombatState;
   events: CombatEvent[];
 }
+
+/**
+ * Alias for ActionResolutionResult used by CombatEngine.resolve()
+ */
+export type CombatResult = ActionResolutionResult;

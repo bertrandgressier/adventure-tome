@@ -4,11 +4,7 @@ import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
 import { CombatEventType } from '../../types/CombatEventType';
-
-export interface ActionResolutionResult {
-  state: CombatState;
-  events: CombatEvent[];
-}
+import type { ActionResolutionResult } from './types';
 
 export class ReactionResolver {
   static resolveFlee(state: CombatState): ActionResolutionResult {
@@ -115,7 +111,7 @@ export class ReactionResolver {
 
     const shouldIncrementRound = state.phase === CombatPhase.ENEMY_ATTACK;
 
-    let newState: CombatState = {
+    const newState: CombatState = {
       ...state,
       player: { ...state.player, endurance: newEndurance },
       pendingDamage: undefined,
@@ -149,7 +145,7 @@ export class ReactionResolver {
       return { state, events: [] };
     }
 
-    let newState: CombatState = {
+    const newState: CombatState = {
       ...state,
       pendingDamage: undefined,
       phase: CombatPhase.PLAYER_TURN,

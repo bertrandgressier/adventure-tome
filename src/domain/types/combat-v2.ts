@@ -31,4 +31,5 @@ export type {
   DiceOverrides,
   AvailableAction,
   CombatResult,
+  ActionResolutionResult,
 } from '../services/combat/types';
