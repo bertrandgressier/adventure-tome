@@ -11,6 +11,7 @@ import type { DiceOverrides } from './DiceRoller';
 import { AttackResolver } from './AttackResolver';
 import { ReactionResolver } from './ReactionResolver';
 import { CombatValidator } from './CombatValidator';
+import { WeaponAbilityResolver } from './WeaponAbilityResolver';
 
 export type CombatResult = {
   state: CombatState;
@@ -26,7 +27,7 @@ export class CombatEngine {
     characterId: string,
     player: CombatantConfig,
     enemies: EnemyConfig[],
-    config: { allowFlee: boolean; maxEnemies: number; damageFormula: string; firstAttacker?: 'player' | 'enemy'; fleeCost?: number }
+    config: { allowFlee: boolean; maxEnemies: number; damageFormula: string; firstAttacker?: 'player' | 'enemy'; fleeCost?: number; isSurprise?: boolean }
   ): CombatState {
     const weaponDamage = player.weapon.bonus;
     const passiveDamageBonus = 0;
@@ -64,6 +65,7 @@ export class CombatEngine {
         maxEnemies: config.maxEnemies,
         damageFormula: config.damageFormula,
         firstAttacker: config.firstAttacker ?? 'player',
+        isSurprise: config.isSurprise ?? false,
       },
       usedAbilities: {},
       usedReroll: false,
@@ -106,6 +108,9 @@ export class CombatEngine {
         return ReactionResolver.resolveBlock(state);
       case CombatActionType.SKIP:
         return ReactionResolver.resolveSkip(state);
+      case CombatActionType.WEAPON_ABILITY:
+        const { abilityId } = action.payload as { abilityId: string };
+        return WeaponAbilityResolver.resolveAbility(state, abilityId);
       default:
         return { state, events: [] };
     }

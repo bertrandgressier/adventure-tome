@@ -1,3 +1,3 @@
 export { CombatService } from './CombatService';
-export { CombatEngine, type CombatResult } from './CombatEngine';
+export { CombatEngine, type CombatResult } from './combat/CombatEngine';
 export { DiceService } from './DiceService';

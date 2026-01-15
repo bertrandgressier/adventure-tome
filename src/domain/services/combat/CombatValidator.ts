@@ -2,6 +2,9 @@ import type { CombatState, CombatEvent, AvailableAction } from '../../types/comb
 import { CombatPhase } from '../../types/CombatPhase';
 import { CombatActionType } from '../../types/CombatActionType';
 import { CombatEventType } from '../../types/CombatEventType';
+import { WeaponAbilityResolver } from './WeaponAbilityResolver';
+import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
+import { COMBAT_MESSAGES } from './constants';
 
 export class CombatValidator {
   static checkCombatEnd(state: CombatState): 'ongoing' | 'victory' | 'defeat' {
@@ -35,7 +38,7 @@ export class CombatValidator {
         actions.push({
           action: { type: CombatActionType.FLEE },
           enabled: canFlee,
-          disabledReason: canFlee ? undefined : 'Endurance insuffisante pour fuir',
+          disabledReason: canFlee ? undefined : COMBAT_MESSAGES.FLEE.INSUFFICIENT_ENDURANCE,
         });
       }
     }
@@ -62,7 +65,53 @@ export class CombatValidator {
       actions.push({ action: { type: CombatActionType.SKIP }, enabled: true });
     }
 
+    // Add WEAPON_ABILITY action only in appropriate context
+    const weaponAbility = state.player.weapon.ability;
+    if (weaponAbility && this.isAbilityAvailableInCurrentPhase(state, weaponAbility.trigger)) {
+      const { canUse, reason } = WeaponAbilityResolver.canUseAbility(state, weaponAbility.id);
+      actions.push({
+        action: { type: CombatActionType.WEAPON_ABILITY, payload: { abilityId: weaponAbility.id } },
+        enabled: canUse,
+        disabledReason: canUse ? undefined : reason,
+      });
+    }
+
     return actions;
+  }
+
+  /**
+   * Check if a weapon ability is contextually available in the current phase
+   */
+  private static isAbilityAvailableInCurrentPhase(
+    state: CombatState,
+    trigger: WeaponAbilityTrigger
+  ): boolean {
+    switch (trigger) {
+      case WeaponAbilityTrigger.ON_MISS:
+        // ON_MISS abilities (Arc des Vents) available only after a missed attack
+        return (
+          state.phase === CombatPhase.PLAYER_ATTACK &&
+          state.lastRoll !== undefined &&
+          !state.lastRoll.success
+        );
+
+      case WeaponAbilityTrigger.ON_ENEMY_HIT:
+        // ON_ENEMY_HIT abilities (Bâton du Sage) available only when enemy deals damage
+        return state.phase === CombatPhase.ENEMY_ATTACK && state.pendingDamage !== undefined;
+
+      case WeaponAbilityTrigger.MANUAL:
+        // MANUAL abilities always available during player turn
+        return state.phase === CombatPhase.PLAYER_TURN;
+
+      case WeaponAbilityTrigger.ON_DOUBLE:
+      case WeaponAbilityTrigger.ON_KILL:
+      case WeaponAbilityTrigger.ON_SURPRISE:
+        // These are auto-triggered, never manual
+        return false;
+
+      default:
+        return false;
+    }
   }
 
   static createCombatEndEvent(state: CombatState, result: 'victory' | 'defeat'): CombatEvent {

@@ -4,6 +4,8 @@ import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
 import { CombatEventType } from '../../types/CombatEventType';
+import { WeaponAbilityResolver } from './WeaponAbilityResolver';
+import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 
 export interface ActionResolutionResult {
   state: CombatState;
@@ -37,6 +39,7 @@ export class AttackResolver {
     newState.lastRoll = {
       ...diceRoll,
       success: hit,
+      isDouble: diceRoll.dice1 === diceRoll.dice2,
     };
 
     if (isPlayerAttacking) {
@@ -51,6 +54,7 @@ export class AttackResolver {
       if (isPlayerAttacking) {
         const targetEnemy = newState.enemies[newState.activeEnemyIndex];
         const newEnemyEndurance = Math.max(0, targetEnemy.endurance - damage);
+        const killedEnemy = newEnemyEndurance === 0;
 
         newState.enemies = newState.enemies.map((enemy: typeof newState.enemies[0], index: number) =>
           index === newState.activeEnemyIndex
@@ -66,6 +70,30 @@ export class AttackResolver {
           damage,
         });
 
+        // Check weapon abilities BEFORE advancing phase (to avoid state corruption)
+        const killAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          WeaponAbilityTrigger.ON_KILL,
+          { killedEnemy }
+        );
+        if (killAbility) {
+          const killResult = WeaponAbilityResolver.resolveAbility(newState, killAbility.id);
+          newState = killResult.state;
+          events.push(...killResult.events);
+        }
+
+        const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          WeaponAbilityTrigger.ON_DOUBLE,
+          { roll: newState.lastRoll }
+        );
+        if (doubleAbility) {
+          const doubleResult = WeaponAbilityResolver.resolveAbility(newState, doubleAbility.id);
+          newState = doubleResult.state;
+          events.push(...doubleResult.events);
+        }
+
+        // Advance phase AFTER abilities are resolved
         newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
       } else {
         const pendingDamage: typeof state.pendingDamage = {
@@ -79,6 +107,8 @@ export class AttackResolver {
       if (!isPlayerAttacking) {
         newState = { ...newState, phase: CombatPhase.PLAYER_TURN };
       }
+      // Note: ON_MISS abilities (like Arc des Vents) are NOT auto-resolved.
+      // They are detected by CombatValidator and made available as manual actions.
     }
 
     return { state: newState, events };
