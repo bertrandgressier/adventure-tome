@@ -4,6 +4,8 @@ import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
 import { CombatEventType } from '../../types/CombatEventType';
+import { WeaponAbilityResolver } from './WeaponAbilityResolver';
+import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 
 export interface ActionResolutionResult {
   state: CombatState;
@@ -37,6 +39,7 @@ export class AttackResolver {
     newState.lastRoll = {
       ...diceRoll,
       success: hit,
+      isDouble: diceRoll.dice1 === diceRoll.dice2,
     };
 
     if (isPlayerAttacking) {
@@ -51,6 +54,7 @@ export class AttackResolver {
       if (isPlayerAttacking) {
         const targetEnemy = newState.enemies[newState.activeEnemyIndex];
         const newEnemyEndurance = Math.max(0, targetEnemy.endurance - damage);
+        const killedEnemy = newEnemyEndurance === 0;
 
         newState.enemies = newState.enemies.map((enemy: typeof newState.enemies[0], index: number) =>
           index === newState.activeEnemyIndex
@@ -67,6 +71,28 @@ export class AttackResolver {
         });
 
         newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
+
+        const killAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          WeaponAbilityTrigger.ON_KILL,
+          { killedEnemy }
+        );
+        if (killAbility) {
+          const killResult = WeaponAbilityResolver.resolveAbility(newState, killAbility.id);
+          newState = killResult.state;
+          events.push(...killResult.events);
+        }
+
+        const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          WeaponAbilityTrigger.ON_DOUBLE,
+          { roll: newState.lastRoll }
+        );
+        if (doubleAbility) {
+          const doubleResult = WeaponAbilityResolver.resolveAbility(newState, doubleAbility.id);
+          newState = doubleResult.state;
+          events.push(...doubleResult.events);
+        }
       } else {
         const pendingDamage: typeof state.pendingDamage = {
           amount: damage,
@@ -78,6 +104,17 @@ export class AttackResolver {
     } else {
       if (!isPlayerAttacking) {
         newState = { ...newState, phase: CombatPhase.PLAYER_TURN };
+      } else {
+        const missAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          WeaponAbilityTrigger.ON_MISS,
+          { roll: newState.lastRoll }
+        );
+        if (missAbility) {
+          const missResult = WeaponAbilityResolver.resolveAbility(newState, missAbility.id);
+          newState = missResult.state;
+          events.push(...missResult.events);
+        }
       }
     }
 

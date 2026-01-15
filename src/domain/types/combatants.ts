@@ -78,4 +78,5 @@ export interface CombatConfig {
   maxEnemies: number;
   damageFormula: string;
   firstAttacker?: 'player' | 'enemy';
+  isSurprise?: boolean;
 }

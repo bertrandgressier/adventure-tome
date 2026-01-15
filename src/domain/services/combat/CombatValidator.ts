@@ -2,6 +2,7 @@ import type { CombatState, CombatEvent, AvailableAction } from '../../types/comb
 import { CombatPhase } from '../../types/CombatPhase';
 import { CombatActionType } from '../../types/CombatActionType';
 import { CombatEventType } from '../../types/CombatEventType';
+import { WeaponAbilityResolver } from './WeaponAbilityResolver';
 
 export class CombatValidator {
   static checkCombatEnd(state: CombatState): 'ongoing' | 'victory' | 'defeat' {
@@ -60,6 +61,16 @@ export class CombatValidator {
         actions.push({ action: { type: CombatActionType.BLOCK }, enabled: true });
       }
       actions.push({ action: { type: CombatActionType.SKIP }, enabled: true });
+    }
+
+    const weaponAbility = state.player.weapon.ability;
+    if (weaponAbility) {
+      const { canUse, reason } = WeaponAbilityResolver.canUseAbility(state, weaponAbility.id);
+      actions.push({
+        action: { type: CombatActionType.WEAPON_ABILITY, payload: { abilityId: weaponAbility.id } },
+        enabled: canUse,
+        disabledReason: canUse ? undefined : reason,
+      });
     }
 
     return actions;
