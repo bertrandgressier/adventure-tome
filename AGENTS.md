@@ -596,6 +596,160 @@ const handleSave = async (value: number) => {
 
 ---
 
+## Best Practices - Code Quality
+
+### DRY: Avoid Type/Interface Duplication
+
+**Problem**: Types defined in multiple files lead to maintenance issues and inconsistencies.
+
+```typescript
+// ❌ WRONG: Same interface in multiple files
+// file: AttackResolver.ts
+export interface ActionResolutionResult {
+  state: CombatState;
+  events: CombatEvent[];
+}
+
+// file: ReactionResolver.ts (duplicate!)
+export interface ActionResolutionResult {
+  state: CombatState;
+  events: CombatEvent[];
+}
+```
+
+```typescript
+// ✅ CORRECT: Centralize in a types file, import everywhere
+// file: types.ts
+export interface ActionResolutionResult {
+  state: CombatState;
+  events: CombatEvent[];
+}
+
+// file: AttackResolver.ts
+import type { ActionResolutionResult } from './types';
+
+// file: ReactionResolver.ts
+import type { ActionResolutionResult } from './types';
+```
+
+**Pattern for re-exporting**:
+```typescript
+// types.ts - Re-export from source of truth
+import type { DiceOverrides } from './DiceRoller';
+export type { DiceOverrides };
+```
+
+### Use Constants Instead of String Literals
+
+**Problem**: String literals are error-prone and lack type safety.
+
+```typescript
+// ❌ WRONG: Hardcoded string
+expect(result.events.some(e => e.type === 'flee')).toBe(true);
+
+// ✅ CORRECT: Use constant
+import { CombatEventType } from '@/src/domain/types/CombatEventType';
+expect(result.events.some(e => e.type === CombatEventType.FLEE)).toBe(true);
+```
+
+**Define constants as const objects**:
+```typescript
+// ✅ Pattern for type-safe constants
+export const CombatPhase = {
+  PLAYER_TURN: 'player_turn',
+  ENEMY_TURN: 'enemy_turn',
+  // ...
+} as const;
+
+export type CombatPhase = (typeof CombatPhase)[keyof typeof CombatPhase];
+```
+
+### Prefer `const` Over `let`
+
+**Problem**: Using `let` when variable is never reassigned triggers lint errors.
+
+```typescript
+// ❌ WRONG: let but never reassigned
+let newState: CombatState = {
+  ...state,
+  phase: CombatPhase.PLAYER_TURN,
+};
+return { state: newState, events: [] };
+
+// ✅ CORRECT: const since never reassigned
+const newState: CombatState = {
+  ...state,
+  phase: CombatPhase.PLAYER_TURN,
+};
+return { state: newState, events: [] };
+```
+
+### Remove Unused Imports
+
+**Problem**: Unused imports clutter code and fail lint.
+
+```typescript
+// ❌ WRONG: DiceRoll imported but never used
+import type { DiceOverrides } from './DiceRoller';
+import type { DiceRoll } from '../../types/combatants'; // UNUSED!
+
+// ✅ CORRECT: Only import what you use
+import type { DiceOverrides } from './DiceRoller';
+```
+
+**Check before committing**: Run `pnpm lint` to catch unused imports.
+
+### Correct Export Paths in Index Files
+
+**Problem**: Incorrect relative paths in barrel exports cause import failures.
+
+```typescript
+// ❌ WRONG: File is in ./combat/ subdirectory
+export { CombatEngine } from './CombatEngine';
+
+// ✅ CORRECT: Proper path to subdirectory
+export { CombatEngine } from './combat/CombatEngine';
+```
+
+### Consolidate Related Types
+
+**Problem**: Related types scattered across files make codebase harder to navigate.
+
+```
+// ❌ WRONG: Types scattered
+src/domain/services/combat/
+  DiceRoller.ts        → defines DiceOverrides
+  types.ts             → defines DiceOverrides again (duplicate!)
+  AttackResolver.ts    → defines ActionResolutionResult
+  ReactionResolver.ts  → defines ActionResolutionResult again!
+```
+
+```
+// ✅ CORRECT: Centralized types
+src/domain/services/combat/
+  types.ts             → ActionResolutionResult, CombatResult, AvailableAction
+  DiceRoller.ts        → DiceOverrides (source of truth, re-exported by types.ts)
+  AttackResolver.ts    → imports from types.ts
+  ReactionResolver.ts  → imports from types.ts
+```
+
+### Pre-Commit Checklist
+
+Before committing, always run:
+```bash
+pnpm lint      # 0 errors required
+pnpm test      # All tests must pass
+```
+
+Common issues to check:
+1. **Duplicate types** - Search for interface/type name across codebase
+2. **Unused imports** - Lint will catch these
+3. **String literals** - Should use constants for enum-like values
+4. **`let` vs `const`** - Use `const` unless reassignment is needed
+5. **Export paths** - Verify barrel exports match actual file locations
+
+---
+
 ## External Resources
 
 - [Next.js 16](https://nextjs.org/docs) - App Router, React 19
