@@ -180,4 +180,50 @@ describe('Items Catalog - Legendary Weapons', () => {
       expect(epee?.abilities).toBeUndefined();
     });
   });
+
+  describe('Validation', () => {
+    it('should validate that all effect types have required fields', () => {
+      for (const weapon of legendaryWeapons) {
+        for (const ability of weapon.abilities || []) {
+          const effect = ability.effect;
+          
+          if (effect.type === 'heal_on_kill') {
+            expect(effect.amount).toBeDefined();
+            expect(effect.amount).toBeGreaterThan(0);
+          }
+          
+          if (effect.type === 'bonus_damage') {
+            expect(effect.amount).toBeDefined();
+            expect(effect.amount).toBeGreaterThan(0);
+          }
+        }
+      }
+    });
+
+    it('should have valid trigger constants for all legendary weapons', () => {
+      const validTriggers = Object.values(WeaponAbilityTrigger);
+      
+      for (const weapon of legendaryWeapons) {
+        for (const ability of weapon.abilities || []) {
+          expect(validTriggers).toContain(ability.trigger);
+        }
+      }
+    });
+
+    it('should have valid effect types for all legendary weapons', () => {
+      const validEffectTypes = [
+        'extra_attack',
+        'heal_on_kill',
+        'convert_miss_to_hit',
+        'bonus_damage',
+        'negate_damage',
+      ];
+      
+      for (const weapon of legendaryWeapons) {
+        for (const ability of weapon.abilities || []) {
+          expect(validEffectTypes).toContain(ability.effect.type);
+        }
+      }
+    });
+  });
 });
