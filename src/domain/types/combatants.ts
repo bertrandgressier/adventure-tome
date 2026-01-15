@@ -7,6 +7,9 @@ export interface CombatantState {
   enduranceMax: number;
   chance: number;
   weapon: CombatWeapon;
+  weaponDamage: number;
+  passiveDamageBonus: number;
+  totalDamageBonus: number;
 }
 
 export interface CombatantConfig {
@@ -59,9 +62,13 @@ export interface DiceRoll {
   success?: boolean;
 }
 
+export interface ChanceModifier {
+  targetRoll: 'hit' | 'damage';
+  pointsSpent: number;
+}
+
 export interface PendingDamage {
   amount: number;
-  canUseLuck: boolean;
   canBlock: boolean;
 }
 

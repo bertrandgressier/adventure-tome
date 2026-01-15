@@ -74,7 +74,7 @@ describe('CombatEngine - Global Scenarios', () => {
     expect(CombatEngine.checkCombatEnd(state)).toBe('victory');
   });
 
-  it('should handle enemy attack with luck test', () => {
+  it('should handle spending chance on missed attack', () => {
     const initialState = CombatEngine.createInitialState(
       'char-1',
       createPlayerConfig(),
@@ -87,32 +87,19 @@ describe('CombatEngine - Global Scenarios', () => {
 
     expect(state.phase).toBe(CombatPhase.PLAYER_ATTACK);
     expect(state.lastRoll?.success).toBe(false);
+    expect(state.lastRoll?.total).toBe(9);
 
     const actions1 = CombatEngine.getAvailableActions(state);
     expect(actions1.some(a => a.action.type === CombatActionType.REROLL)).toBe(true);
+    expect(actions1.some(a => a.action.type === CombatActionType.SPEND_CHANCE)).toBe(true);
 
-    const result2 = CombatEngine.resolve(state, { type: CombatActionType.REROLL }, { hitDice: [2, 2], damageDice: 0 });
+    const result2 = CombatEngine.resolve(state, { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 2, targetRoll: 'hit' as const } });
     state = result2.state;
 
-    expect(state.enemies[0].endurance).toBe(9);
-    expect(state.usedReroll).toBe(true);
-
-    const result3 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 3 });
-    state = result3.state;
-
-    expect(state.phase).toBe(CombatPhase.ENEMY_ATTACK);
-    expect(state.pendingDamage?.amount).toBe(6);
-
-    const actions2 = CombatEngine.getAvailableActions(state);
-    expect(actions2.some(a => a.action.type === CombatActionType.USE_LUCK)).toBe(true);
-    expect(actions2.some(a => a.action.type === CombatActionType.SKIP)).toBe(true);
-
-    const result4 = CombatEngine.resolve(state, { type: CombatActionType.USE_LUCK }, { luckDice: [2, 3] });
-    state = result4.state;
-
-    expect(state.player.endurance).toBe(25);
+    expect(state.player.chance).toBe(3);
+    expect(state.lastRoll?.modifier).toBe(2);
+    expect(state.lastRoll?.modifiedTotal).toBe(11);
     expect(state.phase).toBe(CombatPhase.PLAYER_TURN);
-    expect(state.roundNumber).toBe(2);
   });
 
   it('should handle flee action', () => {
@@ -143,8 +130,8 @@ describe('CombatEngine - Global Scenarios', () => {
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.ATTACK);
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.FLEE);
 
-    let result = CombatEngine.resolve(initialState, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
-    let state = result.state;
+    const result = CombatEngine.resolve(initialState, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
+    const state = result.state;
 
     const actions2 = CombatEngine.getAvailableActions(state);
     expect(actions2.map(a => a.action.type)).toContain(CombatActionType.REROLL);

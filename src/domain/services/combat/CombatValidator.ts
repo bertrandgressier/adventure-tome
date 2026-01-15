@@ -49,10 +49,13 @@ export class CombatValidator {
       }
     }
 
-    if (state.phase === CombatPhase.ENEMY_ATTACK) {
-      if (state.pendingDamage?.canUseLuck) {
-        actions.push({ action: { type: CombatActionType.USE_LUCK }, enabled: true });
+    if (state.phase === CombatPhase.PLAYER_ATTACK) {
+      if (state.player.chance > 0) {
+        actions.push({ action: { type: CombatActionType.SPEND_CHANCE, payload: {} }, enabled: true });
       }
+    }
+
+    if (state.phase === CombatPhase.ENEMY_ATTACK) {
       if (state.pendingDamage?.canBlock) {
         actions.push({ action: { type: CombatActionType.BLOCK }, enabled: true });
       }

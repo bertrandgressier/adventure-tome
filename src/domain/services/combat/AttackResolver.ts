@@ -71,7 +71,6 @@ export class AttackResolver {
       } else {
         const pendingDamage: typeof state.pendingDamage = {
           amount: damage,
-          canUseLuck: state.player.chance > 0,
           canBlock: false,
         };
 
