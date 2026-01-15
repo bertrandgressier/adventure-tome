@@ -28,17 +28,32 @@ export class CombatEngine {
     enemies: EnemyConfig[],
     config: { allowFlee: boolean; maxEnemies: number; damageFormula: string; firstAttacker?: 'player' | 'enemy'; fleeCost?: number }
   ): CombatState {
+    const weaponDamage = player.weapon.bonus;
+    const passiveDamageBonus = 0;
+    const totalDamageBonus = weaponDamage + passiveDamageBonus;
+
     const state: CombatState = {
       id: this.generateId(),
       characterId,
       player: {
         ...player,
         endurance: player.endurance,
+        weaponDamage,
+        passiveDamageBonus,
+        totalDamageBonus,
       },
-      enemies: enemies.map((enemy) => ({
-        ...enemy,
-        endurance: enemy.endurance,
-      })),
+      enemies: enemies.map((enemy) => {
+        const enemyWeaponDamage = enemy.weapon.bonus;
+        const enemyPassiveDamageBonus = 0;
+        const enemyTotalDamageBonus = enemyWeaponDamage + enemyPassiveDamageBonus;
+        return {
+          ...enemy,
+          endurance: enemy.endurance,
+          weaponDamage: enemyWeaponDamage,
+          passiveDamageBonus: enemyPassiveDamageBonus,
+          totalDamageBonus: enemyTotalDamageBonus,
+        };
+      }),
       activeEnemyIndex: 0,
       phase: CombatPhase.PLAYER_TURN,
       roundNumber: 1,
@@ -84,8 +99,9 @@ export class CombatEngine {
         return ReactionResolver.resolveFlee(state);
       case CombatActionType.REROLL:
         return ReactionResolver.resolveReroll(state, diceOverrides);
-      case CombatActionType.USE_LUCK:
-        return ReactionResolver.resolveUseLuck(state, diceOverrides);
+      case CombatActionType.SPEND_CHANCE:
+        const { pointsToSpend, targetRoll } = action.payload as { pointsToSpend: number; targetRoll: 'hit' | 'damage' };
+        return ReactionResolver.resolveSpendChance(state, pointsToSpend, targetRoll);
       case CombatActionType.BLOCK:
         return ReactionResolver.resolveBlock(state);
       case CombatActionType.SKIP:

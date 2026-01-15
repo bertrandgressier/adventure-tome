@@ -4,7 +4,6 @@ import type { DiceRoll } from '../../types/combatants';
 export interface DiceOverrides {
   hitDice?: [number, number];
   damageDice?: number;
-  luckDice?: [number, number];
 }
 
 export interface AvailableAction {

@@ -68,7 +68,7 @@ export class ReactionResolver {
     ];
 
     if (hit) {
-      const damage = DiceRoller.calculateDamage(state.player.weapon.bonus, diceOverrides?.damageDice);
+      const damage = DiceRoller.calculateDamage(state.player.totalDamageBonus, diceOverrides?.damageDice);
       const targetEnemy = newState.enemies[newState.activeEnemyIndex];
       const newEnemyEndurance = Math.max(0, targetEnemy.endurance - damage);
 
@@ -92,54 +92,76 @@ export class ReactionResolver {
     return { state: newState, events };
   }
 
-  static resolveUseLuck(
+  static resolveSpendChance(
     state: CombatState,
-    diceOverrides?: DiceOverrides
+    pointsToSpend: number,
+    targetRoll: 'hit' | 'damage'
   ): ActionResolutionResult {
-    if (!state.pendingDamage || !state.pendingDamage.canUseLuck) {
+    if (pointsToSpend <= 0 || pointsToSpend > state.player.chance) {
       return { state, events: [] };
     }
 
-    const diceRoll = DiceRoller.rollHitDice(diceOverrides?.luckDice);
-    const luckSuccess = diceRoll.total <= state.player.chance;
-
-    let damage = state.pendingDamage.amount;
-
-    if (luckSuccess) {
-      damage = Math.max(1, damage - 1);
-    } else {
-      damage = damage + 1;
+    if (!state.lastRoll) {
+      return { state, events: [] };
     }
 
-    const newEndurance = Math.max(0, state.player.endurance - damage);
+    const newRoll = {
+      ...state.lastRoll,
+      modifier: pointsToSpend,
+      modifiedTotal: state.lastRoll.total + pointsToSpend,
+    };
 
-    const shouldIncrementRound = state.phase === CombatPhase.ENEMY_ATTACK;
+    const newPlayer = {
+      ...state.player,
+      chance: state.player.chance - pointsToSpend,
+    };
 
-    let newState: CombatState = {
+    const newState: CombatState = {
       ...state,
-      player: { ...state.player, endurance: newEndurance },
-      pendingDamage: undefined,
-      phase: CombatPhase.PLAYER_TURN,
-      roundNumber: shouldIncrementRound ? state.roundNumber + 1 : state.roundNumber,
+      player: newPlayer,
+      lastRoll: newRoll,
     };
 
     const events: CombatEvent[] = [
       {
-        type: CombatEventType.LUCK_TEST,
+        type: CombatEventType.CHANCE_SPENT,
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
-        attacker: 'enemy',
-        roll: diceRoll,
-        luckResult: luckSuccess ? 'success' : 'failure',
-      },
-      {
-        type: CombatEventType.DAMAGE_DEALT,
-        timestamp: new Date().toISOString(),
-        round: state.roundNumber,
-        attacker: 'enemy',
-        damage,
+        attacker: 'player',
+        pointsSpent: pointsToSpend,
       },
     ];
+
+    if (targetRoll === 'hit' && state.phase === CombatPhase.PLAYER_ATTACK) {
+      const dexterite = state.player.dexterite;
+      const hit = newRoll.modifiedTotal <= dexterite;
+
+      const finalState = { ...newState, phase: CombatPhase.PLAYER_TURN };
+
+      if (hit) {
+        const damage = DiceRoller.calculateDamage(state.player.totalDamageBonus);
+        const targetEnemy = finalState.enemies[finalState.activeEnemyIndex];
+        const newEnemyEndurance = Math.max(0, targetEnemy.endurance - damage);
+
+        finalState.enemies = finalState.enemies.map((enemy: typeof finalState.enemies[0], index: number) =>
+          index === finalState.activeEnemyIndex
+            ? { ...enemy, endurance: newEnemyEndurance }
+            : enemy
+        );
+
+        events.push({
+          type: CombatEventType.DAMAGE_DEALT,
+          timestamp: new Date().toISOString(),
+          round: state.roundNumber,
+          attacker: 'player',
+          damage,
+        });
+
+        return { state: { ...finalState, phase: PhaseManager.advancePhase(finalState) }, events };
+      }
+
+      return { state: finalState, events };
+    }
 
     return { state: newState, events };
   }
@@ -149,7 +171,7 @@ export class ReactionResolver {
       return { state, events: [] };
     }
 
-    let newState: CombatState = {
+    const newState: CombatState = {
       ...state,
       pendingDamage: undefined,
       phase: CombatPhase.PLAYER_TURN,

@@ -34,6 +34,7 @@ export interface CombatEvent {
   luckUsed?: boolean;
   luckResult?: 'success' | 'failure';
   result?: 'victory' | 'defeat';
+  pointsSpent?: number;
 }
 
 export interface CombatAction {

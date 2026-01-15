@@ -24,6 +24,8 @@ export interface StatBonus {
   chance?: number;
   vie?: number;
   pvMax?: number;
+  damageBonus?: number;
+  conditionalDamage?: string;
 }
 
 /**

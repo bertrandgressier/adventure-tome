@@ -1,7 +1,7 @@
 export const CombatActionType = {
   ATTACK: 'attack',
   USE_ITEM: 'use_item',
-  USE_LUCK: 'use_luck',
+  SPEND_CHANCE: 'spend_chance',
   WEAPON_ABILITY: 'weapon_ability',
   FLEE: 'flee',
   REROLL: 'reroll',

@@ -47,7 +47,7 @@ export class AttackResolver {
     }
 
     if (hit) {
-      const damage = DiceRoller.calculateDamage(attacker.weapon.bonus, diceOverrides?.damageDice);
+      const damage = DiceRoller.calculateDamage(attacker.totalDamageBonus, diceOverrides?.damageDice);
 
       if (isPlayerAttacking) {
         const targetEnemy = newState.enemies[newState.activeEnemyIndex];
@@ -71,7 +71,6 @@ export class AttackResolver {
       } else {
         const pendingDamage: typeof state.pendingDamage = {
           amount: damage,
-          canUseLuck: state.player.chance > 0,
           canBlock: false,
         };
 
