@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "items": [
     {
       "id": "tome1-bourse",
@@ -447,6 +447,103 @@
       "paragraph": 308,
       "effect": "Volée/Trouvée sur le corps du Gardien.",
       "isQuestItem": true
+    },
+    {
+      "id": "tome3-lame-aube-eternelle",
+      "name": "Lame de l'Aube Éternelle",
+      "type": "weapon",
+      "tome": 3,
+      "paragraph": 54,
+      "effect": "Cette épée droite aux reflets dorés semble capturer la lumière du jour. Sa lame parfaitement équilibrée tranche l'air avec grâce.",
+      "attackPoints": 2,
+      "isLegendary": true,
+      "abilities": [
+        {
+          "id": "lame-aube-extra-attack",
+          "name": "Frappe de l'Aube",
+          "trigger": "on_double",
+          "effect": { "type": "extra_attack" },
+          "description": "Si vous obtenez un double sur votre jet d'attaque, relancez immédiatement une attaque gratuite."
+        }
+      ]
+    },
+    {
+      "id": "tome3-marteau-terre",
+      "name": "Marteau de la Terre",
+      "type": "weapon",
+      "tome": 3,
+      "paragraph": 55,
+      "effect": "Forgé dans les métaux les plus rares des entrailles du Royaume, ce marteau de guerre massif résonne d'une puissance tellurique.",
+      "attackPoints": 1,
+      "isLegendary": true,
+      "abilities": [
+        {
+          "id": "marteau-vampiric",
+          "name": "Absorption Tellurique",
+          "trigger": "on_kill",
+          "effect": { "type": "heal_on_kill", "amount": 1 },
+          "description": "À la mort d'un ennemi tué par cette arme, récupérez immédiatement +1 PV (sans dépasser le maximum)."
+        }
+      ]
+    },
+    {
+      "id": "tome3-arc-vents",
+      "name": "Arc des Vents",
+      "type": "weapon",
+      "tome": 3,
+      "paragraph": 55,
+      "effect": "Taillé dans le bois d'un arbre millénaire, cet arc élégant permet de tirer des flèches guidées par de la magie pure.",
+      "attackPoints": 1,
+      "isLegendary": true,
+      "abilities": [
+        {
+          "id": "arc-wind-guided",
+          "name": "Flèche Guidée",
+          "trigger": "on_miss",
+          "costChance": 1,
+          "effect": { "type": "convert_miss_to_hit" },
+          "description": "En cas d'échec (Jet > Dextérité), vous pouvez dépenser 1 point de CHANCE pour transformer ce raté en réussite automatique."
+        }
+      ]
+    },
+    {
+      "id": "tome3-dague-ombres",
+      "name": "Dague des Ombres",
+      "type": "weapon",
+      "tome": 3,
+      "paragraph": 55,
+      "effect": "Cette lame courbe et effilée absorbe la lumière autour d'elle. Maniée par les guerriers de la Confrérie, elle frappe là où on ne l'attend pas.",
+      "attackPoints": 1,
+      "isLegendary": true,
+      "abilities": [
+        {
+          "id": "dague-surprise-strike",
+          "name": "Frappe des Ombres",
+          "trigger": "on_surprise",
+          "effect": { "type": "bonus_damage", "amount": 2, "firstAttackOnly": true },
+          "description": "Si vous attaquez par surprise ou que l'ennemi n'est pas alerté, infligez +2 DOMMAGES supplémentaires sur votre première attaque."
+        }
+      ]
+    },
+    {
+      "id": "tome3-baton-sage",
+      "name": "Bâton du Sage",
+      "type": "weapon",
+      "tome": 3,
+      "paragraph": 55,
+      "effect": "Ce long bâton de combat sculpté est couvert de symboles mystiques qui courent le long de sa surface polie.",
+      "attackPoints": 1,
+      "isLegendary": true,
+      "abilities": [
+        {
+          "id": "baton-mystic-shield",
+          "name": "Bouclier Mystique",
+          "trigger": "on_enemy_hit",
+          "usesPerCombat": 1,
+          "effect": { "type": "negate_damage" },
+          "description": "Une fois par combat, vous pouvez annuler tous les dégâts reçus lors d'un tour ennemi (activation manuelle)."
+        }
+      ]
     }
   ]
 }

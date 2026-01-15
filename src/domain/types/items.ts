@@ -1,6 +1,6 @@
 /**
  * Item Types - Domain Types
- * 
+ *
  * Définit les types pour les items du catalogue et l'inventaire
  * Inspiré du glossaire des objets des 3 tomes de la Saga de Dagda
  */
@@ -14,6 +14,34 @@ export enum ItemType {
   ACTIVE = 'active',     // Consommables (potion +5 PV, pomme +2 PV)
   WEAPON = 'weapon',     // Armes avec bonus de dégâts (épée +1, arc)
   SPECIAL = 'special'    // Objets magiques avec effets complexes (bague 2ème chance, anneau des échos)
+}
+
+/**
+ * Import WeaponAbilityTrigger type for abilities
+ */
+import type { WeaponAbilityTrigger } from './WeaponAbilityTrigger';
+
+/**
+ * Effet d'une capacité d'arme (format catalogue)
+ */
+export type WeaponEffectDefinition =
+  | { type: 'extra_attack' }
+  | { type: 'heal_on_kill'; amount: number }
+  | { type: 'convert_miss_to_hit' }
+  | { type: 'bonus_damage'; amount: number; firstAttackOnly?: boolean }
+  | { type: 'negate_damage' };
+
+/**
+ * Définition d'une capacité d'arme légendaire (dans le catalogue)
+ */
+export interface WeaponAbilityDefinition {
+  id: string;
+  name: string;
+  trigger: WeaponAbilityTrigger;
+  effect: WeaponEffectDefinition;
+  description: string;
+  usesPerCombat?: number;
+  costChance?: number;
 }
 
 /**
@@ -46,6 +74,8 @@ export interface CatalogItem {
   damageToEnemy?: number;  // Pour potions offensives
   statBonus?: StatBonus;   // Pour passifs
   isQuestItem?: boolean;   // Pour items de quête
+  isLegendary?: boolean;   // Pour armes légendaires (Tome 3)
+  abilities?: WeaponAbilityDefinition[]; // Capacités spéciales des armes légendaires
 }
 
 /**
