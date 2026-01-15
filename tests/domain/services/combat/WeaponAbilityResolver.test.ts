@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { WeaponAbilityResolver } from '@/src/domain/services/combat/WeaponAbilityResolver';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
 import { catalogWeaponToCombatWeapon } from '@/src/domain/services/combat/weaponMapper';
+import { COMBAT_MESSAGES } from '@/src/domain/services/combat/constants';
 import { ITEMS_CATALOG } from '@/src/data/items-catalog';
 import { CombatPhase } from '@/src/domain/types/CombatPhase';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
@@ -365,7 +366,7 @@ describe('Arc des Vents', () => {
       const { canUse, reason } = WeaponAbilityResolver.canUseAbility(state, 'arc-wind-guided');
 
       expect(canUse).toBe(false);
-      expect(reason).toBe('Pas assez de CHANCE');
+      expect(reason).toBe(COMBAT_MESSAGES.WEAPON_ABILITY.INSUFFICIENT_CHANCE);
     });
 
     it('should NOT be usable if wrong weapon equipped', () => {
@@ -374,7 +375,7 @@ describe('Arc des Vents', () => {
       const { canUse, reason } = WeaponAbilityResolver.canUseAbility(state, 'arc-wind-guided');
 
       expect(canUse).toBe(false);
-      expect(reason).toBe('Arme requise non équipée');
+      expect(reason).toBe(COMBAT_MESSAGES.WEAPON_ABILITY.WEAPON_REQUIRED);
     });
   });
 
@@ -489,7 +490,7 @@ describe('Bâton du Sage', () => {
       const { canUse, reason } = WeaponAbilityResolver.canUseAbility(state, 'baton-mystic-shield');
 
       expect(canUse).toBe(false);
-      expect(reason).toBe('Pas de dégâts à bloquer');
+      expect(reason).toBe(COMBAT_MESSAGES.WEAPON_ABILITY.NO_DAMAGE_TO_BLOCK);
     });
 
     it('should NOT be usable after already used once', () => {
@@ -502,7 +503,7 @@ describe('Bâton du Sage', () => {
       const { canUse, reason } = WeaponAbilityResolver.canUseAbility(state, 'baton-mystic-shield');
 
       expect(canUse).toBe(false);
-      expect(reason).toBe('Déjà utilisé ce combat');
+      expect(reason).toBe(COMBAT_MESSAGES.WEAPON_ABILITY.ALREADY_USED);
     });
   });
 

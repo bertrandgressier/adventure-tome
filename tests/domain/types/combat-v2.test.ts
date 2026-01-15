@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { CombatStateV2, WeaponAbility, CombatEvent } from '@/src/domain/types/combat-v2';
+import type { CombatState, WeaponAbility, CombatEvent } from '@/src/domain/types/combat-v2';
 
 const mockWeapon = {
   id: 'epiee',
@@ -14,6 +14,9 @@ const mockEnemy = {
   enduranceMax: 15,
   chance: 0,
   weapon: { id: 'dague', name: 'Dague', bonus: 2 },
+  weaponDamage: 2,
+  passiveDamageBonus: 0,
+  totalDamageBonus: 2,
   isBoss: false,
 };
 
@@ -23,7 +26,7 @@ const mockDiceRoll = {
   total: 9,
 };
 
-function createMockCombatState(overrides?: Partial<CombatStateV2>): CombatStateV2 {
+function createMockCombatState(overrides?: Partial<CombatState>): CombatState {
   return {
     id: 'combat-1',
     characterId: 'char-1',
@@ -34,6 +37,9 @@ function createMockCombatState(overrides?: Partial<CombatStateV2>): CombatStateV
       enduranceMax: 32,
       chance: 5,
       weapon: mockWeapon,
+      weaponDamage: 5,
+      passiveDamageBonus: 0,
+      totalDamageBonus: 5,
     },
     enemies: [mockEnemy],
     activeEnemyIndex: 0,
@@ -57,7 +63,7 @@ function createMockCombatState(overrides?: Partial<CombatStateV2>): CombatStateV
 describe('Combat V2 Types', () => {
   describe('CombatStateV2', () => {
     it('should create a valid initial combat state', () => {
-      const state: CombatStateV2 = createMockCombatState();
+      const state: CombatState = createMockCombatState();
       expect(state.phase).toBe('setup');
       expect(state.roundNumber).toBe(0);
       expect(state.currentAttacker).toBe('player');
@@ -71,6 +77,9 @@ describe('Combat V2 Types', () => {
         enduranceMax: 20,
         chance: 0,
         weapon: { id: 'hache', name: 'Hache', bonus: 3 },
+        weaponDamage: 3,
+        passiveDamageBonus: 0,
+        totalDamageBonus: 3,
         isBoss: false,
       };
       const state = createMockCombatState({

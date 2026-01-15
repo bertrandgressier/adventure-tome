@@ -4,6 +4,7 @@ import { CombatActionType } from '../../types/CombatActionType';
 import { CombatEventType } from '../../types/CombatEventType';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
+import { COMBAT_MESSAGES } from './constants';
 
 export class CombatValidator {
   static checkCombatEnd(state: CombatState): 'ongoing' | 'victory' | 'defeat' {
@@ -37,7 +38,7 @@ export class CombatValidator {
         actions.push({
           action: { type: CombatActionType.FLEE },
           enabled: canFlee,
-          disabledReason: canFlee ? undefined : 'Endurance insuffisante pour fuir',
+          disabledReason: canFlee ? undefined : COMBAT_MESSAGES.FLEE.INSUFFICIENT_ENDURANCE,
         });
       }
     }

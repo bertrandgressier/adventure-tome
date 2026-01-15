@@ -2,6 +2,7 @@ import type { CombatState, CombatEvent } from '../../types/combat-v2';
 import type { WeaponAbility, DiceRoll } from '../../types/combatants';
 import { CombatEventType } from '../../types/CombatEventType';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
+import { COMBAT_MESSAGES } from './constants';
 
 export interface TriggerContext {
   roll?: DiceRoll;
@@ -52,21 +53,21 @@ export class WeaponAbilityResolver {
   ): { canUse: boolean; reason?: string } {
     const weapon = state.player.weapon;
     if (!weapon?.ability || weapon.ability.id !== abilityId) {
-      return { canUse: false, reason: 'Arme requise non équipée' };
+      return { canUse: false, reason: COMBAT_MESSAGES.WEAPON_ABILITY.WEAPON_REQUIRED };
     }
 
     const ability = weapon.ability;
 
     if (ability.costChance && state.player.chance < ability.costChance) {
-      return { canUse: false, reason: 'Pas assez de CHANCE' };
+      return { canUse: false, reason: COMBAT_MESSAGES.WEAPON_ABILITY.INSUFFICIENT_CHANCE };
     }
 
     if (ability.usesPerCombat && (state.usedAbilities[abilityId] ?? 0) >= ability.usesPerCombat) {
-      return { canUse: false, reason: 'Déjà utilisé ce combat' };
+      return { canUse: false, reason: COMBAT_MESSAGES.WEAPON_ABILITY.ALREADY_USED };
     }
 
     if (ability.effect.type === 'negate_damage' && !state.pendingDamage) {
-      return { canUse: false, reason: 'Pas de dégâts à bloquer' };
+      return { canUse: false, reason: COMBAT_MESSAGES.WEAPON_ABILITY.NO_DAMAGE_TO_BLOCK };
     }
 
     return { canUse: true };

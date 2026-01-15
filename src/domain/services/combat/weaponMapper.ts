@@ -1,6 +1,7 @@
 import type { CatalogItem } from '../../types/items';
 import type { CombatWeapon, WeaponAbility } from '../../types/combatants';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
+import { COMBAT_ERRORS } from './constants';
 
 /**
  * Type guard to validate WeaponAbilityTrigger values from catalog
@@ -14,7 +15,7 @@ function isValidWeaponAbilityTrigger(value: unknown): value is WeaponAbilityTrig
 
 export function catalogWeaponToCombatWeapon(catalogItem: CatalogItem): CombatWeapon {
   if (catalogItem.type !== 'weapon') {
-    throw new Error(`Item ${catalogItem.id} is not a weapon`);
+    throw new Error(COMBAT_ERRORS.WEAPON_MAPPER.NOT_A_WEAPON(catalogItem.id));
   }
 
   const combatWeapon: CombatWeapon = {
@@ -29,7 +30,7 @@ export function catalogWeaponToCombatWeapon(catalogItem: CatalogItem): CombatWea
     // Validate trigger value before casting
     if (!isValidWeaponAbilityTrigger(catalogAbility.trigger)) {
       throw new Error(
-        `Invalid weapon ability trigger "${catalogAbility.trigger}" for weapon ${catalogItem.id}`
+        COMBAT_ERRORS.WEAPON_MAPPER.INVALID_TRIGGER(catalogAbility.trigger, catalogItem.id)
       );
     }
 
