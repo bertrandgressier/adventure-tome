@@ -1,5 +1,4 @@
 import type { CombatAction, CombatState, CombatEvent } from '../../types/combat-state';
-import type { DiceRoll } from '../../types/combatants';
 
 export interface DiceOverrides {
   hitDice?: [number, number];

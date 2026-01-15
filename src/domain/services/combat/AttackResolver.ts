@@ -1,6 +1,5 @@
 import type { CombatState, CombatEvent } from '../../types/combat-v2';
 import { CombatPhase } from '../../types/CombatPhase';
-import type { DiceRoll } from '../../types/combatants';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
