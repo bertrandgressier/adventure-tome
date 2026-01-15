@@ -1,136 +1,170 @@
 # Système de combat - Adventure Tome
 
+> ⚠️ **SOURCE DE VÉRITÉ** : Ce document est conforme aux règles officielles de `docs/regles.md`
+
 ## Vue d'ensemble
 
-Le système de combat dans "Le jeu dont tu es le héro" est basé sur des lancers de dés et la comparaison de Forces d'Attaque.
+Le système de combat dans La Saga de Dagda est basé sur des lancers de dés et la comparaison avec la **DEXTÉRITÉ**.
+
+---
 
 ## Les règles de base
 
-### 1. Les talents
+### Caractéristiques de combat
 
-Chaque combattant (personnage ou adversaire) possède deux caractéristiques principales pour le combat :
+Chaque combattant possède :
 
-- **HABILETÉ** : Adresse au combat, compétence martiale
-- **ENDURANCE** : Points de vie, capacité à encaisser les coups
+- **DEXTÉRITÉ** : Adresse au combat, capacité à toucher l'adversaire
+- **POINTS DE VIE** : Capacité à encaisser les coups
+- **ARME** : Points de dommage supplémentaires
+- **DOMMAGES ACTUELS** : Total des bonus de dégâts (voir ci-dessous)
 
-### 2. Déroulement d'un combat
+### DOMMAGES ACTUELS (règle officielle)
 
-#### Phase 1 : Test pour toucher
+> "Additionnez tous les dommages supplémentaires que vous infligez grâce à vos armes **et objets**, puis inscrivez le résultat dans la case DOMMAGES ACTUELS"
 
-**L'attaquant** (tour par tour) :
-1. Lancez 2 dés (résultat entre 2 et 12)
-2. Comparez avec votre score de **DEXTÉRITÉ**
-3. **Si 2d6 ≤ DEXTÉRITÉ** : **L'attaque touche** → Passer à la Phase 2
-4. **Si 2d6 > DEXTÉRITÉ** : **L'attaque rate** → Passer au prochain round
+**Formule** : `DOMMAGES ACTUELS = Points de dommage de l'arme + Bonus d'objets`
 
-#### Phase 2 : Calcul des dégâts (si touché)
+Les objets peuvent donner des bonus de dommages :
+- **Passifs** : +1 dommage permanent
+- **Conditionnels** : "+1 dommage si le combat a lieu la nuit"
 
-1. Lancez 1 dé (résultat entre 1 et 6)
-2. **Dégâts = 1 (base) + 1d6 + Points de dommage de l'arme**
-3. Exemple : 1 + 4 (dé) + 5 (arme) = **10 points de dégâts**
+**Exemple** :
+- Épée longue : +2 dommages
+- Collier de force : +1 dommage
+- **DOMMAGES ACTUELS = 3**
 
-#### Phase 3 : Application des dégâts
+### Déroulement d'un combat
 
-1. **Déduisez les dégâts** des Points de Vie du défenseur
-2. Si les Points de Vie tombent à **0 ou moins** : le combattant est **vaincu**
+Le combat se déroule en **4 phases** qui se répètent :
 
-#### Phase 4 : Nouvel assaut
+#### Phase 1 : Toucher votre ennemi
 
-1. **Alternez l'attaquant** : si c'était vous, c'est maintenant l'adversaire (et inversement)
-2. Recommencez les phases 1, 2 et 3 avec le nouvel attaquant
-3. Continuez ainsi jusqu'à ce que :
-   - Les **Points de Vie** de l'adversaire tombent à **0 ou moins** → **VICTOIRE**
-   - Vos **Points de Vie** tombent à **0 ou moins** → **DÉFAITE** (généralement mort)
-   - Le livre vous offre une option de **FUITE** (selon le paragraphe)
+1. Lancez **2 dés à six faces** (2d6)
+2. Additionnez le résultat
+3. **Si 2d6 ≤ DEXTÉRITÉ** → **Touché !** Passez à la Phase 2
+4. **Si 2d6 > DEXTÉRITÉ** → **Raté !** Passez à la Phase 3
 
-## Options de combat avancées
+#### Phase 2 : Infliger des dégâts
 
-### Fuite
+Si vous touchez votre ennemi :
 
-Certains combats permettent de **fuir** :
-- Le livre vous indiquera si la fuite est possible
-- Vous perdez automatiquement **2 Points de Vie** en fuyant
-- Rendez-vous au paragraphe indiqué pour fuir
+1. L'ennemi perd automatiquement **1 Point de Vie**
+2. Lancez **1 dé à six faces** (1d6)
+3. L'ennemi perd ce nombre de Points de Vie supplémentaires
+4. Ajoutez vos **DOMMAGES ACTUELS** (arme + bonus objets)
+
+**Formule** : `Dégâts = 1 + 1d6 + DOMMAGES ACTUELS`
+
+#### Phase 3 : Jouer pour l'ennemi
+
+Appliquez les mêmes règles (Phase 1 et 2) pour l'attaque de l'ennemi contre vous.
+
+#### Phase 4 : Fin du combat
+
+- **Victoire** : Les Points de Vie de l'ennemi tombent à 0
+- **Défaite** : Vos Points de Vie tombent à 0
+- Continuez les phases 1-2-3 jusqu'à la fin
+
+---
+
+## La CHANCE
+
+### Réserve consommable
+
+La CHANCE fonctionne comme une **réserve de points** que vous pouvez dépenser pour modifier le résultat d'un jet de dés.
+
+**Règle** : Dépenser **N points de CHANCE** = ajouter **N au résultat** du jet
+
+### Exemple
+
+> Vous possédez 5 en CHANCE. Pour ouvrir une porte, vous devez faire 5 avec un dé : vous obtenez 3. Vous choisissez d'utiliser 2 points de CHANCE pour régler votre dé sur 5. Votre CHANCE passe de 5 à 3.
+
+### Utilisation en combat
+
+Vous pouvez dépenser de la CHANCE pour :
+- **Augmenter un jet de dégâts** (plus de dommages)
+- **Modifier un jet hors combat** (tests spéciaux)
+
+> ⚠️ Le livre ne vous rappellera pas cette capacité. C'est à VOUS de la garder en mémoire.
+
+---
 
 ## Combats multiples
 
-### Affronter plusieurs adversaires
+### Règle officielle
 
-Lorsque vous affrontez **plusieurs créatures en même temps** :
+> **Plusieurs ennemis en simultané sont considérés comme un seul adversaire plus puissant.**
 
-#### Méthode 1 : Combat séparé
-- Combattez-les **l'une après l'autre**
-- Suivez l'ordre indiqué dans le livre
+Lorsque vous affrontez un groupe :
+- Les ennemis sont **fusionnés** en un seul combattant
+- **DEXTÉRITÉ** : Maximum du groupe
+- **Points de Vie** : Somme des PV de tous les ennemis
+- **Arme** : Bonus maximum du groupe
 
-#### Méthode 2 : Combat simultané
-- Calculez la Force d'Attaque de **chaque adversaire** séparément
-- Calculez **votre** Force d'Attaque (une seule fois)
-- Comparez votre FA avec celle de chaque adversaire
-- Vous subissez **les dégâts de tous les adversaires** qui vous battent lors de cet assaut
-- Vous ne blessez **qu'un seul adversaire** (celui désigné dans le livre ou celui avec la FA la plus faible)
+### Limite
 
-### Modificateurs de combat
+Cette règle s'applique jusqu'à **5 adversaires simultanés**. Au-delà, le combat se déroule différemment (voir les instructions du livre).
 
-### HABILETÉ et armes
+---
 
-Votre Force d'Attaque dépend de :
-- **HABILETÉ** : Score de combat de base
-- **ARME ÉQUIPÉE** : Points d'attaque de l'arme utilisée
-- **Modificateurs situationnels** (voir ci-dessous)
+## Modes de jeu
 
-**Formule complète** : Force d'Attaque = 2d6 + HABILETÉ + Points d'attaque de l'arme + Modificateurs
+### Mode Narratif
 
-### Situations spéciales
+- Les combats sont automatiquement gagnés
+- Centré sur l'aventure et les décisions
+- Limite : 5 adversaires maximum (au-delà, combat normal)
 
-Certaines situations peuvent **modifier temporairement** votre Force d'Attaque :
-- **Combattre dans le noir** : Malus possible
-- **Arme brisée** : Perte des points d'attaque de l'arme
-- **Désarmé** : Combattre sans arme (0 points d'attaque)
-- **Arme magique** : Bonus supplémentaires aux points d'attaque
+### Mode Simplifié
 
-⚠️ Ces modificateurs sont **temporaires** et ne changent pas votre Habileté initiale.
+- Toutes les règles s'appliquent
+- 3 sauvegardes possibles
 
-### Bonus et malus
+### Mode Mortel
+
+- Toutes les règles s'appliquent
+- Mort = recommencer au chapitre 1
+
+---
+
+## Exemple de combat
+
 ### Situation
-Vous (DEXTÉRITÉ 7, PV 32/32, CHANCE 5) avec une **Épée longue (5 points de dommage)** affrontez un **GOBELIN** (DEXTÉRITÉ 6, PV 15/15, Arme 2 pts).
+
+**Vous** : DEXTÉRITÉ 7, PV 32/32, CHANCE 5, Épée longue (+5 dommages), DOMMAGES ACTUELS: 5
+
+**Ennemi** : GOBELIN - DEXTÉRITÉ 6, PV 15/15, Arme +2
 
 ### Round 1 - Vous attaquez
-1. **Lancer pour toucher** : 🎲🎲 = 5 ≤ 7 (DEX) → **Touché !**
-2. **Lancer de dégâts** : 🎲 = 4
-3. **Dégâts** : 1 + 4 + 5 (Épée) = **10 points**
-4. Le Gobelin perd 10 PV → PV : 15 - 10 = **5**
+
+1. **Jet pour toucher** : 🎲🎲 = 5 ≤ 7 (DEX) → **Touché !**
+2. **Jet de dégâts** : 🎲 = 4
+3. **Dégâts** : 1 + 4 + 5 (DOMMAGES ACTUELS) = **10 points**
+4. Gobelin : PV 15 → **5**
 
 ### Round 2 - Le Gobelin attaque
-1. **Lancer pour toucher** : 🎲🎲 = 8 > 6 (DEX) → **Raté !**
+
+1. **Jet pour toucher** : 🎲🎲 = 8 > 6 (DEX) → **Raté !**
 2. Aucun dégât
 
 ### Round 3 - Vous attaquez
-1. **Lancer pour toucher** : 🎲🎲 = 6 ≤ 7 (DEX) → **Touché !**
-2. **Lancer de dégâts** : 🎲 = 2
-3. **Dégâts** : 1 + 2 + 5 (Épée) = **8 points**
-4. Le Gobelin perd 8 PV → PV : 5 - 8 = **-3** (mort)
+
+1. **Jet pour toucher** : 🎲🎲 = 6 ≤ 7 (DEX) → **Touché !**
+2. **Jet de dégâts** : 🎲 = 2
+3. **Dégâts** : 1 + 2 + 5 (DOMMAGES ACTUELS) = **8 points**
+4. Gobelin : PV 5 → **-3** (mort)
 
 ### 🎉 VICTOIRE !
-- Votre état final : DEXTÉRITÉ 7, PV 32/32, CHANCE 5, Épée longue (5 pts)
-- Vous pouvez continuer votre aventure au paragraphe indiqué
-### Assaut 4
-1. **Votre lancer** : 🎲🎲 = 6 + 10 = **16**
-2. **Lancer du Gobelin** : 🎲🎲 = 4 + 6 = **10**
-3. **Résultat** : 16 > 10 → **Vous gagnez l'assaut**
-4. Le Gobelin perd 2 points → ENDURANCE : 1 - 2 = **-1** (mort)
 
-### 🎉 VICTOIRE !
-- Votre état final : HABILETÉ 10, ENDURANCE 19, CHANCE 8
-- Vous pouvez continuer votre aventure au paragraphe indiqué
+État final : DEXTÉRITÉ 7, PV 32/32, CHANCE 5
+
+---
 
 ## Interface de combat (Application)
 
-### Affichage recommandé
+### Affichage
 
-```
-┌─────────────────────────────────────┐
-│        ⚔️ COMBAT EN COURS ⚔️         │
-├─────────────────────────────────────┤
 ```
 ┌─────────────────────────────────────┐
 │        ⚔️ COMBAT EN COURS ⚔️         │
@@ -139,53 +173,49 @@ Vous (DEXTÉRITÉ 7, PV 32/32, CHANCE 5) avec une **Épée longue (5 points de d
 │  VOUS                    GOBELIN    │
 │  DEX: 7                  DEX: 6     │
 │  PV: 32/32              PV: 15/15   │
-│  Arme: Épée (5 pts)     Arme: 2 pts │
+│  DOMMAGES: 5            Arme: +2    │
+│  CHANCE: 5                          │
 │                                     │
 ├─────────────────────────────────────┤
 │           ROUND N°1                 │
 │         Attaquant: VOUS             │
 ├─────────────────────────────────────┤
 │                                     │
-│  Test toucher:    [LANCER DÉS]     │
-│  (2d6 ≤ DEX 7)                     │
+│  🎲 Jet: 5 ≤ 7 → TOUCHÉ !          │
+│  💥 Dégâts: 1 + 4 + 5 = 10         │
 │                                     │
-│  Si touché:                         │
-│  Dégâts: 1 + 1d6 + 5 (Arme)       │
+│  [Dépenser CHANCE: +1 +2 +3]       │
 │                                     │
 ├─────────────────────────────────────┤
-│  [FUIR (-2 PV)]                    │
+│  [🎲 Attaquer] [🧪 Potion] [🏃 Fuir]│
 └─────────────────────────────────────┘
-```**Affichage en temps réel** :
-   - Statistiques des deux combattants
-   - Numéro de l'assaut en cours
-   - Historique des assauts précédents
+```
 
-2. **Actions disponibles** :
-   - Bouton "Lancer les dés" (automatique pour adversaire)
-   - Bouton "Tentez votre Chance" (après résolution d'un assaut)
-   - Bouton "Fuir" (si autorisé)
+### Actions disponibles
 
-3. **Feedback visuel** :
-   - Animation des dés
-   - Indication du gagnant de l'assaut (vert/rouge)
-   - Dégâts infligés/subis avec animation
-   - Barres de vie (Endurance)
+1. **Attaquer** : Lancer les dés pour toucher
+2. **Utiliser un objet** : Potions, consommables
+3. **Dépenser CHANCE** : Modifier un jet (+N points)
+4. **Fuir** : Perdre 2 PV et quitter le combat (si autorisé)
 
-4. **Historique** :
-   - Liste déroulante des assauts précédents
-   - Résultats de chaque lancer
-   - Utilisation de la Chance
+---
 
-5. **Fin de combat** :
-   - Écran de victoire/défaite
-   - Résumé du combat
-   - Bouton pour continuer l'aventure
+## Armes légendaires (Tome 3)
 
-## Calculs automatiques
+Voir [armurerie-tome3.md](armurerie-tome3.md) pour les armes spéciales du Compendium.
 
-### Algorithme de combat
+| Arme | Bonus | Pouvoir Spécial |
+|------|-------|-----------------|
+| Lame de l'Aube Éternelle | +2 | Double = attaque gratuite |
+| Marteau de la Terre | +1 | +1 PV à chaque kill |
+| Arc des Vents | +1 | 1 CHANCE = échec → réussite |
+| Dague des Ombres | +1 | +2 première attaque surprise |
+| Bâton du Sage | +1 | 1x/combat : annuler dégâts |
 
-```typescript
+---
+
+## Algorithme de combat
+
 ```typescript
 interface CombatRound {
   roundNumber: number;
@@ -197,8 +227,12 @@ interface CombatRound {
   
   // Si touché, calcul des dégâts
   damageDiceRoll?: number;       // 1d6
-  weaponDamage?: number;         // Points de dommage de l'arme
-  totalDamage?: number;          // 1 + 1d6 + weaponDamage
+  totalDamageBonus?: number;     // DOMMAGES ACTUELS (arme + objets)
+  totalDamage?: number;          // 1 + 1d6 + DOMMAGES ACTUELS
+  
+  // Modificateur de CHANCE (optionnel)
+  chanceSpent?: number;          // Points dépensés
+  modifiedDamage?: number;       // Dégâts après modification
   
   playerEnduranceAfter: number;
   enemyEnduranceAfter: number;
@@ -209,13 +243,13 @@ function resolveCombatRound(
   attacker: 'player' | 'enemy',
   playerDexterite: number,
   playerEndurance: number,
-  playerWeaponDamage: number,
+  playerTotalDamageBonus: number,  // DOMMAGES ACTUELS (arme + objets)
   enemy: Enemy,
   enemyEndurance: number
 ): CombatRound {
   const isPlayerAttacking = attacker === 'player';
   const attackerDex = isPlayerAttacking ? playerDexterite : enemy.dexterite;
-  const attackerWeapon = isPlayerAttacking ? playerWeaponDamage : enemy.attackPoints;
+  const attackerDamageBonus = isPlayerAttacking ? playerTotalDamageBonus : enemy.attackPoints;
   
   // 1. Test pour toucher (2d6 ≤ DEXTÉRITÉ)
   const hitRoll = rollTwoDice();
@@ -226,10 +260,10 @@ function resolveCombatRound(
   let totalDamage: number | undefined;
   let damageRoll: number | undefined;
   
-  // 2. Si touché, calculer les dégâts (1 + 1d6 + arme)
+  // 2. Si touché, calculer les dégâts (1 + 1d6 + DOMMAGES ACTUELS)
   if (hitSuccess) {
     damageRoll = rollOneDie();
-    totalDamage = 1 + damageRoll + attackerWeapon;
+    totalDamage = 1 + damageRoll + attackerDamageBonus;
     
     // Appliquer les dégâts
     if (isPlayerAttacking) {
@@ -245,53 +279,29 @@ function resolveCombatRound(
     hitDiceRoll: hitRoll,
     hitSuccess,
     damageDiceRoll: damageRoll,
-    weaponDamage: hitSuccess ? attackerWeapon : undefined,
+    totalDamageBonus: hitSuccess ? attackerDamageBonus : undefined,
     totalDamage,
     playerEnduranceAfter,
     enemyEnduranceAfter
   };
 }
-function testLuck(currentLuck: number): boolean {
-  const roll = rollTwoDice();
-  return roll <= currentLuck;
-}
-
-function applyLuckToCombat(
-  round: CombatRound,
-  isLucky: boolean,
-  damageType: 'dealt' | 'taken'
-): number {
-  const baseDamage = round.damageDealt;
-  
-  if (damageType === 'dealt') {
-    // Vous avez blessé l'adversaire
-    return isLucky ? baseDamage + 1 : baseDamage - 1;
-  } else {
-    // Vous avez été blessé
-    return isLucky ? baseDamage - 1 : baseDamage + 1;
-  }
-}
 ```
 
-## Cas spéciaux
-
-### Mort instantanée
-Certains adversaires ou situations peuvent causer la mort instantanée (Endurance = 0 immédiatement).
-
-### Créatures immunisées
-Certaines créatures ne peuvent être blessées que par des armes magiques ou des objets spéciaux.
+---
 
 ## Conseils stratégiques
 
-1. **Choisissez la bonne arme** : Équipez l'arme avec le plus de points de dommage
+1. **Optimisez vos DOMMAGES ACTUELS** : Équipez l'arme et les objets avec les meilleurs bonus
 2. **Évaluez la DEXTÉRITÉ** : Plus elle est élevée, plus vous avez de chances de toucher
-3. **Armes puissantes** : Les points de dommage augmentent les dégâts, pas la chance de toucher
-4. **Fuyez si nécessaire** : Si l'adversaire a trop de Points de Vie ou une DEXTÉRITÉ élevée, parfois fuir (-2 PV) est la meilleure option
-5. **Surveillez vos Points de Vie** : Utilisez les boulons pour acheter des objets de soin
-6. **Premier attaquant** : Choisissez bien qui attaque en premier, cela peut faire la différence
+3. **Gérez votre CHANCE** : Réserve précieuse, à utiliser pour les moments critiques
+4. **Fuyez si nécessaire** : Parfois 2 PV perdus valent mieux qu'une mort certaine
+5. **Surveillez vos Points de Vie** : Utilisez les potions avant d'atteindre un niveau critique
+6. **Vérifiez les bonus conditionnels** : "+1 si combat de nuit" - profitez-en !
 
-1. **Évaluez avant de combattre** : Vérifiez si l'adversaire a une Habileté très élevée
-2. **Gérez votre Chance** : Ne l'utilisez pas trop vite, gardez-en pour les moments critiques
-3. **Fuyez si nécessaire** : Parfois, 2 points de dégâts valent mieux qu'une mort certaine
-4. **Surveillez votre Endurance** : Mangez des provisions avant d'atteindre un niveau critique
-5. **Objets magiques** : Utilisez-les au bon moment pour maximiser leur effet
+---
+
+## Références
+
+- [regles.md](regles.md) - Règles officielles complètes
+- [armurerie-tome3.md](armurerie-tome3.md) - Armes légendaires
+- [CHARACTER_SHEET.md](CHARACTER_SHEET.md) - Structure du personnage

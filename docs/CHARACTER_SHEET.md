@@ -50,6 +50,12 @@ Selon la fiche officielle du livre :
 - Une seule arme peut être équipée à la fois
 - **Points de dommage** : Chaque arme possède un score de points de dommage
 
+#### DOMMAGES ACTUELS
+- **Valeur calculée** = Points de dommage de l'arme + Bonus d'objets passifs
+- Mise à jour automatique lors des changements d'équipement
+- Utilisée dans la formule de dégâts : `1 + 1d6 + DOMMAGES ACTUELS`
+- Peut inclure des bonus conditionnels ("+1 si combat de nuit")
+
 #### INVENTAIRE
 - Liste des objets transportés (hors armes)
 - Cases à cocher pour les objets possédés
@@ -129,7 +135,7 @@ Voir le document [COMBAT.md](./COMBAT.md) pour les règles détaillées de comba
 **Résumé** :
 1. L'attaquant lance 2d6 pour toucher (≤ DEXTÉRITÉ = touché)
 2. Si touché : Lancer 1d6 pour les dégâts
-3. Dégâts = 1 (base) + 1d6 + Points de dommage de l'arme
+3. Dégâts = 1 (base) + 1d6 + DOMMAGES ACTUELS (arme + objets)
 4. Alterner les attaquants à chaque round
 5. Recommencer jusqu'à ce que l'un des combattants tombe (Points de Vie = 0)
 

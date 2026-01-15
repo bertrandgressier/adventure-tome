@@ -87,6 +87,9 @@ Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 - [🏗️ Architecture technique](./docs/ARCHITECTURE.md) - **Consulter avant toute modification du domaine**
 - [📝 Format fiche personnage](./docs/CHARACTER_SHEET.md)
 - [⚔️ Règles de combat](./docs/COMBAT.md)
+- [📜 Règles officielles](./docs/regles.md) - Source de vérité (La Saga de Dagda)
+- [🗡️ Armes légendaires (Tome 3)](./docs/armurerie-tome3.md)
+- [📦 Glossaire des objets](./docs/glossaire-des-objets.md)
 - [🎨 Guide du thème](./docs/THEMING.md)
 - [🤖 Instructions pour agents IA](./AGENTS.md)
 
