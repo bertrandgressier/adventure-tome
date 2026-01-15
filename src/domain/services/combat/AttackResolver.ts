@@ -70,8 +70,7 @@ export class AttackResolver {
           damage,
         });
 
-        newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
-
+        // Check weapon abilities BEFORE advancing phase (to avoid state corruption)
         const killAbility = WeaponAbilityResolver.checkAutoTrigger(
           newState,
           WeaponAbilityTrigger.ON_KILL,
@@ -93,6 +92,9 @@ export class AttackResolver {
           newState = doubleResult.state;
           events.push(...doubleResult.events);
         }
+
+        // Advance phase AFTER abilities are resolved
+        newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
       } else {
         const pendingDamage: typeof state.pendingDamage = {
           amount: damage,
@@ -104,18 +106,9 @@ export class AttackResolver {
     } else {
       if (!isPlayerAttacking) {
         newState = { ...newState, phase: CombatPhase.PLAYER_TURN };
-      } else {
-        const missAbility = WeaponAbilityResolver.checkAutoTrigger(
-          newState,
-          WeaponAbilityTrigger.ON_MISS,
-          { roll: newState.lastRoll }
-        );
-        if (missAbility) {
-          const missResult = WeaponAbilityResolver.resolveAbility(newState, missAbility.id);
-          newState = missResult.state;
-          events.push(...missResult.events);
-        }
       }
+      // Note: ON_MISS abilities (like Arc des Vents) are NOT auto-resolved.
+      // They are detected by CombatValidator and made available as manual actions.
     }
 
     return { state: newState, events };

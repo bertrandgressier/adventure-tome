@@ -2,6 +2,16 @@ import type { CatalogItem } from '../../types/items';
 import type { CombatWeapon, WeaponAbility } from '../../types/combatants';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 
+/**
+ * Type guard to validate WeaponAbilityTrigger values from catalog
+ */
+function isValidWeaponAbilityTrigger(value: unknown): value is WeaponAbilityTrigger {
+  return (
+    typeof value === 'string' &&
+    Object.values(WeaponAbilityTrigger).includes(value as WeaponAbilityTrigger)
+  );
+}
+
 export function catalogWeaponToCombatWeapon(catalogItem: CatalogItem): CombatWeapon {
   if (catalogItem.type !== 'weapon') {
     throw new Error(`Item ${catalogItem.id} is not a weapon`);
@@ -16,10 +26,17 @@ export function catalogWeaponToCombatWeapon(catalogItem: CatalogItem): CombatWea
   if (catalogItem.abilities && catalogItem.abilities.length > 0) {
     const catalogAbility = catalogItem.abilities[0];
 
+    // Validate trigger value before casting
+    if (!isValidWeaponAbilityTrigger(catalogAbility.trigger)) {
+      throw new Error(
+        `Invalid weapon ability trigger "${catalogAbility.trigger}" for weapon ${catalogItem.id}`
+      );
+    }
+
     combatWeapon.ability = {
       id: catalogAbility.id,
       name: catalogAbility.name,
-      trigger: catalogAbility.trigger as WeaponAbilityTrigger,
+      trigger: catalogAbility.trigger,
       effect: catalogAbility.effect,
       usesPerCombat: catalogAbility.usesPerCombat,
       costChance: catalogAbility.costChance,
