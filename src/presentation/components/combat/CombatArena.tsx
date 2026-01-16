@@ -4,12 +4,11 @@ import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
+import { CombatantCard } from './CombatantCard';
 import type { CombatState, CombatActionType } from '@/src/domain/types/combat-v2';
 import {
-  getCombatantHealthInfo,
   wouldBeLethal,
   getActionMetadata,
-  isEnemy,
 } from './combatUIHelpers';
 
 export interface CombatArenaProps {
@@ -58,11 +57,17 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
 
       <div className="flex-1 flex flex-col p-4">
         <div className="flex-1 min-h-0 flex flex-col">
-          <CombatantCard
-            combatant={activeEnemy}
-            type="enemy"
-            isActive={combat.currentAttacker === 'enemy'}
-          />
+          {activeEnemy ? (
+            <CombatantCard
+              combatant={activeEnemy}
+              type="enemy"
+              isActive={combat.currentAttacker === 'enemy'}
+            />
+          ) : (
+            <div className="bg-card/50 border border-border/50 rounded-lg p-4 min-h-[120px] flex items-center justify-center">
+              <span className="text-muted-foreground">Combatant non disponible</span>
+            </div>
+          )}
 
           <div className="flex-1 flex items-center justify-center">
             <DiceAnimation roll={combat.lastRoll} />
@@ -84,73 +89,6 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
         <div className="mt-4">
           <ActionPanel characterId={characterId} />
         </div>
-      </div>
-    </div>
-  );
-}
-
-function CombatantCard({
-  combatant,
-  type,
-  isActive,
-}: {
-  combatant: CombatState['player'] | CombatState['enemies'][number];
-  type: 'player' | 'enemy';
-  isActive?: boolean;
-}) {
-  if (!combatant) {
-    return (
-      <div className="bg-card/50 border border-border/50 rounded-lg p-4 min-h-[120px] flex items-center justify-center">
-        <span className="text-muted-foreground">Combatant non disponible</span>
-      </div>
-    );
-  }
-
-  const healthInfo = getCombatantHealthInfo(combatant.endurance, combatant.enduranceMax);
-
-  return (
-    <div
-      className={`bg-card/50 border border-border/50 rounded-lg p-4 min-h-[120px] ${
-        isActive ? 'border-primary/50 shadow-[0_0_10px_rgba(234,179,8,0.2)]' : ''
-      }`}
-    >
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <h3 className="font-cinzel text-lg text-primary">{combatant.name}</h3>
-          <p className="text-sm text-muted-foreground">
-            DEX: {combatant.dexterite}
-          </p>
-        </div>
-        {type === 'enemy' && isEnemy(combatant) && combatant.isBoss && (
-          <span className="text-xs text-destructive font-bold">BOSS</span>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">PV</span>
-          <span className={`font-mono ${healthInfo.textColorClass}`}>
-            {combatant.endurance}/{combatant.enduranceMax}
-          </span>
-        </div>
-
-        <div className="h-2 bg-input/50 rounded-full overflow-hidden">
-          <div
-            className={`h-full transition-all duration-300 ${healthInfo.barColorClass}`}
-            style={{ width: `${healthInfo.healthPercent}%` }}
-          />
-        </div>
-
-        {combatant.weapon && (
-          <div className="text-sm text-muted-foreground">
-            <span className="text-xs text-secondary">{combatant.weapon.name}</span>
-            {combatant.weapon.bonus > 0 && (
-              <span className="text-xs text-accent ml-1">
-                (+{combatant.weapon.bonus})
-              </span>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
