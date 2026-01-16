@@ -9,6 +9,7 @@ import { createCharacterInventorySlice, type CharacterInventorySlice } from './s
 import { createCharacterMetadataSlice, type CharacterMetadataSlice } from './slices/characterMetadataSlice';
 import { createCharacterItemsSlice, type CharacterItemsSlice } from './slices/characterItemsSlice';
 import { createItemsCatalogSlice, type ItemsCatalogSlice } from './slices/itemsCatalogSlice';
+import { createCombatSlice, type CombatSlice } from './slices/combatSlice';
 
 let serviceInstance: CharacterService | null = null;
 
@@ -26,7 +27,8 @@ export type CharacterStore = CharacterListSlice &
   CharacterInventorySlice &
   CharacterMetadataSlice &
   CharacterItemsSlice &
-  ItemsCatalogSlice;
+  ItemsCatalogSlice &
+  CombatSlice;
 
 export const createCharacterStore = () => {
   const service = getService();
@@ -41,6 +43,7 @@ export const createCharacterStore = () => {
         ...createCharacterMetadataSlice(service)(set, get),
         ...createCharacterItemsSlice(service)(set, get),
         ...createItemsCatalogSlice()(set, get),
+        ...createCombatSlice()(set, get),
       }),
       { name: 'CharacterStore', enabled: typeof window !== 'undefined' }
     )
