@@ -5,7 +5,9 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { CombatantCard } from './CombatantCard';
-import type { CombatState, CombatActionType } from '@/src/domain/types/combat-v2';
+import { DiceAnimation } from './DiceAnimation';
+import type { DiceRollResult } from './DiceAnimation';
+import type { CombatActionType, DiceRoll } from '@/src/domain/types/combat-v2';
 import {
   wouldBeLethal,
   getActionMetadata,
@@ -14,6 +16,27 @@ import {
 export interface CombatArenaProps {
   characterId: string;
   onExit: () => void;
+}
+
+/**
+ * Adapter: Convertit DiceRoll (Combat V2) vers DiceRollResult (DiceAnimation)
+ */
+function convertToDiceRollResult(
+  roll: DiceRoll,
+  playerDexterite: number,
+  weaponBonus: number
+): DiceRollResult {
+  return {
+    dice: [roll.dice1, roll.dice2],
+    total: roll.total,
+    modifiers: {
+      habilete: playerDexterite,
+      weaponBonus: weaponBonus,
+    },
+    finalScore: roll.modifiedTotal ?? roll.total,
+    isDouble: roll.isDouble,
+    success: roll.success,
+  };
 }
 
 export function CombatArena({ characterId, onExit }: CombatArenaProps) {
@@ -43,6 +66,22 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
 
   const activeEnemy = combat.enemies?.[combat.activeEnemyIndex];
 
+  // Adapter le lastRoll pour DiceAnimation
+  const diceResult = combat.lastRoll
+    ? convertToDiceRollResult(
+        combat.lastRoll,
+        combat.player.dexterite,
+        combat.player.weapon.bonus
+      )
+    : null;
+
+  // Déterminer l'outcome basé sur le dernier roll
+  const outcome = combat.lastRoll?.success !== undefined
+    ? combat.lastRoll.success
+      ? ('win' as const)
+      : ('lose' as const)
+    : undefined;
+
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col safe-area-top safe-area-bottom">
       <Button
@@ -70,7 +109,11 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
           )}
 
           <div className="flex-1 flex items-center justify-center">
-            <DiceAnimation roll={combat.lastRoll} />
+            <DiceAnimation
+              diceResult={diceResult}
+              isRolling={false}
+              outcome={outcome}
+            />
           </div>
 
           <DamageIndicator
@@ -94,49 +137,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   );
 }
 
-function DiceAnimation({ roll }: { roll?: CombatState['lastRoll'] }) {
-  if (!roll) {
-    return (
-      <div className="text-center">
-        <span className="text-muted-foreground text-sm">Prêt pour le combat</span>
-      </div>
-    );
-  }
 
-  return (
-    <div className="text-center space-y-2">
-      <div className="flex items-center justify-center gap-4">
-        <div className="w-16 h-16 bg-card border-2 border-primary/30 rounded-lg flex items-center justify-center">
-          <span className="text-3xl font-cinzel text-primary">{roll.dice1}</span>
-        </div>
-        <span className="text-2xl text-muted-foreground">+</span>
-        <div className="w-16 h-16 bg-card border-2 border-primary/30 rounded-lg flex items-center justify-center">
-          <span className="text-3xl font-cinzel text-primary">{roll.dice2}</span>
-        </div>
-      </div>
-
-      <div className="space-y-1">
-        <div className="text-4xl font-cinzel text-primary font-bold">
-          {roll.total}
-        </div>
-        {roll.isDouble && (
-          <span className="inline-block px-3 py-1 bg-accent text-accent-foreground text-xs font-bold rounded-full">
-            DOUBLE !
-          </span>
-        )}
-        {roll.success !== undefined && (
-          <div
-            className={`text-sm font-bold ${
-              roll.success ? 'text-green-500' : 'text-red-500'
-            }`}
-          >
-            {roll.success ? 'TOUCHÉ !' : 'RATÉ !'}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function DamageIndicator({
   damage,
