@@ -12,6 +12,7 @@ import { AttackResolver } from './AttackResolver';
 import { ReactionResolver } from './ReactionResolver';
 import { CombatValidator } from './CombatValidator';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
+import { ItemResolver, type CombatUsableItem } from './ItemResolver';
 
 export type CombatResult = {
   state: CombatState;
@@ -96,7 +97,11 @@ export class CombatEngine {
       case CombatActionType.ATTACK:
         return AttackResolver.resolve(state, diceOverrides);
       case CombatActionType.USE_ITEM:
-        return { state, events: [] };
+        const item = action.payload as CombatUsableItem | undefined;
+        if (!item) {
+          return { state, events: [] };
+        }
+        return ItemResolver.resolve(state, item);
       case CombatActionType.FLEE:
         return ReactionResolver.resolveFlee(state);
       case CombatActionType.REROLL:

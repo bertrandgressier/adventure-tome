@@ -525,7 +525,7 @@ export class Character {
       data.talent,
       data.secondTalent,
       data.gameMode,
-      12, // CURRENT_VERSION
+      13, // CURRENT_VERSION - Keep in sync with migrations.ts
       now,
       now,
       Stats.fromData(statsData),
