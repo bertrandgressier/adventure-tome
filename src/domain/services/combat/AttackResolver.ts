@@ -28,6 +28,22 @@ export class AttackResolver {
     let newState = { ...state };
     const events: CombatEvent[] = [];
 
+    // Check for ON_SURPRISE ability BEFORE the attack (first attack only)
+    if (isPlayerAttacking && newState.isFirstAttack) {
+      const surpriseAbility = WeaponAbilityResolver.checkAutoTrigger(
+        newState,
+        WeaponAbilityTrigger.ON_SURPRISE,
+        {}
+      );
+      if (surpriseAbility) {
+        const surpriseResult = WeaponAbilityResolver.resolveAbility(newState, surpriseAbility.id);
+        newState = surpriseResult.state;
+        events.push(...surpriseResult.events);
+      }
+      // Mark first attack as done
+      newState.isFirstAttack = false;
+    }
+
     events.push({
       type: CombatEventType.ATTACK_ROLL,
       timestamp: new Date().toISOString(),
@@ -50,7 +66,8 @@ export class AttackResolver {
     }
 
     if (hit) {
-      const damage = DiceRoller.calculateDamage(attacker.totalDamageBonus, diceOverrides?.damageDice);
+      const attackerBonus = isPlayerAttacking ? newState.player.totalDamageBonus : attacker.totalDamageBonus;
+      const damage = DiceRoller.calculateDamage(attackerBonus, diceOverrides?.damageDice);
 
       if (isPlayerAttacking) {
         const targetEnemy = newState.enemies[newState.activeEnemyIndex];

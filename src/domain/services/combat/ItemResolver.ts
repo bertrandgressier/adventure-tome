@@ -8,6 +8,8 @@ import { CombatEventType } from '../../types/CombatEventType';
 export interface CombatUsableItem {
   id: string;
   name: string;
+  /** Index de l'item dans l'inventaire (pour consommation à la fin du combat) */
+  itemIndex: number;
   /** Points de vie restaurés au joueur */
   healAmount?: number;
   /** Dégâts infligés à l'ennemi actif */
@@ -42,6 +44,12 @@ export class ItemResolver {
   ): ItemResolutionResult {
     let newState = { ...state };
     const events: CombatEvent[] = [];
+
+    // Tracker l'item utilisé pour consommation à la fin du combat
+    newState = {
+      ...newState,
+      usedItems: [...newState.usedItems, { itemId: item.id, itemIndex: item.itemIndex }],
+    };
 
     // Appliquer le soin au joueur
     if (item.healAmount && item.healAmount > 0) {

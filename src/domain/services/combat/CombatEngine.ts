@@ -73,6 +73,7 @@ export class CombatEngine {
       usedAbilities: {},
       usedReroll: false,
       isFirstAttack: true,
+      usedItems: [],
       events: [
         {
           type: CombatEventType.COMBAT_START,

@@ -502,7 +502,8 @@ pnpm test:ui           # Interactive UI
 
 ## Key Documentation
 
-- [docs/COMBAT.md](docs/COMBAT.md) - Combat formulas + examples
+- [docs/COMBAT.md](docs/COMBAT.md) - Combat formulas + examples (legacy system)
+- [docs/COMBAT_V2_UI_GUIDE.md](docs/COMBAT_V2_UI_GUIDE.md) - **Combat V2 UI Development Guide** (actions, phases, examples)
 - [docs/CHARACTER_SHEET.md](docs/CHARACTER_SHEET.md) - Official character structure
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Detailed architecture + migrations
 - [docs/THEMING.md](docs/THEMING.md) - CSS variables + color palette

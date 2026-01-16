@@ -4,6 +4,14 @@ import type { Attacker } from './Attacker';
 import type { CombatantState, EnemyState, DiceRoll, PendingDamage, CombatConfig } from './combatants';
 import { CombatEventType } from './CombatEventType';
 
+/**
+ * Item utilisé pendant le combat, à consommer à la fin
+ */
+export interface UsedItem {
+  itemId: string;
+  itemIndex: number;
+}
+
 export interface CombatState {
   id: string;
   characterId: string;
@@ -21,6 +29,8 @@ export interface CombatState {
   pendingExtraAttack?: boolean;
   config: CombatConfig;
   events: CombatEvent[];
+  /** Items utilisés pendant le combat, à consommer via consumeItem() à la fin */
+  usedItems: UsedItem[];
 }
 
 export interface CombatEvent {

@@ -182,6 +182,13 @@ export const createCombatSlice = () => {
           });
         }
 
+        // Consommer les items utilisés pendant le combat
+        // Trier par index décroissant pour éviter les décalages d'index
+        const sortedUsedItems = [...combat.usedItems].sort((a, b) => b.itemIndex - a.itemIndex);
+        for (const usedItem of sortedUsedItems) {
+          await get().consumeItem(characterId, usedItem.itemIndex);
+        }
+
         set({
           combat: null,
           availableActions: [],

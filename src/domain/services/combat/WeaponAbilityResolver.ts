@@ -1,6 +1,7 @@
 import type { CombatState, CombatEvent } from '../../types/combat-v2';
 import type { WeaponAbility, DiceRoll } from '../../types/combatants';
 import { CombatEventType } from '../../types/CombatEventType';
+import { CombatPhase } from '../../types/CombatPhase';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 import { COMBAT_MESSAGES } from './constants';
 
@@ -206,6 +207,9 @@ export class WeaponAbilityResolver {
         ...state.usedAbilities,
         [abilityId]: usageCount,
       },
+      // Advance to PLAYER_TURN after negating damage (same as resolveSkip)
+      phase: CombatPhase.PLAYER_TURN,
+      roundNumber: state.roundNumber + 1,
     };
 
     const event: CombatEvent = {

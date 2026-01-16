@@ -45,6 +45,7 @@ function createMockCombatState(overrides?: Partial<CombatState>): CombatState {
     usedAbilities: {},
     usedReroll: false,
     isFirstAttack: true,
+    usedItems: [],
     events: [],
     ...overrides,
   };
@@ -57,6 +58,7 @@ describe('ItemResolver', () => {
       const item: CombatUsableItem = {
         id: 'tome1-potion-soin',
         name: 'Potion de soin',
+        itemIndex: 0,
         healAmount: 5,
       };
 
@@ -66,6 +68,7 @@ describe('ItemResolver', () => {
       expect(result.events).toHaveLength(1);
       expect(result.events[0].type).toBe(CombatEventType.ITEM_USED);
       expect(result.events[0].healAmount).toBe(5);
+      expect(result.state.usedItems).toContainEqual({ itemId: 'tome1-potion-soin', itemIndex: 0 });
     });
 
     it('should cap healing at max endurance', () => {
@@ -73,6 +76,7 @@ describe('ItemResolver', () => {
       const item: CombatUsableItem = {
         id: 'tome1-potion-soin',
         name: 'Potion de soin',
+        itemIndex: 1,
         healAmount: 5,
       };
 
@@ -87,6 +91,7 @@ describe('ItemResolver', () => {
       const item: CombatUsableItem = {
         id: 'tome3-potion-confusion',
         name: 'Potion de confusion',
+        itemIndex: 0,
         damageToEnemy: 5,
       };
 
@@ -105,6 +110,7 @@ describe('ItemResolver', () => {
       const item: CombatUsableItem = {
         id: 'tome3-potion-confusion',
         name: 'Potion de confusion',
+        itemIndex: 0,
         damageToEnemy: 5,
       };
 
@@ -120,6 +126,7 @@ describe('ItemResolver', () => {
       const item: CombatUsableItem = {
         id: 'combo-item',
         name: 'Item Combo',
+        itemIndex: 2,
         healAmount: 3,
         damageToEnemy: 2,
       };
@@ -136,13 +143,15 @@ describe('ItemResolver', () => {
       const item: CombatUsableItem = {
         id: 'useless-item',
         name: 'Item inutile',
+        itemIndex: 0,
       };
 
       const result = ItemResolver.resolve(state, item);
 
       expect(result.state.player.endurance).toBe(state.player.endurance);
       expect(result.state.enemies[0].endurance).toBe(state.enemies[0].endurance);
-      expect(result.events).toHaveLength(0);
+      // Item still tracked even if no effect
+      expect(result.state.usedItems).toContainEqual({ itemId: 'useless-item', itemIndex: 0 });
     });
   });
 
