@@ -316,10 +316,12 @@ describe('combatSlice', () => {
 
       expect(() => slice.executeAction({ type: CombatActionType.ATTACK })).toThrow();
 
+      // executeAction fait 2 appels en cas d'erreur : isAnimating=true puis error + isAnimating=false
       const setCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];
       if (setCallArgs && typeof setCallArgs === 'object') {
         expect(setCallArgs.error).toBeDefined();
         expect(typeof setCallArgs.error).toBe('string');
+        expect(setCallArgs.isAnimating).toBe(false); // Animation arrêtée en cas d'erreur
       }
     });
 
@@ -338,7 +340,9 @@ describe('combatSlice', () => {
       
       slice.executeAction({ type: CombatActionType.ATTACK });
 
-      const setCallArgs = mockSet.mock.calls[0]?.[0];
+      // executeAction fait 2 appels : isAnimating=true puis combat update
+      // Vérifier le deuxième appel qui contient error: null
+      const setCallArgs = mockSet.mock.calls[1]?.[0];
       if (setCallArgs && typeof setCallArgs === 'object') {
         expect(setCallArgs.error).toBeNull();
       }

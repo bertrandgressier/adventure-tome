@@ -47,10 +47,8 @@ export function DiceAnimation({
     // Reset to idle when no dice result and not rolling
     if (!diceResult && !isRolling) {
       if (phase !== 'idle' || showOutcome) {
-        setTimeout(() => {
-          setPhase('idle');
-          setShowOutcome(false);
-        }, 0);
+        setPhase('idle');
+        setShowOutcome(false);
       }
       return;
     }
@@ -58,7 +56,7 @@ export function DiceAnimation({
     // Direct transition to result when not rolling (for static display)
     if (diceResult && !isRolling) {
       if (phase !== 'result') {
-        setTimeout(() => setPhase('result'), 0);
+        setPhase('result'); // Transition synchrone pour affichage immédiat
       }
 
       const outcomeDelay = prefersReducedMotion ? 100 : 500;
@@ -82,10 +80,8 @@ export function DiceAnimation({
 
     // Start rolling animation
     if (diceResult && isRolling && (phase === 'idle' || phase === 'result')) {
-      setTimeout(() => {
-        setPhase('rolling');
-        setShowOutcome(false);
-      }, 0);
+      setPhase('rolling'); // Transition synchrone
+      setShowOutcome(false);
 
       const animationDuration = prefersReducedMotion ? 100 : 800;
 

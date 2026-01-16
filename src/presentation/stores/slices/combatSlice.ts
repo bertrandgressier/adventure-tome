@@ -149,16 +149,23 @@ export const createCombatSlice = () => {
         }
 
         const result = CombatEngine.resolve(combat, action, diceOverrides);
-
         const availableActions = CombatEngine.getAvailableActions(result.state);
 
+        // Mettre tout à jour en même temps : combat + isAnimating
         set({
           combat: result.state,
           availableActions,
           error: null,
+          isAnimating: true, // Démarrer l'animation
         });
+
+        // Arrêter l'animation après la durée complète
+        setTimeout(() => {
+          set({ isAnimating: false });
+        }, 1200); // 800ms animation + 400ms pour afficher le résultat
       } catch (error) {
-        handleSliceError(set, error);
+        const errorMessage = error instanceof Error ? error.message : 'Erreur de mise à jour';
+        set({ error: errorMessage, isAnimating: false });
         throw error;
       }
     },

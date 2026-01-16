@@ -41,6 +41,7 @@ function convertToDiceRollResult(
 
 export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const combat = useCharacterStore((state) => state.combat);
+  const isAnimating = useCharacterStore((state) => state.isAnimating);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -111,7 +112,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
           <div className="flex-1 flex items-center justify-center">
             <DiceAnimation
               diceResult={diceResult}
-              isRolling={false}
+              isRolling={isAnimating}
               outcome={outcome}
             />
           </div>
