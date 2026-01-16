@@ -6,12 +6,15 @@ import type {
 import { CombatActionType } from '../../types/CombatActionType';
 import { CombatPhase } from '../../types/CombatPhase';
 import { CombatEventType } from '../../types/CombatEventType';
+import { Attacker } from '../../types/Attacker';
+import type { TargetRoll } from '../../types/TargetRoll';
 import type { CombatantConfig, EnemyConfig } from '../../types/combatants';
 import type { DiceOverrides } from './DiceRoller';
 import { AttackResolver } from './AttackResolver';
 import { ReactionResolver } from './ReactionResolver';
 import { CombatValidator } from './CombatValidator';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
+import { ItemResolver, type CombatUsableItem } from './ItemResolver';
 
 export type CombatResult = {
   state: CombatState;
@@ -27,7 +30,7 @@ export class CombatEngine {
     characterId: string,
     player: CombatantConfig,
     enemies: EnemyConfig[],
-    config: { allowFlee: boolean; maxEnemies: number; damageFormula: string; firstAttacker?: 'player' | 'enemy'; fleeCost?: number; isSurprise?: boolean }
+    config: { allowFlee: boolean; maxEnemies: number; damageFormula: string; firstAttacker?: Attacker; fleeCost?: number; isSurprise?: boolean }
   ): CombatState {
     const weaponDamage = player.weapon.bonus;
     const passiveDamageBonus = 0;
@@ -58,13 +61,13 @@ export class CombatEngine {
       activeEnemyIndex: 0,
       phase: CombatPhase.PLAYER_TURN,
       roundNumber: 1,
-      currentAttacker: config.firstAttacker ?? 'player',
+      currentAttacker: config.firstAttacker ?? Attacker.PLAYER,
       config: {
         fleeCost: config.fleeCost ?? 2,
         allowFlee: config.allowFlee,
         maxEnemies: config.maxEnemies,
         damageFormula: config.damageFormula,
-        firstAttacker: config.firstAttacker ?? 'player',
+        firstAttacker: config.firstAttacker ?? Attacker.PLAYER,
         isSurprise: config.isSurprise ?? false,
       },
       usedAbilities: {},
@@ -96,13 +99,17 @@ export class CombatEngine {
       case CombatActionType.ATTACK:
         return AttackResolver.resolve(state, diceOverrides);
       case CombatActionType.USE_ITEM:
-        return { state, events: [] };
+        const item = action.payload as CombatUsableItem | undefined;
+        if (!item) {
+          return { state, events: [] };
+        }
+        return ItemResolver.resolve(state, item);
       case CombatActionType.FLEE:
         return ReactionResolver.resolveFlee(state);
       case CombatActionType.REROLL:
         return ReactionResolver.resolveReroll(state, diceOverrides);
       case CombatActionType.SPEND_CHANCE:
-        const { pointsToSpend, targetRoll } = action.payload as { pointsToSpend: number; targetRoll: 'hit' | 'damage' };
+        const { pointsToSpend, targetRoll } = action.payload as { pointsToSpend: number; targetRoll: TargetRoll };
         return ReactionResolver.resolveSpendChance(state, pointsToSpend, targetRoll);
       case CombatActionType.BLOCK:
         return ReactionResolver.resolveBlock(state);

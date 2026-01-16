@@ -28,6 +28,8 @@ export interface InventoryItem extends DomainInventoryItem {
 }
 
 export interface Weapon {
+  /** ID du catalog (source de vérité pour les abilities) */
+  itemId?: string;
   name: string;
   attackPoints: number;
 }

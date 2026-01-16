@@ -1,4 +1,5 @@
 import type { CombatRound, Enemy } from '@/src/domain/types/combat';
+import { Attacker } from '@/src/domain/types/Attacker';
 
 /**
  * CombatService - Domain Service
@@ -53,7 +54,7 @@ export class CombatService {
    */
   static resolveCombatRound(
     roundNumber: number,
-    attacker: 'player' | 'enemy',
+    attacker: Attacker,
     playerDexterite: number,
     playerEndurance: number,
     playerWeaponDamage: number,
@@ -62,7 +63,7 @@ export class CombatService {
     hitDiceRoll?: number,
     damageDiceRoll?: number
   ): CombatRound {
-    const isPlayerAttacking = attacker === 'player';
+    const isPlayerAttacking = attacker === Attacker.PLAYER;
     const attackerDex = isPlayerAttacking ? playerDexterite : enemy.dexterite;
     const attackerWeapon = isPlayerAttacking ? playerWeaponDamage : enemy.attackPoints;
     

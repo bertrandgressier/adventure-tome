@@ -1,5 +1,6 @@
 import type { CombatState, CombatEvent } from '../../types/combat-v2';
 import { CombatPhase } from '../../types/CombatPhase';
+import { Attacker } from '../../types/Attacker';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
@@ -31,7 +32,7 @@ export class AttackResolver {
       type: CombatEventType.ATTACK_ROLL,
       timestamp: new Date().toISOString(),
       round: state.roundNumber,
-      attacker: isPlayerAttacking ? 'player' : 'enemy',
+      attacker: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
       roll: diceRoll,
       hit,
     });
@@ -66,7 +67,7 @@ export class AttackResolver {
           type: CombatEventType.DAMAGE_DEALT,
           timestamp: new Date().toISOString(),
           round: state.roundNumber,
-          attacker: 'player',
+          attacker: Attacker.PLAYER,
           damage,
         });
 

@@ -17,19 +17,21 @@ export enum ItemType {
 }
 
 /**
- * Import WeaponAbilityTrigger type for abilities
+ * Import types for abilities
  */
 import type { WeaponAbilityTrigger } from './WeaponAbilityTrigger';
+import type { WeaponEffectType } from './WeaponEffectType';
 
 /**
  * Effet d'une capacité d'arme (format catalogue)
+ * Les valeurs 'type' correspondent aux constantes de WeaponEffectType
  */
 export type WeaponEffectDefinition =
-  | { type: 'extra_attack' }
-  | { type: 'heal_on_kill'; amount: number }
-  | { type: 'convert_miss_to_hit' }
-  | { type: 'bonus_damage'; amount: number; firstAttackOnly?: boolean }
-  | { type: 'negate_damage' };
+  | { type: WeaponEffectType & 'extra_attack' }
+  | { type: WeaponEffectType & 'heal_on_kill'; amount: number }
+  | { type: WeaponEffectType & 'convert_miss_to_hit' }
+  | { type: WeaponEffectType & 'bonus_damage'; amount: number; firstAttackOnly?: boolean }
+  | { type: WeaponEffectType & 'negate_damage' };
 
 /**
  * Définition d'une capacité d'arme légendaire (dans le catalogue)

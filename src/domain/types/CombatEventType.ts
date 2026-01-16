@@ -11,6 +11,7 @@ export const CombatEventType = {
   CHANCE_SPENT: 'chance_spent',
   FLEE: 'flee',
   WEAPON_ABILITY: 'weapon_ability',
+  ITEM_USED: 'item_used',
 } as const;
 
 export type CombatEventType = (typeof CombatEventType)[keyof typeof CombatEventType];

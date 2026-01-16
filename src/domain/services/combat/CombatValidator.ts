@@ -2,6 +2,7 @@ import type { CombatState, CombatEvent, AvailableAction } from '../../types/comb
 import { CombatPhase } from '../../types/CombatPhase';
 import { CombatActionType } from '../../types/CombatActionType';
 import { CombatEventType } from '../../types/CombatEventType';
+import { Attacker } from '../../types/Attacker';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 import { COMBAT_MESSAGES } from './constants';
@@ -119,7 +120,7 @@ export class CombatValidator {
       type: CombatEventType.COMBAT_END,
       timestamp: new Date().toISOString(),
       round: state.roundNumber,
-      attacker: 'player',
+      attacker: Attacker.PLAYER,
       result,
     };
   }

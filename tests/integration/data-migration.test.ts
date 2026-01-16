@@ -9,7 +9,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Character } from '@/src/domain/entities/Character';
-import { migrateCharacter } from '@/src/infrastructure/persistence/migrations';
+import { migrateCharacter, CURRENT_VERSION } from '@/src/infrastructure/persistence/migrations';
 import type { InventoryItemRef } from '@/src/domain/types/items';
 
 // Legacy item format (pre-v10)
@@ -72,7 +72,7 @@ describe('Migration des données - Compatibilité', () => {
     expect(character.book).toBe(legacyData.book);
     expect(character.talent).toBe(legacyData.talent);
     expect(character.gameMode).toBe('mortal');
-    expect(character.version).toBe(12); // Migrated to v12
+    expect(character.version).toBe(CURRENT_VERSION); // Migrated to current version
     expect(character.createdAt).toBe(legacyData.createdAt);
     expect(character.notes).toBe(legacyData.notes);
 
@@ -157,7 +157,7 @@ describe('Migration des données - Compatibilité', () => {
 
     // VÉRIFICATION: gameMode et version
     expect(data.gameMode).toBe('simplified');
-    expect(data.version).toBe(12);
+    expect(data.version).toBe(CURRENT_VERSION);
 
     // VÉRIFICATION: Structure stats
     expect(data.stats).toHaveProperty('dexterite');
@@ -423,7 +423,7 @@ describe('Migration des données - Compatibilité', () => {
 
     // VÉRIFICATION: book converti en number
     expect(character.book).toBe(1); // "La Harpe des Quatre Saisons" → 1
-    expect(character.version).toBe(12); // Version mise à jour
+    expect(character.version).toBe(CURRENT_VERSION); // Version mise à jour
     
     // Test avec autres titres
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -484,7 +484,7 @@ describe('Migration des données - Compatibilité', () => {
     const items = character.getInventory().items;
 
     // VÉRIFICATION: Bourse ajoutée
-    expect(character.version).toBe(12);
+    expect(character.version).toBe(CURRENT_VERSION);
     expect(items).toHaveLength(2); // Bourse + Potion
     // Bourse was added in v6, then got a legacy ID in v10 migration
     expect(items[0].itemId).toMatch(/^legacy-/);
@@ -535,7 +535,7 @@ describe('Migration des données - Compatibilité', () => {
     const inventory = character.getInventory();
 
     // VÉRIFICATION: Version mise à jour
-    expect(character.version).toBe(12);
+    expect(character.version).toBe(CURRENT_VERSION);
 
     // VÉRIFICATION: Items migrés avec nouveaux champs
     // Bourse + 3 items existants
@@ -673,7 +673,7 @@ describe('Migration des données - Compatibilité', () => {
     const character = Character.fromData(migratedData);
 
     // VÉRIFICATION: Version mise à jour
-    expect(character.version).toBe(12);
+    expect(character.version).toBe(CURRENT_VERSION);
 
     // VÉRIFICATION: Items migrés avec fallbackName
     const inventory = character.getInventory();
@@ -727,7 +727,7 @@ describe('Migration des données - Compatibilité', () => {
     const character = Character.fromData(migratedData);
 
     // VÉRIFICATION: Version mise à jour
-    expect(character.version).toBe(12);
+    expect(character.version).toBe(CURRENT_VERSION);
 
     // VÉRIFICATION: Expérience initialisée à 0 pour Tome 3+
     const stats = character.getStats();
@@ -769,7 +769,7 @@ describe('Migration des données - Compatibilité', () => {
     const characterTome1 = Character.fromData(migratedDataTome1);
 
     // VÉRIFICATION: Version mise à jour
-    expect(characterTome1.version).toBe(12);
+    expect(characterTome1.version).toBe(CURRENT_VERSION);
 
     // VÉRIFICATION: Expérience initialisée à undefined pour Tome 1
     const statsTome1 = characterTome1.getStats();
@@ -781,7 +781,7 @@ describe('Migration des données - Compatibilité', () => {
     const migratedDataTome2 = migrateCharacter(v11DataTome2);
     const characterTome2 = Character.fromData(migratedDataTome2);
 
-    expect(characterTome2.version).toBe(12);
+    expect(characterTome2.version).toBe(CURRENT_VERSION);
     const statsTome2 = characterTome2.getStats();
     expect(statsTome2.experience).toBeUndefined();
   });
@@ -823,8 +823,8 @@ describe('Migration des données - Compatibilité', () => {
     const migratedData = migrateCharacter(v12Data);
     const character = Character.fromData(migratedData);
 
-    // VÉRIFICATION: Version inchangée (déjà v12)
-    expect(character.version).toBe(12);
+    // VÉRIFICATION: Version mise à jour vers CURRENT_VERSION
+    expect(character.version).toBe(CURRENT_VERSION);
 
     // VÉRIFICATION: Expérience préservée
     const stats = character.getStats();

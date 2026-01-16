@@ -4,7 +4,10 @@ import type {
   AvailableAction,
   EnemyConfig,
   CombatConfig,
+  CombatWeapon,
+  WeaponAbility,
 } from '@/src/domain/types/combat-v2';
+import type { CatalogItem, WeaponAbilityDefinition } from '@/src/domain/types/items';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
 import type { DiceOverrides } from '@/src/domain/services/combat/DiceRoller';
 import type { CharacterListSlice } from './characterListSlice';
@@ -98,7 +101,7 @@ export const createCombatSlice = () => {
         const stats = character.getStats();
         const inventory = character.getInventory();
 
-        const weapon = extractWeapon(inventory.weapon);
+        const weapon = extractWeapon(inventory.weapon, get().getItem);
 
         const playerConfig = {
           name: character.name,
@@ -210,12 +213,15 @@ export const createCombatSlice = () => {
 
 /**
  * Extrait la configuration de l'arme à partir de l'inventaire du personnage
+ * Recherche les abilities dans le catalog via itemId (source de vérité)
  * @param weapon Arme du personnage (ou undefined si combat à mains nues)
+ * @param getItem Fonction pour récupérer un item du catalog
  * @returns Configuration de l'arme pour le combat
  */
 function extractWeapon(
-  weapon: { name: string; attackPoints: number } | undefined
-): import('@/src/domain/types/combatants').CombatWeapon {
+  weapon: { itemId?: string; name: string; attackPoints: number } | undefined,
+  getItem: (itemId: string) => CatalogItem | undefined
+): CombatWeapon {
   if (!weapon) {
     return {
       id: 'default-fist',
@@ -224,10 +230,75 @@ function extractWeapon(
     };
   }
 
-  return {
-    id: `weapon-${weapon.name.replace(/\s+/g, '-').toLowerCase()}`,
+  // Chercher l'arme dans le catalog par itemId (priorité) ou par nom (fallback)
+  const catalogWeapon = weapon.itemId
+    ? getItem(weapon.itemId)
+    : findWeaponInCatalogByName(weapon.name, getItem);
+
+  const baseWeapon: CombatWeapon = {
+    id: catalogWeapon?.id ?? weapon.itemId ?? `weapon-${weapon.name.replace(/\s+/g, '-').toLowerCase()}`,
     name: weapon.name,
     bonus: weapon.attackPoints
+  };
+
+  // Ajouter la première ability si l'arme est légendaire
+  if (catalogWeapon?.abilities && catalogWeapon.abilities.length > 0) {
+    baseWeapon.ability = mapAbilityDefinitionToWeaponAbility(catalogWeapon.abilities[0]);
+  }
+
+  return baseWeapon;
+}
+
+/**
+ * Recherche une arme dans le catalog par son nom (fallback pour données legacy)
+ * Compare les noms en ignorant la casse et les accents
+ */
+function findWeaponInCatalogByName(
+  weaponName: string,
+  getItem: (itemId: string) => CatalogItem | undefined
+): CatalogItem | undefined {
+  // Liste des IDs d'armes légendaires connues (Tome 3)
+  const legendaryWeaponIds = [
+    'tome3-lame-aube-eternelle',
+    'tome3-marteau-terre',
+    'tome3-arc-vents',
+    'tome3-dague-ombres',
+    'tome3-baton-sage'
+  ];
+
+  const normalizedName = normalizeString(weaponName);
+
+  for (const id of legendaryWeaponIds) {
+    const item = getItem(id);
+    if (item && normalizeString(item.name) === normalizedName) {
+      return item;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Normalise une string pour comparaison (minuscules, sans accents)
+ */
+function normalizeString(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+/**
+ * Convertit une WeaponAbilityDefinition du catalog en WeaponAbility pour le combat
+ */
+function mapAbilityDefinitionToWeaponAbility(def: WeaponAbilityDefinition): WeaponAbility {
+  return {
+    id: def.id,
+    name: def.name,
+    trigger: def.trigger,
+    effect: def.effect,
+    usesPerCombat: def.usesPerCombat,
+    costChance: def.costChance
   };
 }
 

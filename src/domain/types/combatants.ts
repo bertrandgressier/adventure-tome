@@ -1,4 +1,7 @@
 import type { WeaponAbilityTrigger } from './WeaponAbilityTrigger';
+import type { WeaponEffectType } from './WeaponEffectType';
+import type { TargetRoll } from './TargetRoll';
+import type { Attacker } from './Attacker';
 
 export interface CombatantState {
   name: string;
@@ -41,12 +44,16 @@ export interface WeaponAbility {
   costChance?: number;
 }
 
+/**
+ * Effet d'une arme légendaire
+ * Les valeurs 'type' correspondent aux constantes de WeaponEffectType
+ */
 export type WeaponEffect =
-  | { type: 'extra_attack' }
-  | { type: 'heal_on_kill'; amount: number }
-  | { type: 'convert_miss_to_hit' }
-  | { type: 'bonus_damage'; amount: number; firstAttackOnly?: boolean }
-  | { type: 'negate_damage' };
+  | { type: WeaponEffectType & 'extra_attack' }
+  | { type: WeaponEffectType & 'heal_on_kill'; amount: number }
+  | { type: WeaponEffectType & 'convert_miss_to_hit' }
+  | { type: WeaponEffectType & 'bonus_damage'; amount: number; firstAttackOnly?: boolean }
+  | { type: WeaponEffectType & 'negate_damage' };
 
 export interface EnemyState extends CombatantState {
   isBoss: boolean;
@@ -63,7 +70,7 @@ export interface DiceRoll {
 }
 
 export interface ChanceModifier {
-  targetRoll: 'hit' | 'damage';
+  targetRoll: TargetRoll;
   pointsSpent: number;
 }
 
@@ -77,6 +84,6 @@ export interface CombatConfig {
   allowFlee: boolean;
   maxEnemies: number;
   damageFormula: string;
-  firstAttacker?: 'player' | 'enemy';
+  firstAttacker?: Attacker;
   isSurprise?: boolean;
 }

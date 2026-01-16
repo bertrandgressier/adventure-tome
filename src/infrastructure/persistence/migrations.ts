@@ -13,7 +13,43 @@
 
 import { BOURSE_ITEM_NAME } from '@/src/domain/value-objects/Inventory';
 
-export const CURRENT_VERSION = 12;
+export const CURRENT_VERSION = 13;
+
+/**
+ * Known weapon name to itemId mapping for migration
+ * Used to retroactively add itemId to existing weapons
+ */
+const WEAPON_NAME_TO_ID: Record<string, string> = {
+  // Tome 1 weapons
+  'arc et carquois': 'tome1-arc-carquois',
+  'épée courte (+1)': 'tome1-epee-courte-1',
+  'epee courte (+1)': 'tome1-epee-courte-1',
+  'épée courte (+2)': 'tome1-epee-courte-2',
+  'epee courte (+2)': 'tome1-epee-courte-2',
+  // Tome 3 legendary weapons
+  "lame de l'aube éternelle": 'tome3-lame-aube-eternelle',
+  "lame de l'aube eternelle": 'tome3-lame-aube-eternelle',
+  'marteau de la terre': 'tome3-marteau-terre',
+  'arc des vents': 'tome3-arc-vents',
+  'dague des ombres': 'tome3-dague-ombres',
+  'bâton du sage': 'tome3-baton-sage',
+  'baton du sage': 'tome3-baton-sage',
+};
+
+/**
+ * Find weapon itemId by matching weapon name (case-insensitive)
+ * Returns undefined if no match found
+ */
+function findWeaponItemIdByName(name: string | undefined): string | undefined {
+  if (!name) return undefined;
+  
+  const normalizedName = name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  
+  return WEAPON_NAME_TO_ID[normalizedName];
+}
 
 /**
  * Legacy item type (pre-v10)
@@ -106,6 +142,11 @@ export interface Migration {
  * Migration v11 → v12: Add experience field to stats
  * - Add experience (optional) for Tome 3+ characters
  * - Default to 0 for book >= 3, null for book < 3
+ *
+ * Migration v12 → v13: Add itemId to weapon for catalog lookup
+ * - Add itemId field to weapon for abilities lookup
+ * - Try to match existing weapon name to catalog items
+ * - Enables legendary weapon abilities in combat
  */
 export const migrations: Migration[] = [
   {
@@ -286,6 +327,37 @@ export const migrations: Migration[] = [
           experience: newExperience,
         },
         version: 12,
+      };
+    },
+  },
+  {
+    version: 13,
+    migrate: (data) => {
+      // Add itemId to weapon for catalog lookup (enables legendary abilities)
+      const weapon = data.inventory?.weapon;
+      
+      if (!weapon) {
+        return { ...data, version: 13 };
+      }
+
+      // If already has itemId, keep it
+      if (weapon.itemId) {
+        return { ...data, version: 13 };
+      }
+
+      // Try to find itemId by matching weapon name to catalog
+      const weaponItemId = findWeaponItemIdByName(weapon.name);
+
+      return {
+        ...data,
+        inventory: {
+          ...data.inventory,
+          weapon: {
+            ...weapon,
+            itemId: weaponItemId,
+          },
+        },
+        version: 13,
       };
     },
   },
