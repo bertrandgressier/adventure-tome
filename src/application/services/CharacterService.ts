@@ -390,9 +390,26 @@ export class CharacterService {
     }
 
     const updated = character.updateSecondTalent(secondTalent);
-    
+
     await this.repository.save(updated);
-    
+
+    return updated;
+  }
+
+  /**
+   * Retire une quantité d'un item par son itemId
+   * Utile pour le combat où on connaît l'itemId mais pas l'index
+   */
+  async removeItemQuantity(id: string, itemId: string, quantity: number = 1): Promise<Character> {
+    const character = await this.repository.findById(id);
+    if (!character) {
+      throw new CharacterNotFoundError(id);
+    }
+
+    const updated = character.removeItemQuantityByItemId(itemId, quantity);
+
+    await this.repository.save(updated);
+
     return updated;
   }
 }

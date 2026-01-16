@@ -321,6 +321,33 @@ export class Character {
   }
 
   /**
+   * Retire une quantité d'un item par son itemId
+   * Utile pour le combat où on connaît l'itemId mais pas l'index
+   */
+  removeItemQuantityByItemId(itemId: string, quantity: number = 1): Character {
+    const items = this.inventory.items;
+    const itemIndex = items.findIndex(item => item.itemId === itemId);
+
+    if (itemIndex === -1) {
+      throw new Error(`Item ${itemId} non trouvé dans l'inventaire`);
+    }
+
+    const item = items[itemIndex];
+
+    if (item.quantity < quantity) {
+      throw new Error(`Pas assez de ${itemId} (disponible: ${item.quantity}, demandé: ${quantity})`);
+    }
+
+    const newQuantity = item.quantity - quantity;
+
+    if (newQuantity === 0) {
+      return this.removeItem(itemIndex);
+    }
+
+    return this.updateItemQuantity(itemIndex, newQuantity);
+  }
+
+  /**
    * Ajoute des boulons
    */
   addBoulons(amount: number): Character {
