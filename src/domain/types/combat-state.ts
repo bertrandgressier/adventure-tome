@@ -1,5 +1,6 @@
 import type { CombatPhase } from './CombatPhase';
 import type { CombatActionType } from './CombatActionType';
+import type { Attacker } from './Attacker';
 import type { CombatantState, EnemyState, DiceRoll, PendingDamage, CombatConfig } from './combatants';
 import { CombatEventType } from './CombatEventType';
 
@@ -11,7 +12,7 @@ export interface CombatState {
   activeEnemyIndex: number;
   phase: CombatPhase;
   roundNumber: number;
-  currentAttacker: 'player' | 'enemy';
+  currentAttacker: Attacker;
   lastRoll?: DiceRoll;
   pendingDamage?: PendingDamage;
   usedAbilities: Record<string, number>;
@@ -26,7 +27,7 @@ export interface CombatEvent {
   type: CombatEventType;
   timestamp: string;
   round?: number;
-  attacker?: 'player' | 'enemy';
+  attacker?: Attacker;
   roll?: DiceRoll;
   hit?: boolean;
   damage?: number;

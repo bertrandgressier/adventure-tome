@@ -17,6 +17,7 @@ import { Stats, type StatsData } from '@/src/domain/value-objects/Stats';
 import { Inventory } from '@/src/domain/value-objects/Inventory';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
 import { CombatPhase } from '@/src/domain/types/CombatPhase';
+import { TargetRoll } from '@/src/domain/types/TargetRoll';
 import type { EnemyConfig } from '@/src/domain/types/combatants';
 
 type MockStoreState = CombatSlice & {
@@ -193,7 +194,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       expect(currentState.combat?.enemies[0].endurance).toBeLessThan(mockEnemy.enduranceMax);
 
       slice.executeAction(
-        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 1, targetRoll: 'damage' } }
+        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 1, targetRoll: TargetRoll.DAMAGE } }
       );
 
       expect(currentState.combat?.player.chance).toBe(4);
@@ -211,7 +212,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       expect(currentState.combat?.pendingDamage?.amount).toBeGreaterThan(0);
 
       slice.executeAction(
-        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 1, targetRoll: 'hit' } }
+        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 1, targetRoll: TargetRoll.HIT } }
       );
 
       expect(currentState.combat?.player.chance).toBe(4);
@@ -442,7 +443,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
 
       slice.executeAction(
-        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 2, targetRoll: 'damage' } }
+        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 2, targetRoll: TargetRoll.DAMAGE } }
       );
 
       expect(currentState.combat?.player.chance).toBe(initialChance - 2);
@@ -454,7 +455,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
 
       slice.executeAction(
-        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 1, targetRoll: 'damage' } }
+        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 1, targetRoll: TargetRoll.DAMAGE } }
       );
 
       const combatState = currentState.combat;

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CombatService } from './CombatService';
 import type { Enemy } from '../types/combat';
+import { Attacker } from '../types/Attacker';
 
 describe('CombatService', () => {
   describe('rollTwoDice', () => {
@@ -74,7 +75,7 @@ describe('CombatService', () => {
     it('devrait résoudre un round où le joueur touche', () => {
       const round = CombatService.resolveCombatRound(
         1,
-        'player',
+        Attacker.PLAYER,
         12, // player dex
         20, // player endurance
         3,  // weapon damage
@@ -85,7 +86,7 @@ describe('CombatService', () => {
       );
 
       expect(round.roundNumber).toBe(1);
-      expect(round.attacker).toBe('player');
+      expect(round.attacker).toBe(Attacker.PLAYER);
       expect(round.hitDiceRoll).toBe(8);
       expect(round.hitSuccess).toBe(true);
       expect(round.damageDiceRoll).toBe(4);
@@ -98,7 +99,7 @@ describe('CombatService', () => {
     it('devrait résoudre un round où le joueur rate', () => {
       const round = CombatService.resolveCombatRound(
         1,
-        'player',
+        Attacker.PLAYER,
         10,
         20,
         3,
@@ -118,7 +119,7 @@ describe('CombatService', () => {
     it('devrait résoudre un round où l\'ennemi touche', () => {
       const round = CombatService.resolveCombatRound(
         2,
-        'enemy',
+        Attacker.ENEMY,
         12,
         20,
         3,
@@ -128,7 +129,7 @@ describe('CombatService', () => {
         5
       );
 
-      expect(round.attacker).toBe('enemy');
+      expect(round.attacker).toBe(Attacker.ENEMY);
       expect(round.hitSuccess).toBe(true);
       expect(round.weaponDamage).toBe(2); // enemy weapon
       expect(round.totalDamage).toBe(8); // 1 + 5 + 2
@@ -139,7 +140,7 @@ describe('CombatService', () => {
     it('ne devrait pas descendre l\'endurance en dessous de 0', () => {
       const round = CombatService.resolveCombatRound(
         1,
-        'player',
+        Attacker.PLAYER,
         12,
         20,
         10, // grosse arme
@@ -156,7 +157,7 @@ describe('CombatService', () => {
     it('devrait générer des jets aléatoires si non fournis', () => {
       const round = CombatService.resolveCombatRound(
         1,
-        'player',
+        Attacker.PLAYER,
         12,
         20,
         3,

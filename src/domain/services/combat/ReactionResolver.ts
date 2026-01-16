@@ -1,5 +1,7 @@
 import type { CombatState, CombatEvent } from '../../types/combat-v2';
 import { CombatPhase } from '../../types/CombatPhase';
+import { Attacker } from '../../types/Attacker';
+import { TargetRoll } from '../../types/TargetRoll';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
@@ -25,7 +27,7 @@ export class ReactionResolver {
           type: CombatEventType.FLEE,
           timestamp: new Date().toISOString(),
           round: state.roundNumber,
-          attacker: 'player',
+          attacker: Attacker.PLAYER,
           damage: fleeCost,
         },
       ],
@@ -61,7 +63,7 @@ export class ReactionResolver {
         type: CombatEventType.ATTACK_ROLL,
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
-        attacker: 'player',
+        attacker: Attacker.PLAYER,
         roll: diceRoll,
         hit,
       },
@@ -82,7 +84,7 @@ export class ReactionResolver {
         type: CombatEventType.DAMAGE_DEALT,
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
-        attacker: 'player',
+        attacker: Attacker.PLAYER,
         damage,
       });
 
@@ -95,7 +97,7 @@ export class ReactionResolver {
   static resolveSpendChance(
     state: CombatState,
     pointsToSpend: number,
-    targetRoll: 'hit' | 'damage'
+    targetRoll: TargetRoll
   ): ActionResolutionResult {
     if (pointsToSpend <= 0 || pointsToSpend > state.player.chance) {
       return { state, events: [] };
@@ -127,12 +129,12 @@ export class ReactionResolver {
         type: CombatEventType.CHANCE_SPENT,
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
-        attacker: 'player',
+        attacker: Attacker.PLAYER,
         pointsSpent: pointsToSpend,
       },
     ];
 
-    if (targetRoll === 'hit' && state.phase === CombatPhase.PLAYER_ATTACK) {
+    if (targetRoll === TargetRoll.HIT && state.phase === CombatPhase.PLAYER_ATTACK) {
       const dexterite = state.player.dexterite;
       const hit = newRoll.modifiedTotal <= dexterite;
 
@@ -153,7 +155,7 @@ export class ReactionResolver {
           type: CombatEventType.DAMAGE_DEALT,
           timestamp: new Date().toISOString(),
           round: state.roundNumber,
-          attacker: 'player',
+          attacker: Attacker.PLAYER,
           damage,
         });
 
