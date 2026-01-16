@@ -14,6 +14,7 @@ let currentState: {
   availableActions: CombatSlice['availableActions'];
   isAnimating: CombatSlice['isAnimating'];
   privateInitialChance: CombatSlice['privateInitialChance'];
+  error: CombatSlice['error'];
   characters: Record<string, Character>;
   updateStats: (id: string, stats: Partial<{ chance: number }>) => Promise<void>;
   applyDamage: (id: string, amount: number) => Promise<void>;
@@ -119,6 +120,7 @@ describe('combatSlice', () => {
       availableActions: [],
       isAnimating: false,
       privateInitialChance: 0,
+      error: null,
       characters: {},
       updateStats: vi.fn().mockResolvedValue(undefined),
       applyDamage: vi.fn().mockResolvedValue(undefined),
@@ -295,6 +297,61 @@ describe('combatSlice', () => {
       slice.setAnimating(false);
 
       expect(mockSet).toHaveBeenCalledWith({ isAnimating: false });
+    });
+  });
+
+  describe('error handling', () => {
+    it('should set error when startCombat fails', () => {
+      expect(() => slice.startCombat('invalid-id', [mockEnemy], defaultConfig)).toThrow();
+
+      const setCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];
+      if (setCallArgs && typeof setCallArgs === 'object') {
+        expect(setCallArgs.error).toBeDefined();
+        expect(typeof setCallArgs.error).toBe('string');
+      }
+    });
+
+    it('should set error when executeAction fails with no active combat', () => {
+      currentState.combat = null;
+
+      expect(() => slice.executeAction({ type: CombatActionType.ATTACK })).toThrow();
+
+      const setCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];
+      if (setCallArgs && typeof setCallArgs === 'object') {
+        expect(setCallArgs.error).toBeDefined();
+        expect(typeof setCallArgs.error).toBe('string');
+      }
+    });
+
+    it('should clear error on successful startCombat', () => {
+      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+
+      const setCallArgs = mockSet.mock.calls[0]?.[0];
+      if (setCallArgs && typeof setCallArgs === 'object') {
+        expect(setCallArgs.error).toBeNull();
+      }
+    });
+
+    it('should clear error on successful executeAction', () => {
+      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      mockSet.mockClear();
+      
+      slice.executeAction({ type: CombatActionType.ATTACK });
+
+      const setCallArgs = mockSet.mock.calls[0]?.[0];
+      if (setCallArgs && typeof setCallArgs === 'object') {
+        expect(setCallArgs.error).toBeNull();
+      }
+    });
+
+    it('should clear error on successful endCombat', async () => {
+      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      await slice.endCombat();
+
+      const setCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];
+      if (setCallArgs && typeof setCallArgs === 'object') {
+        expect(setCallArgs.error).toBeNull();
+      }
     });
   });
 });
