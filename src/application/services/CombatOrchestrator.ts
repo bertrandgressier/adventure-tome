@@ -4,9 +4,10 @@ import type {
   CombatState,
   CombatantConfig,
   CombatWeapon,
+  CombatEvent,
 } from '@/src/domain/types/combat-v2';
 import type { CharacterService } from './CharacterService';
-import { ITEMS_CATALOG } from '@/src/data/items-catalog';
+import { CombatEventType } from '@/src/domain/types/CombatEventType';
 
 export interface CombatEndSummary {
   result: 'victory' | 'defeat' | 'fled';
@@ -27,7 +28,7 @@ export interface CombatPersistenceChanges {
 export class CombatOrchestrator {
   constructor(
     private characterService: CharacterService,
-    private getItem: (itemId: string) => CatalogItem | undefined
+    private findItemByName: (name: string) => CatalogItem | undefined
   ) {}
 
   /**
@@ -81,9 +82,7 @@ export class CombatOrchestrator {
    * Cherche une arme dans le catalogue par son nom
    */
   private findWeaponInCatalog(weaponName: string): CatalogItem | undefined {
-    return ITEMS_CATALOG.find(
-      (item: CatalogItem) => item.type === 'weapon' && item.name === weaponName
-    );
+    return this.findItemByName(weaponName);
   }
 
   /**
@@ -174,11 +173,18 @@ export class CombatOrchestrator {
     };
   }
 
-  private getConsumedItemsFromEvents(events: Array<{ type: string; itemId?: string }>): Array<{ itemId: string; quantity: number }> {
-    const itemUseEvents = events.filter((e: { type: string; itemId?: string }) => e.type === 'item_used' && e.itemId);
+  /**
+   * Extrait les items consommés depuis les événements de combat
+   * NOTE: Les items utilisables en combat ne sont pas encore implémentés dans CombatEngine
+   * Cette méthode est prête pour l'implémentation future
+   */
+  private getConsumedItemsFromEvents(events: CombatEvent[]): Array<{ itemId: string; quantity: number }> {
+    // TODO: Add 'item_used' to CombatEventType when implementing items in combat
+    // Filter for item_used events (to be implemented in CombatEngine)
+    const itemUseEvents = events.filter((e) => (e.type as string) === 'item_used' && 'itemId' in e);
     const consumed = new Map<string, number>();
     for (const event of itemUseEvents) {
-      if (event.itemId) {
+      if ('itemId' in event && typeof event.itemId === 'string') {
         const current = consumed.get(event.itemId) ?? 0;
         consumed.set(event.itemId, current + 1);
       }
@@ -186,29 +192,38 @@ export class CombatOrchestrator {
     return Array.from(consumed.entries()).map(([itemId, quantity]) => ({ itemId, quantity }));
   }
 
-  private getHpGainedFromAbilities(events: Array<{ type: string; healAmount?: number }>): number | undefined {
+  /**
+   * Calcule les HP gagnés via les capacités d'armes (ex: Marteau de la Terre)
+   */
+  private getHpGainedFromAbilities(events: CombatEvent[]): number | undefined {
     let totalGained = 0;
     for (const event of events) {
-      if (event.type === 'weapon_ability' && event.healAmount) {
+      if (event.type === CombatEventType.WEAPON_ABILITY && event.healAmount) {
         totalGained += event.healAmount;
       }
     }
     return totalGained > 0 ? totalGained : undefined;
   }
 
+  /**
+   * Détermine le résultat du combat (victoire, défaite, fuite)
+   */
   private determineCombatResult(state: CombatState): 'victory' | 'defeat' | 'fled' {
     if (state.phase === 'victory') return 'victory';
     if (state.phase === 'defeat') {
-      const fleeEvent = state.events.find((e: { type: string; success?: boolean }) => e.type === 'flee' && e.success);
+      const fleeEvent = state.events.find((e) => e.type === CombatEventType.FLEE && 'success' in e && e.success);
       return fleeEvent ? 'fled' : 'defeat';
     }
     return 'defeat';
   }
 
-  private calculateTotalDamageDealt(events: Array<{ type: string; damage?: number }>): number {
+  /**
+   * Calcule le total des dégâts infligés par le joueur
+   */
+  private calculateTotalDamageDealt(events: CombatEvent[]): number {
     let total = 0;
     for (const event of events) {
-      if (event.type === 'damage_dealt' && event.damage) {
+      if (event.type === CombatEventType.DAMAGE_DEALT && event.damage && event.attacker === 'player') {
         total += event.damage;
       }
     }

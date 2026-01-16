@@ -345,8 +345,8 @@ describe('CombatOrchestrator', () => {
       );
 
       const extraEvents: CombatEvent[] = [
-        { type: CombatEventType.DAMAGE_DEALT, damage: 8, timestamp: new Date().toISOString() },
-        { type: CombatEventType.DAMAGE_DEALT, damage: 5, timestamp: new Date().toISOString() },
+        { type: CombatEventType.DAMAGE_DEALT, damage: 8, timestamp: new Date().toISOString(), attacker: 'player' },
+        { type: CombatEventType.DAMAGE_DEALT, damage: 5, timestamp: new Date().toISOString(), attacker: 'player' },
       ];
 
       const finalState: CombatState = {
