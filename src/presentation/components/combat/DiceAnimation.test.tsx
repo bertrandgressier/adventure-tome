@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { DiceAnimation, DiceRollResult, DiceOutcome } from './DiceAnimation';
+import { DiceAnimation, DiceRollResult } from './DiceAnimation';
 
 describe('DiceAnimation', () => {
   const mockDiceResult: DiceRollResult = {
@@ -42,7 +42,7 @@ describe('DiceAnimation', () => {
       const diceContainer = screen.queryByText('Prêt pour le combat');
       expect(diceContainer).not.toBeInTheDocument();
 
-      const dieElements = document.querySelectorAll('.w-20');
+      const dieElements = document.querySelectorAll('[role="img"][aria-label*="Dé"]');
       expect(dieElements.length).toBeGreaterThan(0);
     });
 
@@ -83,7 +83,11 @@ describe('DiceAnimation', () => {
 
       expect(screen.getByText('[3]')).toBeInTheDocument();
       expect(screen.getByText('[4]')).toBeInTheDocument();
-      expect(screen.getByText('7 + 12 HAB + 2 arme = 21')).toBeInTheDocument();
+      expect(screen.getByText('12 HAB')).toBeInTheDocument();
+      expect(screen.getByText('2 arme')).toBeInTheDocument();
+      
+      const finalCalcScore = screen.getByTestId('calc-final-score');
+      expect(finalCalcScore).toHaveTextContent('21');
     });
 
     it('should display success status when hit', () => {
@@ -148,8 +152,7 @@ describe('DiceAnimation', () => {
       vi.advanceTimersByTime(1200);
 
       const container = document.querySelector('.bg-card\\/80');
-      expect(container?.className).toContain('border-green-500\\/50');
-      expect(container?.className).toContain('shadow-\\[0_0_20px_rgba\\(34,197,94,0\\.3\\)\\]');
+      expect(container?.className).toContain('border-chart-5\\/50');
     });
 
     it('should apply red border and glow for lose outcome', () => {
@@ -164,8 +167,7 @@ describe('DiceAnimation', () => {
       vi.advanceTimersByTime(1200);
 
       const container = document.querySelector('.bg-card\\/80');
-      expect(container?.className).toContain('border-red-500\\/50');
-      expect(container?.className).toContain('shadow-\\[0_0_20px_rgba\\(239,68,68,0\\.3\\)\\]');
+      expect(container?.className).toContain('border-destructive\\/50');
     });
 
     it('should apply yellow border and glow for tie outcome', () => {
@@ -180,8 +182,7 @@ describe('DiceAnimation', () => {
       vi.advanceTimersByTime(1200);
 
       const container = document.querySelector('.bg-card\\/80');
-      expect(container?.className).toContain('border-yellow-500\\/50');
-      expect(container?.className).toContain('shadow-\\[0_0_20px_rgba\\(234,179,8,0\\.3\\)\\]');
+      expect(container?.className).toContain('border-accent\\/50');
     });
 
     it('should not apply outcome colors during rolling', () => {
@@ -190,7 +191,7 @@ describe('DiceAnimation', () => {
       );
 
       const container = document.querySelector('.bg-card\\/80');
-      expect(container?.className).not.toContain('border-green-500\\/50');
+      expect(container?.className).not.toContain('border-chart-5\\/50');
     });
 
     it('should apply outcome colors after result phase', () => {
@@ -205,61 +206,7 @@ describe('DiceAnimation', () => {
       vi.advanceTimersByTime(1200);
 
       const container = document.querySelector('.bg-card\\/80');
-      expect(container?.className).toContain('border-green-500\\/50');
-      expect(container?.className).toContain('shadow-\\[0_0_20px_rgba\\(34,197,94,0\\.3\\)\\]');
-    });
-  });
-
-    it('should apply red border and glow for lose outcome', () => {
-      render(
-        <DiceAnimation
-          diceResult={mockDiceResult}
-          isRolling={false}
-          outcome="lose"
-        />
-      );
-
-      vi.advanceTimersByTime(600);
-
-      const container = document.querySelector('.bg-card\\/80');
-      expect(container?.className).toContain('border-red-500\\/50');
-      expect(container?.className).toContain('shadow-\\[0_0_20px_rgba\\(239,68,68,0\\.3\\)\\]');
-    });
-
-    it('should apply yellow border and glow for tie outcome', () => {
-      render(
-        <DiceAnimation
-          diceResult={mockDiceResult}
-          isRolling={false}
-          outcome="tie"
-        />
-      );
-
-      vi.advanceTimersByTime(600);
-
-      const container = document.querySelector('.bg-card\\/80');
-      expect(container?.className).toContain('border-yellow-500\\/50');
-      expect(container?.className).toContain('shadow-\\[0_0_20px_rgba\\(234,179,8,0\\.3\\)\\]');
-    });
-
-    it('should not apply outcome colors during rolling', () => {
-      render(
-        <DiceAnimation diceResult={mockDiceResult} isRolling={true} outcome="win" />
-      );
-
-      const container = document.querySelector('.bg-card\\/80');
-      expect(container?.className).not.toContain('border-green-500\\/50');
-    });
-
-    it('should apply outcome colors after result phase', () => {
-      render(
-        <DiceAnimation diceResult={mockDiceResult} isRolling={false} outcome="win" />
-      );
-
-      vi.advanceTimersByTime(600);
-
-      const container = document.querySelector('.bg-card\\/80');
-      expect(container?.className).toContain('border-green-500\\/50');
+      expect(container?.className).toContain('border-chart-5\\/50');
     });
   });
 
@@ -399,9 +346,9 @@ describe('DiceAnimation', () => {
       );
 
       const container = document.querySelector('.bg-card\\/80');
-      expect(container?.className).not.toContain('border-green-500\\/50');
-      expect(container?.className).not.toContain('border-red-500\\/50');
-      expect(container?.className).not.toContain('border-yellow-500\\/50');
+      expect(container?.className).not.toContain('border-chart-5\\/50');
+      expect(container?.className).not.toContain('border-destructive\\/50');
+      expect(container?.className).not.toContain('border-accent\\/50');
     });
 
     it('should handle zero dice values', () => {

@@ -38,32 +38,54 @@ export function DiceAnimation({
     : false;
 
   useEffect(() => {
+    // Handle cleanup and early returns first
+    if (animationRef.current) {
+      clearTimeout(animationRef.current);
+      animationRef.current = null;
+    }
+
+    // Reset to idle when no dice result and not rolling
     if (!diceResult && !isRolling) {
-      setPhase('idle');
-      setShowOutcome(false);
+      if (phase !== 'idle' || showOutcome) {
+        setTimeout(() => {
+          setPhase('idle');
+          setShowOutcome(false);
+        }, 0);
+      }
       return;
     }
 
-    if (diceResult && !isRolling && phase !== 'result') {
-      setPhase('result');
+    // Direct transition to result when not rolling (for static display)
+    if (diceResult && !isRolling) {
+      if (phase !== 'result') {
+        setTimeout(() => setPhase('result'), 0);
+      }
 
       const outcomeDelay = prefersReducedMotion ? 100 : 500;
       const completeDelay = prefersReducedMotion ? 100 : 300;
 
-      setTimeout(() => {
+      const completeTimer = setTimeout(() => {
         if (onAnimationComplete) {
           onAnimationComplete();
         }
       }, completeDelay);
 
-      setTimeout(() => {
+      const outcomeTimer = setTimeout(() => {
         setShowOutcome(true);
       }, outcomeDelay);
+
+      return () => {
+        clearTimeout(completeTimer);
+        clearTimeout(outcomeTimer);
+      };
     }
 
-    if (diceResult && isRolling && phase === 'idle') {
-      setPhase('rolling');
-      setShowOutcome(false);
+    // Start rolling animation
+    if (diceResult && isRolling && (phase === 'idle' || phase === 'result')) {
+      setTimeout(() => {
+        setPhase('rolling');
+        setShowOutcome(false);
+      }, 0);
 
       const animationDuration = prefersReducedMotion ? 100 : 800;
 
@@ -81,24 +103,24 @@ export function DiceAnimation({
           setShowOutcome(true);
         }, outcomeDelay);
       }, animationDuration);
-    }
 
-    return () => {
-      if (animationRef.current) {
-        clearTimeout(animationRef.current);
-      }
-    };
-  }, [diceResult, isRolling, phase, onAnimationComplete, prefersReducedMotion]);
+      return () => {
+        if (animationRef.current) {
+          clearTimeout(animationRef.current);
+        }
+      };
+    }
+  }, [diceResult, isRolling, phase, onAnimationComplete, prefersReducedMotion, showOutcome]);
 
   const getOutcomeColor = (): string => {
     if (!showOutcome || !outcome) return '';
     switch (outcome) {
       case 'win':
-        return 'border-green-500/50 shadow-[0_0_20px_rgba(34,197,94,0.3)]';
+        return 'border-chart-5/50 shadow-[0_0_20px_hsl(var(--chart-5)/0.3)]';
       case 'lose':
-        return 'border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.3)]';
+        return 'border-destructive/50 shadow-[0_0_20px_hsl(var(--destructive)/0.3)]';
       case 'tie':
-        return 'border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.3)]';
+        return 'border-accent/50 shadow-[0_0_20px_hsl(var(--accent)/0.3)]';
     }
   };
 
@@ -178,8 +200,8 @@ export function DiceAnimation({
                   className={cn(
                     'text-lg font-bold',
                     outcome === 'win' || diceResult.success
-                      ? 'text-green-500'
-                      : 'text-red-500'
+                      ? 'text-chart-5'
+                      : 'text-destructive'
                   )}
                   role="status"
                   aria-live="polite"
@@ -206,7 +228,7 @@ function Die({ value, isRolling, prefersReducedMotion }: DieProps) {
   return (
     <div
       className={cn(
-        'w-20 h-20 bg-gradient-to-br from-card to-card/80 border-2 border-primary/40 rounded-lg flex items-center justify-center shadow-lg',
+        'w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-card to-card/80 border-2 border-primary/40 rounded-lg flex items-center justify-center shadow-lg',
         !prefersReducedMotion && isRolling && 'animate-dice-bounce',
         value !== null && 'border-primary/60'
       )}
@@ -214,11 +236,11 @@ function Die({ value, isRolling, prefersReducedMotion }: DieProps) {
       aria-label={`Dé ${value ?? '?'}`}
     >
       {value !== null ? (
-        <span className="text-4xl font-cinzel text-primary font-bold">
+        <span className="text-3xl sm:text-4xl font-cinzel text-primary font-bold">
           {value}
         </span>
       ) : (
-        <span className="text-2xl text-muted-foreground">?</span>
+        <span className="text-xl sm:text-2xl text-muted-foreground">?</span>
       )}
     </div>
   );
