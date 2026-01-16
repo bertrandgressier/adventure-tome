@@ -1,7 +1,8 @@
 'use client';
 
 import type { CombatantState, EnemyState } from '@/src/domain/types/combat-v2';
-import { getCombatantHealthInfo } from './combatUIHelpers';
+import { getCombatantHealthInfo, isEnemy } from './combatUIHelpers';
+import { cn } from '@/lib/utils';
 
 export type CardVisualState = 'idle' | 'active' | 'damaged' | 'healing' | 'dead';
 
@@ -10,10 +11,6 @@ export interface CombatantCardProps {
   type: 'player' | 'enemy';
   isActive: boolean;
   lastDamage?: number;
-}
-
-function isEnemy(combatant: CombatantState | EnemyState): combatant is EnemyState {
-  return 'isBoss' in combatant;
 }
 
 export function CombatantCard({
@@ -25,12 +22,36 @@ export function CombatantCard({
   const healthInfo = getCombatantHealthInfo(combatant.endurance, combatant.enduranceMax);
   const visualState = getVisualState(isActive, healthInfo.status, lastDamage);
 
+  // Message d'accessibilité pour les lecteurs d'écran
+  const getAriaLiveMessage = (): string | undefined => {
+    if (visualState === 'damaged' && lastDamage) {
+      return `${combatant.name} subit ${lastDamage} points de dégâts`;
+    }
+    if (visualState === 'healing' && lastDamage) {
+      return `${combatant.name} récupère ${Math.abs(lastDamage)} points de vie`;
+    }
+    if (visualState === 'dead') {
+      return `${combatant.name} est vaincu`;
+    }
+    return undefined;
+  };
+
   return (
     <div
-      className={`bg-card/50 border border-border/50 rounded-lg p-4 min-h-[120px] transition-all duration-300 ${getVisualClasses(
-        visualState
-      )}`}
+      className={cn(
+        'bg-card/50 border border-border/50 rounded-lg p-4 min-h-[120px] transition-all duration-300',
+        getVisualClasses(visualState)
+      )}
+      role="region"
+      aria-label={`Carte de ${type === 'player' ? 'joueur' : 'ennemi'}: ${combatant.name}`}
     >
+      {/* Annonces pour lecteurs d'écran */}
+      {getAriaLiveMessage() && (
+        <div className="sr-only" aria-live="assertive" aria-atomic="true">
+          {getAriaLiveMessage()}
+        </div>
+      )}
+
       <div className="flex justify-between items-start mb-2">
         <div>
           <h3 className="font-cinzel text-lg text-primary">{combatant.name}</h3>
@@ -39,7 +60,9 @@ export function CombatantCard({
           </p>
         </div>
         {type === 'enemy' && isEnemy(combatant) && combatant.isBoss && (
-          <span className="text-xs text-destructive font-bold">BOSS</span>
+          <span className="text-xs text-destructive font-bold" aria-label="Ennemi boss">
+            BOSS
+          </span>
         )}
       </div>
 
@@ -47,7 +70,7 @@ export function CombatantCard({
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">PV</span>
           <span
-            className={`font-mono ${healthInfo.textColorClass}`}
+            className={cn('font-mono', healthInfo.textColorClass)}
             aria-label={`Points de vie: ${combatant.endurance} sur ${combatant.enduranceMax}`}
           >
             {combatant.endurance}/{combatant.enduranceMax}
@@ -56,7 +79,7 @@ export function CombatantCard({
 
         <div className="h-2 bg-input/50 rounded-full overflow-hidden">
           <div
-            className={`h-full transition-all duration-300 ${healthInfo.barColorClass}`}
+            className={cn('h-full transition-all duration-300', healthInfo.barColorClass)}
             style={{ width: `${healthInfo.healthPercent}%` }}
             role="progressbar"
             aria-valuenow={combatant.endurance}
