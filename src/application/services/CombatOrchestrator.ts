@@ -1,5 +1,4 @@
 import type { Character } from '@/src/domain/entities/Character';
-import type { CatalogItem } from '@/src/domain/types/items';
 import type {
   CombatState,
   CombatantConfig,
@@ -9,30 +8,46 @@ import type {
 import type { CharacterService } from './CharacterService';
 import { CombatEventType } from '@/src/domain/types/CombatEventType';
 
+/**
+ * Résumé de fin de combat pour l'UI
+ */
 export interface CombatEndSummary {
   result: 'victory' | 'defeat' | 'fled';
   rounds: number;
   damageDealt: number;
   damageTaken: number;
-  itemsConsumed: Array<{ itemId: string; quantity: number }>;
   chanceUsed: number;
 }
 
+/**
+ * Changements à persister après un combat
+ */
 export interface CombatPersistenceChanges {
   damageTaken: number;
   newChance: number;
-  itemsToRemove: Array<{ itemId: string; quantity: number }>;
-  hpGained?: number;
+  hpGained?: number; // HP gagnés via capacités d'armes (Marteau de la Terre)
 }
 
+/**
+ * CombatOrchestrator - Application Service
+ * 
+ * Orchestre le système de combat V2 entre :
+ * - CombatEngine (Domain - logique pure)
+ * - CharacterService (Application - persistence)
+ * - combatSlice (Presentation - état UI)
+ * 
+ * Responsabilités :
+ * - Préparer les données du personnage pour le combat
+ * - Calculer les modifications à persister
+ * - Appliquer les changements au personnage
+ * - Générer le résumé de fin de combat
+ */
 export class CombatOrchestrator {
-  constructor(
-    private characterService: CharacterService,
-    private findItemByName: (name: string) => CatalogItem | undefined
-  ) {}
+  constructor(private characterService: CharacterService) {}
 
   /**
    * Prépare les données du personnage pour initialiser un combat
+   * Extrait les statistiques et l'arme équipée
    */
   prepareCombatantFromCharacter(character: Character): CombatantConfig {
     const stats = character.getStats();
@@ -44,15 +59,16 @@ export class CombatOrchestrator {
       endurance: stats.pointsDeVieActuels,
       enduranceMax: stats.pointsDeVieMax,
       chance: stats.chance,
-      weapon: this.extractWeaponFromCharacter(inventory),
+      weapon: this.extractWeaponFromCharacter(inventory.weapon),
     };
   }
 
   /**
-   * Extrait l'arme équipée avec ses capacités légendaires
+   * Extrait l'arme équipée du personnage
+   * Génère un ID basé sur le nom (cohérent avec combatSlice)
    */
-  private extractWeaponFromCharacter(inventory: { weapon?: { name: string; attackPoints: number } }): CombatWeapon {
-    if (!inventory.weapon) {
+  private extractWeaponFromCharacter(weapon: { name: string; attackPoints: number } | undefined): CombatWeapon {
+    if (!weapon) {
       return {
         id: 'default-fist',
         name: 'Poings',
@@ -60,102 +76,57 @@ export class CombatOrchestrator {
       };
     }
 
-    const weaponName = inventory.weapon.name;
-    const weaponCatalogItem = this.findWeaponInCatalog(weaponName);
-
+    // Générer un ID basé sur le nom (même pattern que combatSlice.extractWeapon)
     return {
-      id: weaponCatalogItem?.id ?? `weapon-${weaponName.replace(/\s+/g, '-').toLowerCase()}`,
-      name: weaponName,
-      bonus: inventory.weapon.attackPoints,
-      ability: weaponCatalogItem?.abilities?.[0] ? {
-        id: weaponCatalogItem.abilities[0].id,
-        name: weaponCatalogItem.abilities[0].name,
-        trigger: weaponCatalogItem.abilities[0].trigger,
-        effect: this.mapWeaponEffect(weaponCatalogItem.abilities[0].effect),
-        usesPerCombat: weaponCatalogItem.abilities[0].usesPerCombat,
-        costChance: weaponCatalogItem.abilities[0].costChance,
-      } : undefined,
+      id: `weapon-${weapon.name.replace(/\s+/g, '-').toLowerCase()}`,
+      name: weapon.name,
+      bonus: weapon.attackPoints,
     };
   }
 
   /**
-   * Cherche une arme dans le catalogue par son nom
-   */
-  private findWeaponInCatalog(weaponName: string): CatalogItem | undefined {
-    return this.findItemByName(weaponName);
-  }
-
-  /**
-   * Convertit l'effet d'un WeaponEffectDefinition en effet de combat
-   */
-  private mapWeaponEffect(effect: import('@/src/domain/types/items').WeaponEffectDefinition): import('@/src/domain/types/combatants').WeaponEffect {
-    switch (effect.type) {
-      case 'extra_attack':
-        return { type: 'extra_attack' };
-      case 'heal_on_kill':
-        return { type: 'heal_on_kill', amount: effect.amount };
-      case 'convert_miss_to_hit':
-        return { type: 'convert_miss_to_hit' };
-      case 'bonus_damage':
-        return {
-          type: 'bonus_damage',
-          amount: effect.amount,
-          firstAttackOnly: effect.firstAttackOnly,
-        };
-      case 'negate_damage':
-        return { type: 'negate_damage' };
-    }
-  }
-
-  /**
    * Calcule les changements à persister à la fin d'un combat
+   * Compare l'état initial et final pour déterminer les modifications
    */
   calculatePersistenceChanges(
     initialState: CombatState,
     finalState: CombatState
   ): CombatPersistenceChanges {
     const damageTaken = initialState.player.endurance - finalState.player.endurance;
-
-    const itemsToRemove = this.getConsumedItemsFromEvents(finalState.events);
     const hpGained = this.getHpGainedFromAbilities(finalState.events);
 
     return {
       damageTaken: Math.max(0, damageTaken - (hpGained ?? 0)),
       newChance: finalState.player.chance,
-      itemsToRemove,
       hpGained,
     };
   }
 
   /**
    * Persiste les changements du combat au personnage
+   * Applique les dégâts et met à jour la chance
    */
   async persistCombatChanges(
     characterId: string,
     changes: CombatPersistenceChanges
   ): Promise<void> {
+    // 1. Appliquer les dégâts
     if (changes.damageTaken > 0) {
       await this.characterService.applyDamage(characterId, changes.damageTaken);
     }
 
+    // 2. Mettre à jour la chance si elle a changé
     const character = await this.characterService.getCharacter(characterId);
     if (character && character.getStats().chance !== changes.newChance) {
       await this.characterService.updateCharacterStats(characterId, {
         chance: changes.newChance,
       });
     }
-
-    for (const item of changes.itemsToRemove) {
-      await this.characterService.removeItemQuantity(
-        characterId,
-        item.itemId,
-        item.quantity
-      );
-    }
   }
 
   /**
    * Génère un résumé de fin de combat pour l'UI
+   * Calcule les statistiques globales du combat
    */
   generateCombatSummary(
     initialState: CombatState,
@@ -168,28 +139,8 @@ export class CombatOrchestrator {
       rounds: finalState.roundNumber,
       damageDealt: this.calculateTotalDamageDealt(finalState.events),
       damageTaken: initialState.player.endurance - finalState.player.endurance,
-      itemsConsumed: this.getConsumedItemsFromEvents(finalState.events),
       chanceUsed,
     };
-  }
-
-  /**
-   * Extrait les items consommés depuis les événements de combat
-   * NOTE: Les items utilisables en combat ne sont pas encore implémentés dans CombatEngine
-   * Cette méthode est prête pour l'implémentation future
-   */
-  private getConsumedItemsFromEvents(events: CombatEvent[]): Array<{ itemId: string; quantity: number }> {
-    // TODO: Add 'item_used' to CombatEventType when implementing items in combat
-    // Filter for item_used events (to be implemented in CombatEngine)
-    const itemUseEvents = events.filter((e) => (e.type as string) === 'item_used' && 'itemId' in e);
-    const consumed = new Map<string, number>();
-    for (const event of itemUseEvents) {
-      if ('itemId' in event && typeof event.itemId === 'string') {
-        const current = consumed.get(event.itemId) ?? 0;
-        consumed.set(event.itemId, current + 1);
-      }
-    }
-    return Array.from(consumed.entries()).map(([itemId, quantity]) => ({ itemId, quantity }));
   }
 
   /**

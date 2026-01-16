@@ -63,10 +63,9 @@ describe('CombatOrchestrator', () => {
       getCharacter: vi.fn(),
       applyDamage: vi.fn(),
       updateCharacterStats: vi.fn(),
-      removeItemQuantity: vi.fn(),
     } as unknown as CharacterService;
 
-    orchestrator = new CombatOrchestrator(mockCharacterService, vi.fn());
+    orchestrator = new CombatOrchestrator(mockCharacterService);
   });
 
   describe('prepareCombatantFromCharacter', () => {
@@ -166,33 +165,6 @@ describe('CombatOrchestrator', () => {
       expect(changes.newChance).toBe(3);
     });
 
-    it('should track items consumed from events', () => {
-      const initialState = CombatEngine.createInitialState(
-        'char-id',
-        {
-          name: 'Hero',
-          dexterite: 7,
-          endurance: 30,
-          enduranceMax: 32,
-          chance: 5,
-          weapon: { id: 'weapon-epée', name: 'Épée', bonus: 3 },
-        },
-        [mockEnemy],
-        defaultConfig
-      );
-
-      const itemEvents: CombatEvent[] = [
-        { type: 'item_used' as CombatEventType, itemId: 'potion', timestamp: new Date().toISOString() },
-        { type: 'item_used' as CombatEventType, itemId: 'potion', timestamp: new Date().toISOString() },
-      ] as unknown as CombatEvent[];
-
-      const finalState: CombatState = { ...initialState, events: [...initialState.events, ...itemEvents] };
-
-      const changes = orchestrator.calculatePersistenceChanges(initialState, finalState);
-
-      expect(changes.itemsToRemove).toContainEqual({ itemId: 'potion', quantity: 2 });
-    });
-
     it('should account for HP gained from abilities', () => {
       const initialState = CombatEngine.createInitialState(
         'char-id',
@@ -265,7 +237,6 @@ describe('CombatOrchestrator', () => {
       const changes: CombatPersistenceChanges = {
         damageTaken: 10,
         newChance: 5,
-        itemsToRemove: [],
       };
 
       await orchestrator.persistCombatChanges('char-id', changes);
@@ -277,7 +248,6 @@ describe('CombatOrchestrator', () => {
       const changes: CombatPersistenceChanges = {
         damageTaken: 0,
         newChance: 3,
-        itemsToRemove: [],
       };
 
       mockCharacterService.getCharacter = vi.fn().mockResolvedValue(createMockCharacter({
@@ -297,7 +267,6 @@ describe('CombatOrchestrator', () => {
       const changes: CombatPersistenceChanges = {
         damageTaken: 0,
         newChance: 5,
-        itemsToRemove: [],
       };
 
       mockCharacterService.getCharacter = vi.fn().mockResolvedValue(createMockCharacter({
@@ -311,20 +280,6 @@ describe('CombatOrchestrator', () => {
       await orchestrator.persistCombatChanges('char-id', changes);
 
       expect(mockCharacterService.updateCharacterStats).not.toHaveBeenCalled();
-    });
-
-    it('should remove consumed items', async () => {
-      const changes: CombatPersistenceChanges = {
-        damageTaken: 0,
-        newChance: 5,
-        itemsToRemove: [
-          { itemId: 'potion', quantity: 2 },
-        ],
-      };
-
-      await orchestrator.persistCombatChanges('char-id', changes);
-
-      expect(mockCharacterService.removeItemQuantity).toHaveBeenCalledWith('char-id', 'potion', 2);
     });
   });
 
@@ -363,7 +318,6 @@ describe('CombatOrchestrator', () => {
       expect(summary.rounds).toBe(3);
       expect(summary.damageTaken).toBe(5);
       expect(summary.damageDealt).toBe(13);
-      expect(summary.itemsConsumed).toEqual([]);
       expect(summary.chanceUsed).toBe(1);
     });
 
