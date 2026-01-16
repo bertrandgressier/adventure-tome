@@ -4,7 +4,13 @@ import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
-import type { CombatState } from '@/src/domain/types/combat-v2';
+import type { CombatState, CombatActionType } from '@/src/domain/types/combat-v2';
+import {
+  getCombatantHealthInfo,
+  wouldBeLethal,
+  getActionMetadata,
+  isEnemy,
+} from './combatUIHelpers';
 
 export interface CombatArenaProps {
   characterId: string;
@@ -100,9 +106,7 @@ function CombatantCard({
     );
   }
 
-  const healthPercent = (combatant.endurance / combatant.enduranceMax) * 100;
-  const isCritical = healthPercent <= 25 && healthPercent > 0;
-  const isDead = healthPercent <= 0;
+  const healthInfo = getCombatantHealthInfo(combatant.endurance, combatant.enduranceMax);
 
   return (
     <div
@@ -117,7 +121,7 @@ function CombatantCard({
             DEX: {combatant.dexterite}
           </p>
         </div>
-        {type === 'enemy' && 'isBoss' in combatant && combatant.isBoss && (
+        {type === 'enemy' && isEnemy(combatant) && combatant.isBoss && (
           <span className="text-xs text-destructive font-bold">BOSS</span>
         )}
       </div>
@@ -125,29 +129,15 @@ function CombatantCard({
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">PV</span>
-          <span
-            className={`font-mono ${
-              isDead
-                ? 'text-red-600 drop-shadow-[0_0_2px_rgba(220,38,38,0.8)]'
-                : isCritical
-                  ? 'text-orange-500 drop-shadow-[0_0_2px_rgba(249,115,22,0.8)]'
-                  : 'text-primary'
-            }`}
-          >
+          <span className={`font-mono ${healthInfo.textColorClass}`}>
             {combatant.endurance}/{combatant.enduranceMax}
           </span>
         </div>
 
         <div className="h-2 bg-input/50 rounded-full overflow-hidden">
           <div
-            className={`h-full transition-all duration-300 ${
-              isDead
-                ? 'bg-red-600'
-                : isCritical
-                  ? 'bg-orange-500'
-                  : 'bg-primary'
-            }`}
-            style={{ width: `${Math.max(0, healthPercent)}%` }}
+            className={`h-full transition-all duration-300 ${healthInfo.barColorClass}`}
+            style={{ width: `${healthInfo.healthPercent}%` }}
           />
         </div>
 
@@ -223,12 +213,12 @@ function DamageIndicator({
     return null;
   }
 
-  const wouldKill = playerHealth - damage <= 0;
+  const isLethal = wouldBeLethal(playerHealth, damage);
 
   return (
     <div
       className={`fixed inset-0 z-40 pointer-events-none ${
-        wouldKill ? 'bg-red-900/30' : 'bg-red-500/20'
+        isLethal ? 'bg-red-900/30' : 'bg-red-500/20'
       } animate-damage`}
     >
       <div className="absolute inset-0 flex items-center justify-center">
@@ -237,7 +227,7 @@ function DamageIndicator({
             -{damage}
           </div>
           <div className="text-lg text-white/80">
-            {wouldKill ? 'MORT !' : 'DÉGÂTS !'}
+            {isLethal ? 'MORT !' : 'DÉGÂTS !'}
           </div>
         </div>
       </div>
@@ -252,18 +242,17 @@ function ActionPanel({ characterId }: { characterId: string }) {
   const combat = useCharacterStore((state) => state.combat);
   const endCombat = useCharacterStore((state) => state.endCombat);
 
-  const handleAction = (actionType: string) => {
+  const handleAction = (actionType: CombatActionType) => {
     if (isAnimating) return;
 
-    if (actionType === 'attack') {
-      executeAction({ type: 'attack' });
-    } else if (actionType === 'flee') {
-      if (confirm('Fuir le combat ?')) {
-        executeAction({ type: 'flee' });
-      }
-    } else if (actionType === 'use_item') {
-    } else if (actionType === 'spend_chance') {
-    } else if (actionType === 'weapon_ability') {
+    // Délégation au store sans logique complexe
+    executeAction({ type: actionType });
+  };
+
+  const handleFlee = () => {
+    if (isAnimating) return;
+    if (confirm('Fuir le combat ?')) {
+      executeAction({ type: 'flee' });
     }
   };
 
@@ -306,24 +295,14 @@ function ActionPanel({ characterId }: { characterId: string }) {
   return (
     <div className="grid grid-cols-2 gap-2">
       {availableActions.map((action) => {
-        const labels: Record<string, { label: string; icon: string }> = {
-          attack: { label: 'Attaquer', icon: '⚔️' },
-          use_item: { label: 'Objet', icon: '🎒' },
-          spend_chance: { label: 'CHANCE', icon: '🍀' },
-          weapon_ability: { label: 'Pouvoir', icon: '✨' },
-          flee: { label: 'Fuir', icon: '🏃' },
-          reroll: { label: 'Relancer', icon: '🎲' },
-          block: { label: 'Bloquer', icon: '🛡️' },
-        };
-
-        const actionInfo = labels[action.action.type] || { label: action.action.type, icon: '?' };
+        const actionInfo = getActionMetadata(action.action.type);
 
         return (
           <Button
             key={action.action.type}
             variant={action.action.type === 'flee' ? 'outline' : 'default'}
             disabled={!action.enabled || isAnimating}
-            onClick={() => handleAction(action.action.type)}
+            onClick={() => action.action.type === 'flee' ? handleFlee() : handleAction(action.action.type as CombatActionType)}
             className="btn-mobile h-14"
             title={action.disabledReason}
           >
