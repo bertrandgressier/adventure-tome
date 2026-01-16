@@ -19,6 +19,8 @@ import CharacterNotes from '@/src/presentation/components/CharacterNotes';
 import DiceRoller from '@/components/character/DiceRoller';
 import { AddItemModal } from '@/src/presentation/components/AddItemModal';
 import { GameModeBadge } from '@/components/ui/game-mode-badge';
+import { CombatArena } from '@/src/presentation/components/combat';
+import type { EnemyConfig, CombatConfig } from '@/src/domain/types/combat-v2';
 
 export default function CharacterDetail() {
   const router = useRouter();
@@ -40,6 +42,7 @@ export default function CharacterDetail() {
   // Modal states
   const [showItemModal, setShowItemModal] = useState(false);
   const [showDiceModal, setShowDiceModal] = useState(false);
+  const [showCombatV2, setShowCombatV2] = useState(false);
 
 
 
@@ -137,6 +140,42 @@ export default function CharacterDetail() {
     }
   };
 
+  // Combat V2 handlers
+  const startCombat = useCharacterStore((state) => state.startCombat);
+
+  const handleStartCombatV2 = () => {
+    if (!character) return;
+
+    // Configuration de test avec un ennemi simple
+    const testEnemy: EnemyConfig = {
+      name: 'Gobelin (Test)',
+      dexterite: 6,
+      endurance: 8,
+      enduranceMax: 8,
+      chance: 0,
+      weapon: { id: 'dagger', name: 'Dague', bonus: 1 },
+      isBoss: false,
+    };
+
+    const config: CombatConfig = {
+      allowFlee: true,
+      maxEnemies: 1,
+      damageFormula: 'standard',
+      isSurprise: false,
+    };
+
+    try {
+      startCombat(id, [testEnemy], config);
+      setShowCombatV2(true);
+    } catch (error) {
+      console.error('Error starting Combat V2:', error);
+    }
+  };
+
+  const handleExitCombatV2 = () => {
+    setShowCombatV2(false);
+  };
+
   if (isLoading) {
     return (
       <main className="min-h-screen bg-background p-4">
@@ -225,6 +264,25 @@ export default function CharacterDetail() {
           </button>
         </div>
 
+        {/* Bouton de test Combat V2 (DEV) */}
+        <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-purple-400 font-bold text-sm">🧪 DEV - Combat V2</h3>
+            <span className="text-xs text-purple-300/60">En développement</span>
+          </div>
+          <button
+            onClick={handleStartCombatV2}
+            className="w-full bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white font-[var(--font-uncial)] font-bold px-4 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98] text-sm flex items-center justify-center gap-2"
+            title="Tester le nouveau système de combat (PR #103)"
+          >
+            <span className="text-xl">⚔️</span>
+            <span>Combat V2 (Test Gobelin)</span>
+          </button>
+          <p className="text-xs text-purple-300/60 mt-2 text-center">
+            Démarre un combat contre un Gobelin de test
+          </p>
+        </div>
+
         {/* Stats Section */}
         <div className="bg-card glow-border rounded-lg p-6">
           <CharacterStats characterId={id} />
@@ -299,6 +357,11 @@ export default function CharacterDetail() {
             characterId={id}
             onClose={handleCloseCombatModal}
           />
+        )}
+
+        {/* Combat V2 Arena */}
+        {showCombatV2 && (
+          <CombatArena characterId={id} onExit={handleExitCombatV2} />
         )}
       </div>
     </main>
