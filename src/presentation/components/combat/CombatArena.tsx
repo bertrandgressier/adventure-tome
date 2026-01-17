@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
@@ -12,6 +13,12 @@ import {
   wouldBeLethal,
   getActionMetadata,
 } from './combatUIHelpers';
+import {
+  combatArenaVariants,
+  damageIndicatorVariants,
+  victoryScreenVariants,
+  defeatScreenVariants,
+} from './motion';
 
 export interface CombatArenaProps {
   characterId: string;
@@ -42,6 +49,7 @@ function convertToDiceRollResult(
 export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const combat = useCharacterStore((state) => state.combat);
   const isAnimating = useCharacterStore((state) => state.isAnimating);
+  const prefersReducedMotion = useReducedMotion() ?? false;
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -84,7 +92,14 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
     : undefined;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col safe-area-top safe-area-bottom">
+    <motion.div
+      className="fixed inset-0 z-50 bg-background flex flex-col safe-area-top safe-area-bottom"
+      variants={combatArenaVariants}
+      initial="enter"
+      animate="enter"
+      exit="exit"
+      custom={prefersReducedMotion}
+    >
       <Button
         variant="ghost"
         size="icon"
@@ -134,7 +149,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
           <ActionPanel characterId={characterId} />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -156,22 +171,30 @@ function DamageIndicator({
   const isLethal = wouldBeLethal(playerHealth, damage);
 
   return (
-    <div
+    <motion.div
       className={`fixed inset-0 z-40 pointer-events-none ${
         isLethal ? 'bg-red-900/30' : 'bg-red-500/20'
-      } animate-damage`}
+      }`}
+      variants={damageIndicatorVariants}
+      initial="hidden"
+      animate="visible"
+      exit="floating"
     >
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl font-cinzel font-bold text-red-500 mb-2">
+          <motion.div
+            className="text-6xl font-cinzel font-bold text-red-500 mb-2"
+            variants={damageIndicatorVariants}
+            animate="floating"
+          >
             -{damage}
-          </div>
+          </motion.div>
           <div className="text-lg text-white/80">
             {isLethal ? 'MORT !' : 'DÉGÂTS !'}
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -181,6 +204,7 @@ function ActionPanel({ characterId }: { characterId: string }) {
   const isAnimating = useCharacterStore((state) => state.isAnimating);
   const combat = useCharacterStore((state) => state.combat);
   const endCombat = useCharacterStore((state) => state.endCombat);
+  const prefersReducedMotion = useReducedMotion() ?? false;
 
   const handleAction = (actionType: CombatActionType) => {
     if (isAnimating) return;
@@ -198,7 +222,13 @@ function ActionPanel({ characterId }: { characterId: string }) {
 
   if (combat?.phase === 'victory') {
     return (
-      <div className="bg-gradient-magic p-4 rounded-lg border border-primary/30 text-center">
+      <motion.div
+        className="bg-gradient-magic p-4 rounded-lg border border-primary/30 text-center"
+        variants={victoryScreenVariants}
+        initial="hidden"
+        animate="visible"
+        custom={prefersReducedMotion}
+      >
         <h3 className="text-2xl font-cinzel text-primary mb-2">VICTOIRE !</h3>
         <Button
           onClick={async () => {
@@ -210,13 +240,19 @@ function ActionPanel({ characterId }: { characterId: string }) {
         >
           Terminer
         </Button>
-      </div>
+      </motion.div>
     );
   }
 
   if (combat?.phase === 'defeat') {
     return (
-      <div className="bg-gradient-fire p-4 rounded-lg border border-destructive/30 text-center">
+      <motion.div
+        className="bg-gradient-fire p-4 rounded-lg border border-destructive/30 text-center"
+        variants={defeatScreenVariants}
+        initial="hidden"
+        animate="visible"
+        custom={prefersReducedMotion}
+      >
         <h3 className="text-2xl font-cinzel text-destructive mb-2">DÉFAITE...</h3>
         <Button
           onClick={async () => {
@@ -228,7 +264,7 @@ function ActionPanel({ characterId }: { characterId: string }) {
         >
           Terminer
         </Button>
-      </div>
+      </motion.div>
     );
   }
 

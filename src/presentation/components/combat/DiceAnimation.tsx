@@ -1,7 +1,12 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import {
+  diceRollVariants,
+  diceBounceVariants,
+} from './motion';
 
 export interface DiceRollResult {
   dice: [number, number];
@@ -30,83 +35,57 @@ export function DiceAnimation({
   outcome,
   onAnimationComplete,
 }: DiceAnimationProps) {
-  const [phase, setPhase] = useState<'idle' | 'rolling' | 'result'>('idle');
   const [showOutcome, setShowOutcome] = useState(false);
-  const animationRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const prefersReducedMotion = typeof window !== 'undefined'
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    : false;
+  const prefersReducedMotion = useReducedMotion() ?? false;
+  const previousPhaseRef = useRef<'idle' | 'rolling' | 'result'>('idle');
 
+  // Derive phase from props instead of managing it in state
+  const phase = useMemo<'idle' | 'rolling' | 'result'>(() => {
+    if (!diceResult && !isRolling) return 'idle';
+    if (isRolling) return 'rolling';
+    return 'result';
+  }, [diceResult, isRolling]);
+
+  // Handle outcome display timing
   useEffect(() => {
-    // Handle cleanup and early returns first
-    if (animationRef.current) {
-      clearTimeout(animationRef.current);
-      animationRef.current = null;
-    }
+    const phaseChanged = previousPhaseRef.current !== phase;
+    previousPhaseRef.current = phase;
 
-    // Reset to idle when no dice result and not rolling
-    if (!diceResult && !isRolling) {
-      if (phase !== 'idle' || showOutcome) {
-        setPhase('idle');
-        setShowOutcome(false);
-      }
+    // Reset showOutcome when transitioning to idle
+    if (phase === 'idle' && phaseChanged) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowOutcome(false);
       return;
     }
 
-    // Direct transition to result when not rolling (for static display)
-    if (diceResult && !isRolling) {
-      if (phase !== 'result') {
-        setPhase('result'); // Transition synchrone pour affichage immédiat
-      }
-
+    // Show outcome after delay when transitioning to result phase
+    if (phase === 'result' && phaseChanged) {
       const outcomeDelay = prefersReducedMotion ? 100 : 500;
-      const completeDelay = prefersReducedMotion ? 100 : 300;
-
-      const completeTimer = setTimeout(() => {
-        if (onAnimationComplete) {
-          onAnimationComplete();
-        }
-      }, completeDelay);
-
-      const outcomeTimer = setTimeout(() => {
+      const timer = setTimeout(() => {
         setShowOutcome(true);
       }, outcomeDelay);
 
-      return () => {
-        clearTimeout(completeTimer);
-        clearTimeout(outcomeTimer);
-      };
+      return () => clearTimeout(timer);
     }
 
-    // Start rolling animation
-    if (diceResult && isRolling && (phase === 'idle' || phase === 'result')) {
-      setPhase('rolling'); // Transition synchrone
+    // Hide outcome during rolling
+    if (phase === 'rolling' && phaseChanged) {
       setShowOutcome(false);
-
-      const animationDuration = prefersReducedMotion ? 100 : 800;
-
-      animationRef.current = setTimeout(() => {
-        setPhase('result');
-
-        const completeDelay = prefersReducedMotion ? 100 : 300;
-        const outcomeDelay = prefersReducedMotion ? 100 : 500;
-
-        if (onAnimationComplete) {
-          setTimeout(onAnimationComplete, completeDelay);
-        }
-
-        setTimeout(() => {
-          setShowOutcome(true);
-        }, outcomeDelay);
-      }, animationDuration);
-
-      return () => {
-        if (animationRef.current) {
-          clearTimeout(animationRef.current);
-        }
-      };
     }
-  }, [diceResult, isRolling, phase, onAnimationComplete, prefersReducedMotion, showOutcome]);
+  }, [phase, prefersReducedMotion]);
+
+  // Handle animation complete callback
+  useEffect(() => {
+    const phaseIsResult = phase === 'result';
+    if (phaseIsResult && onAnimationComplete) {
+      const completeDelay = prefersReducedMotion ? 100 : 300;
+      const timer = setTimeout(() => {
+        onAnimationComplete();
+      }, completeDelay);
+
+      return () => clearTimeout(timer);
+    }
+  }, [phase, onAnimationComplete, prefersReducedMotion]);
 
   const getOutcomeColor = (): string => {
     if (!showOutcome || !outcome) return '';
@@ -130,12 +109,15 @@ export function DiceAnimation({
 
   return (
     <div className="flex flex-col items-center justify-center space-y-4 p-4">
-      <div
+      <motion.div
         className={cn(
-          'bg-card/80 border-2 border-primary/30 rounded-xl p-6 transition-all duration-300',
-          getOutcomeColor(),
-          !prefersReducedMotion && phase === 'rolling' && 'animate-dice-roll'
+          'bg-card/80 border-2 rounded-xl p-6',
+          getOutcomeColor()
         )}
+        variants={diceRollVariants}
+        initial="idle"
+        animate={phase === 'rolling' ? 'rolling' : 'result'}
+        custom={prefersReducedMotion}
       >
         <div className="flex items-center justify-center gap-6">
           <Die
@@ -209,7 +191,7 @@ export function DiceAnimation({
             )}
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -222,12 +204,15 @@ interface DieProps {
 
 function Die({ value, isRolling, prefersReducedMotion }: DieProps) {
   return (
-    <div
+    <motion.div
       className={cn(
-        'w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-card to-card/80 border-2 border-primary/40 rounded-lg flex items-center justify-center shadow-lg',
-        !prefersReducedMotion && isRolling && 'animate-dice-bounce',
+        'w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-card to-card/80 border-2 rounded-lg flex items-center justify-center shadow-lg',
         value !== null && 'border-primary/60'
       )}
+      variants={diceBounceVariants}
+      initial="idle"
+      animate={isRolling ? 'bouncing' : 'idle'}
+      custom={prefersReducedMotion}
       role="img"
       aria-label={`Dé ${value ?? '?'}`}
     >
@@ -238,6 +223,6 @@ function Die({ value, isRolling, prefersReducedMotion }: DieProps) {
       ) : (
         <span className="text-xl sm:text-2xl text-muted-foreground">?</span>
       )}
-    </div>
+    </motion.div>
   );
 }

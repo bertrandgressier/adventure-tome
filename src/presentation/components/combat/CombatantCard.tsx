@@ -1,8 +1,10 @@
 'use client';
 
+import { motion, useReducedMotion } from 'framer-motion';
 import type { CombatantState, EnemyState } from '@/src/domain/types/combat-v2';
 import { getCombatantHealthInfo, isEnemy } from './combatUIHelpers';
 import { cn } from '@/lib/utils';
+import { combatantCardVariants } from './motion';
 
 export type CardVisualState = 'idle' | 'active' | 'damaged' | 'healing' | 'dead';
 
@@ -21,6 +23,7 @@ export function CombatantCard({
 }: CombatantCardProps) {
   const healthInfo = getCombatantHealthInfo(combatant.endurance, combatant.enduranceMax);
   const visualState = getVisualState(isActive, healthInfo.status, lastDamage);
+  const prefersReducedMotion = useReducedMotion() ?? false;
 
   // Message d'accessibilité pour les lecteurs d'écran
   const getAriaLiveMessage = (): string | undefined => {
@@ -37,11 +40,13 @@ export function CombatantCard({
   };
 
   return (
-    <div
+    <motion.div
       className={cn(
-        'bg-card/50 border border-border/50 rounded-lg p-4 min-h-[120px] transition-all duration-300',
-        getVisualClasses(visualState)
+        'bg-card/50 border border-border/50 rounded-lg p-4 min-h-[120px]'
       )}
+      variants={combatantCardVariants}
+      initial="idle"
+      animate={visualState}
       role="region"
       aria-label={`Carte de ${type === 'player' ? 'joueur' : 'ennemi'}: ${combatant.name}`}
     >
@@ -78,9 +83,16 @@ export function CombatantCard({
         </div>
 
         <div className="h-2 bg-input/50 rounded-full overflow-hidden">
-          <div
-            className={cn('h-full transition-all duration-300', healthInfo.barColorClass)}
+          <motion.div
+            className={cn('h-full', healthInfo.barColorClass)}
             style={{ width: `${healthInfo.healthPercent}%` }}
+            animate={{ width: `${healthInfo.healthPercent}%` }}
+            transition={{
+              type: prefersReducedMotion ? 'tween' : 'spring',
+              stiffness: prefersReducedMotion ? 0 : 100,
+              damping: prefersReducedMotion ? 0 : 15,
+              duration: prefersReducedMotion ? 0 : 0.5,
+            }}
             role="progressbar"
             aria-valuenow={combatant.endurance}
             aria-valuemin={0}
@@ -103,7 +115,7 @@ export function CombatantCard({
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -117,20 +129,4 @@ function getVisualState(
   if (lastDamage && lastDamage > 0) return 'damaged';
   if (isActive) return 'active';
   return 'idle';
-}
-
-function getVisualClasses(visualState: CardVisualState): string {
-  switch (visualState) {
-    case 'active':
-      return 'border-primary/50 shadow-[0_0_10px_rgba(234,179,8,0.2)] animate-pulse';
-    case 'damaged':
-      return 'animate-damage bg-red-500/10 border-red-500/50';
-    case 'healing':
-      return 'bg-green-500/10 border-green-500/50';
-    case 'dead':
-      return 'opacity-50 grayscale border-gray-500/30';
-    case 'idle':
-    default:
-      return '';
-  }
 }
