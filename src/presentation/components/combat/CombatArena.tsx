@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
@@ -50,6 +50,7 @@ function convertToDiceRollResult(
 export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const combat = useCharacterStore((state) => state.combat);
   const isAnimating = useCharacterStore((state) => state.isAnimating);
+  const animationPhase = useCharacterStore((state) => state.animationPhase);
   const prefersReducedMotion = useReducedMotion() ?? false;
 
   useEffect(() => {
@@ -80,8 +81,8 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const diceResult = combat.lastRoll
     ? convertToDiceRollResult(
         combat.lastRoll,
-        combat.player.dexterite,
-        combat.player.weapon.bonus
+        combat.currentAttacker === 'player' ? combat.player.dexterite : (activeEnemy?.dexterite ?? 0),
+        combat.currentAttacker === 'player' ? combat.player.weapon.bonus : (activeEnemy?.weapon?.bonus ?? 0)
       )
     : null;
 
@@ -91,6 +92,10 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
       ? ('win' as const)
       : ('lose' as const)
     : undefined;
+
+  // Déterminer si c'est le tour du joueur ou de l'ennemi pour l'UI
+  const isPlayerTurn = combat.phase === 'player_turn' || combat.phase === 'player_attack';
+  const isEnemyTurn = combat.phase === 'enemy_turn' || combat.phase === 'enemy_attack';
 
   return (
     <motion.div
@@ -111,13 +116,21 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
         <X className="size-6" />
       </Button>
 
+      {/* Turn Indicator Banner */}
+      <TurnIndicator 
+        isPlayerTurn={isPlayerTurn} 
+        isEnemyTurn={isEnemyTurn}
+        enemyName={activeEnemy?.name ?? 'Ennemi'}
+        isAnimating={isAnimating}
+      />
+
       <div className="flex-1 flex flex-col p-4 pb-20">
         <div className="flex-1 min-h-0 flex flex-col relative">
           {activeEnemy ? (
             <CombatantCard
               combatant={activeEnemy}
               type="enemy"
-              isActive={combat.currentAttacker === 'enemy'}
+              isActive={isEnemyTurn}
             />
           ) : (
             <div className="bg-card/50 border border-border/50 rounded-lg p-4 min-h-[120px] flex items-center justify-center">
@@ -128,29 +141,44 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
           {/* Spacer pour garder l'espacement vertical */}
           <div className="flex-1" />
 
-          <DamageIndicator
-            damage={combat.pendingDamage?.amount}
-            playerHealth={combat.player.endurance}
-            playerMaxHealth={combat.player.enduranceMax}
-          />
-
           <CombatantCard
             combatant={combat.player}
             type="player"
-            isActive={combat.currentAttacker === 'player'}
+            isActive={isPlayerTurn}
           />
 
           {/* DiceAnimation en position absolue, centré entre les deux combattants */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-4">
-            <div className="pointer-events-auto">
-              <DiceAnimation
-                diceResult={diceResult}
-                isRolling={isAnimating}
-                outcome={outcome}
-              />
-            </div>
-          </div>
+          <AnimatePresence>
+            {(animationPhase === 'rolling' || animationPhase === 'result') && (
+              <motion.div 
+                className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="pointer-events-auto">
+                  <DiceAnimation
+                    diceResult={diceResult}
+                    isRolling={animationPhase === 'rolling'}
+                    outcome={outcome}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
+
+        {/* Damage Indicator - only show during 'damage' phase */}
+        <AnimatePresence>
+          {animationPhase === 'damage' && combat.pendingDamage && (
+            <DamageIndicator
+              damage={combat.pendingDamage.amount}
+              playerHealth={combat.player.endurance}
+              playerMaxHealth={combat.player.enduranceMax}
+            />
+          )}
+        </AnimatePresence>
 
         <div className="mt-4">
           {combat.phase === 'victory' && (
@@ -171,7 +199,64 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   );
 }
 
+/**
+ * Turn Indicator - Shows whose turn it is with animation
+ */
+function TurnIndicator({
+  isPlayerTurn,
+  isEnemyTurn,
+  enemyName,
+  isAnimating,
+}: {
+  isPlayerTurn: boolean;
+  isEnemyTurn: boolean;
+  enemyName: string;
+  isAnimating: boolean;
+}) {
+  const prefersReducedMotion = useReducedMotion() ?? false;
 
+  // Determine the text and style based on current turn
+  const turnText = isPlayerTurn ? 'Votre tour' : isEnemyTurn ? `Tour de ${enemyName}` : 'Combat';
+  const bgClass = isPlayerTurn 
+    ? 'bg-primary/20 border-primary/50' 
+    : isEnemyTurn 
+      ? 'bg-destructive/20 border-destructive/50' 
+      : 'bg-card/50 border-border/50';
+  const textClass = isPlayerTurn 
+    ? 'text-primary' 
+    : isEnemyTurn 
+      ? 'text-destructive' 
+      : 'text-muted-foreground';
+
+  return (
+    <motion.div 
+      className={`mx-4 mt-12 mb-2 px-4 py-2 rounded-lg border text-center ${bgClass}`}
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ 
+        opacity: 1, 
+        y: 0,
+        scale: isAnimating && !prefersReducedMotion ? [1, 1.02, 1] : 1,
+      }}
+      transition={{ 
+        duration: 0.3,
+        scale: { duration: 0.5, repeat: isAnimating ? Infinity : 0 }
+      }}
+    >
+      <span className={`font-cinzel font-bold ${textClass}`}>
+        {turnText}
+      </span>
+      {isAnimating && (
+        <motion.span 
+          className="ml-2 inline-block"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        >
+          🎲
+        </motion.span>
+      )}
+    </motion.div>
+  );
+}
 
 function DamageIndicator({
   damage,
@@ -182,6 +267,8 @@ function DamageIndicator({
   playerHealth?: number;
   playerMaxHealth?: number;
 }) {
+  const prefersReducedMotion = useReducedMotion() ?? false;
+  
   if (!damage || playerHealth === undefined || playerMaxHealth === undefined) {
     return null;
   }
@@ -193,24 +280,26 @@ function DamageIndicator({
       className={`fixed inset-0 z-40 pointer-events-none ${
         isLethal ? 'bg-red-900/30' : 'bg-red-500/20'
       }`}
-      variants={damageIndicatorVariants}
-      initial="hidden"
-      animate="visible"
-      exit="floating"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
     >
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center">
-          <motion.div
-            className="text-6xl font-cinzel font-bold text-red-500 mb-2"
-            variants={damageIndicatorVariants}
-            animate="floating"
-          >
+        <motion.div 
+          className="text-center"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 1.5, opacity: 0, y: -50 }}
+          transition={{ duration: prefersReducedMotion ? 0.1 : 0.3 }}
+        >
+          <div className="text-6xl font-cinzel font-bold text-red-500 mb-2">
             -{damage}
-          </motion.div>
-          <div className="text-lg text-white/80">
-            {isLethal ? 'MORT !' : 'DÉGÂTS !'}
           </div>
-        </div>
+          <div className="text-lg text-white/80">
+            {isLethal ? 'COUP FATAL !' : 'DÉGÂTS !'}
+          </div>
+        </motion.div>
       </div>
     </motion.div>
   );

@@ -115,7 +115,7 @@ export function formatEventDescription(event: CombatEvent): string {
       return '⚡ Chance dépensée';
 
     case CombatEventType.FLEE:
-      return event.success ? '🏃 Fuite réussie !' : '🚫 Fuite échouée';
+      return event.damage ? `🏃 Fuite ! (-${event.damage} END)` : '🏃 Fuite !';
 
     case CombatEventType.ITEM_USED:
       if (event.abilityId) return `🎒 Item utilisé : ${event.abilityId}`;

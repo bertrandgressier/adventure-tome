@@ -100,11 +100,7 @@ export function DiceAnimation({
   };
 
   if (!diceResult && !isRolling) {
-    return (
-      <div className="text-center p-8">
-        <span className="text-muted-foreground text-sm">Prêt pour le combat</span>
-      </div>
-    );
+    return null;
   }
 
   return (
