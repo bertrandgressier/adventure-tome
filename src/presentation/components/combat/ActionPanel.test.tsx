@@ -446,36 +446,7 @@ describe('ActionPanel', () => {
 
       expect(screen.getByText('Aucun objet utilisable disponible')).toBeInTheDocument();
     });
-
-        const emptyInventory = {
-          ...mockCharacter,
-          inventory: {
-            weapon: { itemId: 'tome1-epee', name: 'Épée', attackPoints: 2 },
-            items: [],
-          },
-        };
-
-        mockUseCharacterStore.mockImplementation((selector) => {
-          const state = {
-            combat: mockCombat,
-            availableActions: mockAvailableActions,
-            isAnimating: false,
-            characters: { 'test-id': emptyInventory },
-            executeAction: mockExecuteAction,
-            getItem: (id: string) => mockCatalogItems[id as keyof typeof mockCatalogItems],
-          };
-          return selector(state as any);
-        });
-
-        const user = userEvent.setup();
-        render(<ActionPanel characterId="test-id" />);
-
-        const itemButton = screen.getByText('Objet').closest('button');
-        await user.click(itemButton!);
-
-        expect(screen.getByText('Aucun objet utilisable disponible')).toBeInTheDocument();
-      });
-    });
+  });
 
     describe('Accessibility', () => {
       it('should have aria-label for disabled actions', () => {

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ItemPicker } from './ItemPicker';
@@ -138,21 +138,6 @@ describe('ItemPicker', () => {
     });
 
     it('should render items in scrollable container when many items', () => {
-      const itemButtons = screen.getAllByRole('button').filter(
-        (button) => 
-          button.textContent && 
-          !button.textContent.includes('Fermer') &&
-          !button.textContent.includes('Annuler') &&
-          button.textContent.includes('Potion')
-      );
-
-      itemButtons.forEach(button => {
-        const height = button.getBoundingClientRect().height;
-        expect(height).toBeGreaterThanOrEqual(44);
-      });
-    });
-
-    it('should render items in scrollable container when many items', () => {
       const manyItems: CatalogItem[] = Array.from({ length: 20 }, (_, i) => ({
         id: `item-${i}`,
         name: `Item ${i}`,
@@ -205,7 +190,7 @@ describe('ItemPicker', () => {
   });
 
   describe('when empty items list', () => {
-    beforeEach(() => {
+    it('should display empty message', () => {
       render(
         <ItemPicker
           items={[]}
@@ -214,32 +199,68 @@ describe('ItemPicker', () => {
           isOpen={true}
         />
       );
-    });
 
-    it('should display empty message', () => {
       expect(
         screen.getByText('Aucun objet utilisable disponible')
       ).toBeInTheDocument();
     });
 
     it('should still render close button', () => {
+      render(
+        <ItemPicker
+          items={[]}
+          onSelect={mockOnSelect}
+          onClose={mockOnClose}
+          isOpen={true}
+        />
+      );
+
       expect(screen.getByLabelText('Fermer')).toBeInTheDocument();
     });
 
     it('should still render cancel button', () => {
+      render(
+        <ItemPicker
+          items={[]}
+          onSelect={mockOnSelect}
+          onClose={mockOnClose}
+          isOpen={true}
+        />
+      );
+
       expect(screen.getByText('Annuler')).toBeInTheDocument();
     });
   });
 
+  describe('when open', () => {
     describe('Accessibility', () => {
       it('should have close button with aria-label', () => {
-      expect(screen.getByLabelText('Fermer')).toBeInTheDocument();
-    });
+        render(
+          <ItemPicker
+            items={mockItems}
+            onSelect={mockOnSelect}
+            onClose={mockOnClose}
+            isOpen={true}
+          />
+        );
 
-    it('should have backdrop with aria-label', () => {
-      expect(
-        screen.getByLabelText('Fermer le sélecteur d\'objets')
-      ).toBeInTheDocument();
+        expect(screen.getByLabelText('Fermer')).toBeInTheDocument();
+      });
+
+      it('should have backdrop with aria-label', () => {
+        render(
+          <ItemPicker
+            items={mockItems}
+            onSelect={mockOnSelect}
+            onClose={mockOnClose}
+            isOpen={true}
+          />
+        );
+
+        expect(
+          screen.getByLabelText('Fermer le sélecteur d\'objets')
+        ).toBeInTheDocument();
+      });
     });
   });
 

@@ -109,7 +109,7 @@ describe('CombatArena', () => {
           isAnimating: false,
           executeAction: vi.fn(),
           endCombat: vi.fn(),
-          getItem: (id: string) => undefined,
+          getItem: () => undefined,
         };
 
         return selector(state as any);

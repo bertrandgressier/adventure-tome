@@ -30,6 +30,11 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
 
   const [isItemPickerOpen, setIsItemPickerOpen] = useState(false);
 
+  // Early return if no combat or end phases
+  if (!combat || combat.phase === 'victory' || combat.phase === 'defeat') {
+    return null;
+  }
+
   const character = getCharacter(characterId);
   const inventory = character?.getInventory();
 
@@ -46,7 +51,7 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
   const handleAction = (actionType: CombatActionType) => {
     if (isAnimating) return;
 
-    if (actionType === 'use_item' && usableItems.length > 0) {
+    if (actionType === 'use_item') {
       setIsItemPickerOpen(true);
       return;
     }
@@ -66,11 +71,7 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
     executeAction({ type: 'use_item', payload: { itemId } });
   };
 
-  if (combat?.phase === 'victory' || combat?.phase === 'defeat') {
-    return null;
-  }
-
-  const canFlee = combat?.config.allowFlee ?? false;
+  const canFlee = combat.config.allowFlee ?? false;
   const availableActionsFiltered = availableActions.filter(
     action => !(action.action.type === 'flee' && !canFlee)
   );
