@@ -146,12 +146,12 @@ export default function CharacterDetail() {
   const handleStartCombatV2 = () => {
     if (!character) return;
 
-    // Configuration de test avec un ennemi simple
+    // Configuration de test avec un ennemi plus résistant pour tester l'historique
     const testEnemy: EnemyConfig = {
       name: 'Gobelin (Test)',
       dexterite: 6,
-      endurance: 8,
-      enduranceMax: 8,
+      endurance: 25, // PV augmentés pour un combat plus long
+      enduranceMax: 25,
       chance: 0,
       weapon: { id: 'dagger', name: 'Dague', bonus: 1 },
       isBoss: false,
