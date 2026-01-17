@@ -8,6 +8,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { CombatEvent } from '@/src/domain/types/combat-v2';
 import { CombatEventType } from '@/src/domain/types/CombatEventType';
+import {
+  getIconColorClass,
+  getEventColorClass,
+  formatEventDescription,
+} from './combatLogHelpers';
 
 export interface CombatLogProps {
   events: readonly CombatEvent[];
@@ -138,9 +143,10 @@ interface CombatLogEntryProps {
 }
 
 function CombatLogEntry({ event, isLast }: CombatLogEntryProps) {
-  const icon = getEventIcon(event.type);
   const description = formatEventDescription(event);
   const colorClass = getEventColorClass(event.type);
+  const iconColorClass = getIconColorClass(event.type);
+  const icon = getEventIcon(event.type);
 
   return (
     <div
@@ -150,7 +156,7 @@ function CombatLogEntry({ event, isLast }: CombatLogEntryProps) {
         colorClass
       )}
     >
-      <div className={cn('flex-shrink-0 mt-0.5', getIconColorClass(event.type))}>
+      <div className={cn('flex-shrink-0 mt-0.5', iconColorClass)}>
         {icon}
       </div>
       <span className="flex-1 leading-relaxed">{description}</span>
@@ -158,6 +164,10 @@ function CombatLogEntry({ event, isLast }: CombatLogEntryProps) {
   );
 }
 
+/**
+ * Groupe les événements de combat par numéro de round
+ * Cette fonction est purement utilitaire et ne contient pas de logique métier
+ */
 function groupEventsByRound(events: readonly CombatEvent[]): Array<{ roundNumber: number; events: CombatEvent[] }> {
   const grouped = new Map<number, CombatEvent[]>();
 
@@ -174,6 +184,9 @@ function groupEventsByRound(events: readonly CombatEvent[]): Array<{ roundNumber
     .sort((a, b) => a.roundNumber - b.roundNumber);
 }
 
+/**
+ * Retourne l'icône JSX pour un type d'événement
+ */
 function getEventIcon(type: string): React.ReactNode {
   switch (type) {
     case CombatEventType.COMBAT_START:
@@ -202,99 +215,5 @@ function getEventIcon(type: string): React.ReactNode {
       return <Wand2 className="size-4" />;
     default:
       return <Dices className="size-4" />;
-  }
-}
-
-function getIconColorClass(type: string): string {
-  switch (type) {
-    case CombatEventType.DAMAGE_DEALT:
-      return 'text-destructive';
-    case CombatEventType.HEAL:
-      return 'text-green-500';
-    case CombatEventType.WEAPON_ABILITY:
-    case CombatEventType.ABILITY_USED:
-      return 'text-magic-purple';
-    case CombatEventType.LUCK_TEST:
-    case CombatEventType.CHANCE_SPENT:
-      return 'text-secondary';
-    case CombatEventType.FLEE:
-      return 'text-muted-foreground';
-    default:
-      return 'text-primary';
-  }
-}
-
-function getEventColorClass(type: string): string {
-  switch (type) {
-    case CombatEventType.DAMAGE_DEALT:
-      return 'text-destructive/90';
-    case CombatEventType.HEAL:
-      return 'text-green-400/90';
-    case CombatEventType.WEAPON_ABILITY:
-    case CombatEventType.ABILITY_USED:
-      return 'text-magic-purple/90';
-    case CombatEventType.LUCK_TEST:
-    case CombatEventType.CHANCE_SPENT:
-      return 'text-secondary/90';
-    default:
-      return 'text-foreground/90';
-  }
-}
-
-function formatEventDescription(event: CombatEvent): string {
-  const actor = event.attacker === 'player' ? 'Vous' : 'L\'ennemi';
-
-  switch (event.type) {
-    case CombatEventType.COMBAT_START:
-      return '⚔️ Combat commencé';
-
-    case CombatEventType.COMBAT_END:
-      return event.result === 'victory' ? '🏆 VICTOIRE !' : '💀 DÉFAITE...';
-
-    case CombatEventType.ROUND_START:
-      return `📢 Début du round ${event.round}`;
-
-    case CombatEventType.ROUND_END:
-      return `🏁 Fin du round ${event.round}`;
-
-    case CombatEventType.ATTACK_ROLL:
-      if (!event.roll) return `${actor} attaque${event.attacker === 'player' ? 'z' : ''}`;
-      const rollTotal = event.roll.dice1 + event.roll.dice2;
-      const result = event.hit !== undefined ? (event.hit ? '→ Touché !' : '→ Raté !') : '';
-      return `⚔️ ${actor} attaque${event.attacker === 'player' ? 'z' : ''} : [${event.roll.dice1}+${event.roll.dice2}] = ${rollTotal}${result}`;
-
-    case CombatEventType.DAMAGE_DEALT:
-      if (event.damage === undefined) return `${actor} inflige${event.attacker === 'player' ? 'z' : ''} des dégâts`;
-      const damageTarget = event.attacker === 'player' ? 'l\'ennemi' : 'vous';
-      return `💥 ${actor} inflige${event.attacker === 'player' ? 'z' : ''} ${event.damage} dégâts à ${damageTarget}`;
-
-    case CombatEventType.HEAL:
-      if (event.healAmount === undefined) return '💚 Soin effectué';
-      return `💚 Vous récupérez ${event.healAmount} points de vie`;
-
-    case CombatEventType.ABILITY_USED:
-      if (event.abilityId) return `✨ Capacité utilisée : ${event.abilityId}`;
-      return '✨ Capacité utilisée';
-
-    case CombatEventType.WEAPON_ABILITY:
-      if (event.abilityId) return `⚔️ ${actor} utilise${event.attacker === 'player' ? 'z' : ''} ${event.abilityId}`;
-      return `⚔️ ${actor} utilise${event.attacker === 'player' ? 'z' : ''} son arme`;
-
-    case CombatEventType.LUCK_TEST:
-      return `🎲 Test de chance`;
-
-    case CombatEventType.CHANCE_SPENT:
-      if (event.pointsSpent) return `⚡ ${event.pointsSpent} point(s) de chance dépensé(s)`;
-      return '⚡ Chance dépensée';
-
-    case CombatEventType.FLEE:
-      return event.success ? '🏃 Fuite réussie !' : '🚫 Fuite échouée';
-
-    case CombatEventType.ITEM_USED:
-      if (event.abilityId) return `🎒 Item utilisé : ${event.abilityId}`;
-      return '🎒 Item utilisé';
-
-    default:
-      return `Événement : ${event.type}`;
   }
 }
