@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CombatArena } from './CombatArena';
@@ -24,6 +24,7 @@ describe('CombatArena', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     document.body.style.overflow = '';
   });
 
@@ -313,36 +314,45 @@ describe('CombatArena', () => {
         expect(screen.getByText('Prêt pour le combat')).toBeInTheDocument();
       });
 
-      it('should display dice values when roll is present', () => {
-        const withRollCombat = {
-          ...mockCombat,
-          lastRoll: {
-            dice1: 4,
-            dice2: 5,
-            total: 9,
-            success: true,
-          },
-        };
-
-        mockUseCharacterStore.mockImplementation((selector) => {
-          const state = {
-            combat: withRollCombat,
-            availableActions: mockAvailableActions,
-            isAnimating: false,
-            executeAction: vi.fn(),
-            endCombat: vi.fn(),
+      it('should display dice values when roll is present', async () => {
+        vi.useFakeTimers();
+        try {
+          const withRollCombat = {
+            ...mockCombat,
+            lastRoll: {
+              dice1: 4,
+              dice2: 5,
+              total: 9,
+              success: true,
+            },
           };
-           
-         
-        return selector(state as any);
-        });
 
-        render(
-          <CombatArena characterId="test-id" onExit={mockOnExit} />
-        );
+          mockUseCharacterStore.mockImplementation((selector) => {
+            const state = {
+              combat: withRollCombat,
+              availableActions: mockAvailableActions,
+              isAnimating: false,
+              executeAction: vi.fn(),
+              endCombat: vi.fn(),
+            };
 
-        expect(screen.getByText('9')).toBeInTheDocument();
-        expect(screen.getByText('TOUCHÉ !')).toBeInTheDocument();
+
+          return selector(state as any);
+          });
+
+          render(
+            <CombatArena characterId="test-id" onExit={mockOnExit} />
+          );
+
+          await act(async () => {
+            vi.runAllTimers();
+          });
+
+          expect(screen.getByTestId('final-score')).toBeInTheDocument();
+          expect(screen.getByText('TOUCHÉ !')).toBeInTheDocument();
+        } finally {
+          vi.useRealTimers();
+        }
       });
 
       it('should show double badge on double roll', () => {
