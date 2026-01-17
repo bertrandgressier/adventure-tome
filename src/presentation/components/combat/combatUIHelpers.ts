@@ -84,6 +84,7 @@ export const COMBAT_ACTION_METADATA: Record<string, ActionMetadata> = {
   flee: { label: 'Fuir', icon: '🏃' },
   reroll: { label: 'Relancer', icon: '🎲' },
   block: { label: 'Bloquer', icon: '🛡️' },
+  skip: { label: 'Continuer', icon: '▶️' },
 };
 
 /**

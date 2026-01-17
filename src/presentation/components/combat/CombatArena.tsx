@@ -111,8 +111,8 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
         <X className="size-6" />
       </Button>
 
-      <div className="flex-1 flex flex-col p-4 pb-20 relative">
-        <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex-1 flex flex-col p-4 pb-20">
+        <div className="flex-1 min-h-0 flex flex-col relative">
           {activeEnemy ? (
             <CombatantCard
               combatant={activeEnemy}
@@ -139,16 +139,16 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
             type="player"
             isActive={combat.currentAttacker === 'player'}
           />
-        </div>
 
-        {/* DiceAnimation en position absolue, centré entre les deux combattants */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-4">
-          <div className="pointer-events-auto">
-            <DiceAnimation
-              diceResult={diceResult}
-              isRolling={isAnimating}
-              outcome={outcome}
-            />
+          {/* DiceAnimation en position absolue, centré entre les deux combattants */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-4">
+            <div className="pointer-events-auto">
+              <DiceAnimation
+                diceResult={diceResult}
+                isRolling={isAnimating}
+                outcome={outcome}
+              />
+            </div>
           </div>
         </div>
 
