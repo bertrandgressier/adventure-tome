@@ -3,4 +3,8 @@ export type { CombatArenaProps } from './CombatArena';
 export { CombatantCard } from './CombatantCard';
 export { DiceAnimation } from './DiceAnimation';
 export type { DiceAnimationProps, DiceRollResult, DiceOutcome } from './DiceAnimation';
+export { ActionPanel } from './ActionPanel';
+export type { ActionPanelProps } from './ActionPanel';
+export { ItemPicker } from './ItemPicker';
+export type { ItemPickerProps } from './ItemPicker';
 export * from './combatUIHelpers';
