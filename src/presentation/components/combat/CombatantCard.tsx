@@ -1,10 +1,10 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { CombatantState, EnemyState } from '@/src/domain/types/combat-v2';
 import { getCombatantHealthInfo, isEnemy } from './combatUIHelpers';
 import { cn } from '@/lib/utils';
-import { combatantCardVariants, hpBarVariants } from './motion';
+import { combatantCardVariants } from './motion';
 
 export type CardVisualState = 'idle' | 'active' | 'damaged' | 'healing' | 'dead';
 
@@ -23,6 +23,7 @@ export function CombatantCard({
 }: CombatantCardProps) {
   const healthInfo = getCombatantHealthInfo(combatant.endurance, combatant.enduranceMax);
   const visualState = getVisualState(isActive, healthInfo.status, lastDamage);
+  const prefersReducedMotion = useReducedMotion() ?? false;
 
   // Message d'accessibilité pour les lecteurs d'écran
   const getAriaLiveMessage = (): string | undefined => {
@@ -84,10 +85,14 @@ export function CombatantCard({
         <div className="h-2 bg-input/50 rounded-full overflow-hidden">
           <motion.div
             className={cn('h-full', healthInfo.barColorClass)}
-            variants={hpBarVariants}
-            initial="initial"
-            animate="animate"
             style={{ width: `${healthInfo.healthPercent}%` }}
+            animate={{ width: `${healthInfo.healthPercent}%` }}
+            transition={{
+              type: prefersReducedMotion ? 'tween' : 'spring',
+              stiffness: prefersReducedMotion ? 0 : 100,
+              damping: prefersReducedMotion ? 0 : 15,
+              duration: prefersReducedMotion ? 0 : 0.5,
+            }}
             role="progressbar"
             aria-valuenow={combatant.endurance}
             aria-valuemin={0}

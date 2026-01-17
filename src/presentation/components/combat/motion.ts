@@ -7,8 +7,6 @@
 
 import type { Variants } from 'framer-motion';
 
-
-
 /**
  * Combat Arena transition variants
  */
@@ -83,14 +81,13 @@ export const damageIndicatorVariants: Variants = {
 };
 
 /**
- * HP bar spring animation
+ * Damage indicator variants
  */
 export const hpBarVariants: Variants = {
-  initial: { width: 0 },
+  initial: {},
   animate: (prefersReducedMotion: boolean) => ({
-    width: 'var(--hp-percent)',
     transition: {
-      type: 'spring',
+      type: prefersReducedMotion ? 'tween' : 'spring',
       stiffness: prefersReducedMotion ? 0 : 100,
       damping: prefersReducedMotion ? 0 : 15,
       duration: prefersReducedMotion ? 0 : 0.5,

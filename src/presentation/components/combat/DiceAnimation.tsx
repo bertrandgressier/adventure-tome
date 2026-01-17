@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState, useRef, useTransition } from 'react';
-import { motion } from 'framer-motion';
-import { useReducedMotion } from 'framer-motion';
+import { useEffect, useState, useRef, useMemo } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
   diceRollVariants,
@@ -36,89 +35,57 @@ export function DiceAnimation({
   outcome,
   onAnimationComplete,
 }: DiceAnimationProps) {
-  const [phase, setPhase] = useState<'idle' | 'rolling' | 'result'>('idle');
   const [showOutcome, setShowOutcome] = useState(false);
-  const animationRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prefersReducedMotion = useReducedMotion() ?? false;
-  const [, startTransition] = useTransition();
+  const previousPhaseRef = useRef<'idle' | 'rolling' | 'result'>('idle');
 
-  // eslint-disable react-hooks/set-state-in-effect
+  // Derive phase from props instead of managing it in state
+  const phase = useMemo<'idle' | 'rolling' | 'result'>(() => {
+    if (!diceResult && !isRolling) return 'idle';
+    if (isRolling) return 'rolling';
+    return 'result';
+  }, [diceResult, isRolling]);
+
+  // Handle outcome display timing
   useEffect(() => {
-    // Handle cleanup and early returns first
-    if (animationRef.current) {
-      clearTimeout(animationRef.current);
-      animationRef.current = null;
-    }
+    const phaseChanged = previousPhaseRef.current !== phase;
+    previousPhaseRef.current = phase;
 
-    // Reset to idle when no dice result and not rolling
-    if (!diceResult && !isRolling) {
-      if (phase !== 'idle' || showOutcome) {
-        startTransition(() => {
-          setPhase('idle');
-          setShowOutcome(false);
-        });
-      }
+    // Reset showOutcome when transitioning to idle
+    if (phase === 'idle' && phaseChanged) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowOutcome(false);
       return;
     }
 
-    // Direct transition to result when not rolling (for static display)
-    if (diceResult && !isRolling) {
-      if (phase !== 'result') {
-        startTransition(() => {
-          setPhase('result'); // Transition synchrone pour affichage immédiat
-        });
-      }
-
+    // Show outcome after delay when transitioning to result phase
+    if (phase === 'result' && phaseChanged) {
       const outcomeDelay = prefersReducedMotion ? 100 : 500;
-      const completeDelay = prefersReducedMotion ? 100 : 300;
-
-      const completeTimer = setTimeout(() => {
-        if (onAnimationComplete) {
-          onAnimationComplete();
-        }
-      }, completeDelay);
-
-      const outcomeTimer = setTimeout(() => {
+      const timer = setTimeout(() => {
         setShowOutcome(true);
       }, outcomeDelay);
 
-      return () => {
-        clearTimeout(completeTimer);
-        clearTimeout(outcomeTimer);
-      };
+      return () => clearTimeout(timer);
     }
 
-    // Start rolling animation
-    if (diceResult && isRolling && (phase === 'idle' || phase === 'result')) {
-      startTransition(() => {
-        setPhase('rolling'); // Transition synchrone
-        setShowOutcome(false);
-      });
-
-      const animationDuration = prefersReducedMotion ? 100 : 800;
-
-      animationRef.current = setTimeout(() => {
-        setPhase('result');
-
-        const completeDelay = prefersReducedMotion ? 100 : 300;
-        const outcomeDelay = prefersReducedMotion ? 100 : 500;
-
-        if (onAnimationComplete) {
-          setTimeout(onAnimationComplete, completeDelay);
-        }
-
-        setTimeout(() => {
-          setShowOutcome(true);
-        }, outcomeDelay);
-      }, animationDuration);
-
-      return () => {
-        if (animationRef.current) {
-          clearTimeout(animationRef.current);
-        }
-      };
+    // Hide outcome during rolling
+    if (phase === 'rolling' && phaseChanged) {
+      setShowOutcome(false);
     }
-  }, [diceResult, isRolling, phase, onAnimationComplete, prefersReducedMotion, showOutcome]);
+  }, [phase, prefersReducedMotion]);
+
+  // Handle animation complete callback
+  useEffect(() => {
+    const phaseIsResult = phase === 'result';
+    if (phaseIsResult && onAnimationComplete) {
+      const completeDelay = prefersReducedMotion ? 100 : 300;
+      const timer = setTimeout(() => {
+        onAnimationComplete();
+      }, completeDelay);
+
+      return () => clearTimeout(timer);
+    }
+  }, [phase, onAnimationComplete, prefersReducedMotion]);
 
   const getOutcomeColor = (): string => {
     if (!showOutcome || !outcome) return '';
@@ -150,19 +117,19 @@ export function DiceAnimation({
         variants={diceRollVariants}
         initial="idle"
         animate={phase === 'rolling' ? 'rolling' : 'result'}
-        custom={prefersReducedMotion ?? false}
+        custom={prefersReducedMotion}
       >
         <div className="flex items-center justify-center gap-6">
           <Die
             value={phase === 'rolling' ? null : diceResult?.dice[0] ?? null}
             isRolling={phase === 'rolling'}
-            prefersReducedMotion={prefersReducedMotion ?? false}
+            prefersReducedMotion={prefersReducedMotion}
           />
           <span className="text-2xl text-muted-foreground font-bold">+</span>
           <Die
             value={phase === 'rolling' ? null : diceResult?.dice[1] ?? null}
             isRolling={phase === 'rolling'}
-            prefersReducedMotion={prefersReducedMotion ?? false}
+            prefersReducedMotion={prefersReducedMotion}
           />
         </div>
 

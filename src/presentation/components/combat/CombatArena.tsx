@@ -49,7 +49,7 @@ function convertToDiceRollResult(
 export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const combat = useCharacterStore((state) => state.combat);
   const isAnimating = useCharacterStore((state) => state.isAnimating);
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useReducedMotion() ?? false;
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -98,7 +98,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
       initial="enter"
       animate="enter"
       exit="exit"
-      custom={prefersReducedMotion ?? false}
+      custom={prefersReducedMotion}
     >
       <Button
         variant="ghost"
@@ -204,7 +204,7 @@ function ActionPanel({ characterId }: { characterId: string }) {
   const isAnimating = useCharacterStore((state) => state.isAnimating);
   const combat = useCharacterStore((state) => state.combat);
   const endCombat = useCharacterStore((state) => state.endCombat);
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useReducedMotion() ?? false;
 
   const handleAction = (actionType: CombatActionType) => {
     if (isAnimating) return;
@@ -227,7 +227,7 @@ function ActionPanel({ characterId }: { characterId: string }) {
         variants={victoryScreenVariants}
         initial="hidden"
         animate="visible"
-        custom={prefersReducedMotion ?? false}
+        custom={prefersReducedMotion}
       >
         <h3 className="text-2xl font-cinzel text-primary mb-2">VICTOIRE !</h3>
         <Button
@@ -251,7 +251,7 @@ function ActionPanel({ characterId }: { characterId: string }) {
         variants={defeatScreenVariants}
         initial="hidden"
         animate="visible"
-        custom={prefersReducedMotion ?? false}
+        custom={prefersReducedMotion}
       >
         <h3 className="text-2xl font-cinzel text-destructive mb-2">DÉFAITE...</h3>
         <Button
