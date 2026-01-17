@@ -9,6 +9,7 @@ import { CombatantCard } from './CombatantCard';
 import { DiceAnimation } from './DiceAnimation';
 import type { DiceRollResult } from './DiceAnimation';
 import { ActionPanel } from './ActionPanel';
+import { CombatLog } from './CombatLog';
 import type { DiceRoll } from '@/src/domain/types/combat-v2';
 import {
   wouldBeLethal,
@@ -155,6 +156,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
           {combat.phase !== 'victory' && combat.phase !== 'defeat' && (
             <ActionPanel characterId={characterId} />
           )}
+          <CombatLog events={combat.events} />
         </div>
       </div>
     </motion.div>
