@@ -149,10 +149,10 @@ export const createCombatSlice = () => {
         }
 
         const result = CombatEngine.resolve(combat, action, diceOverrides);
-        const availableActions = CombatEngine.getAvailableActions(result.state);
+        let availableActions = CombatEngine.getAvailableActions(result.state);
 
         // Append new events to existing events in state
-        const updatedCombat = {
+        let updatedCombat = {
           ...result.state,
           events: [...result.state.events, ...result.events],
         };
@@ -168,6 +168,34 @@ export const createCombatSlice = () => {
         // Arrêter l'animation après la durée complète
         setTimeout(() => {
           set({ isAnimating: false });
+          
+          // Auto-resolve ENEMY_TURN (pas d'input utilisateur requis)
+          const currentCombat = get().combat;
+          if (currentCombat && currentCombat.phase === 'enemy_turn') {
+            // Lancer l'attaque ennemie automatiquement
+            const enemyAttackResult = CombatEngine.resolve(
+              currentCombat,
+              { type: 'attack' }
+            );
+            
+            const newAvailableActions = CombatEngine.getAvailableActions(enemyAttackResult.state);
+            
+            const finalCombat = {
+              ...enemyAttackResult.state,
+              events: [...enemyAttackResult.state.events, ...enemyAttackResult.events],
+            };
+            
+            set({
+              combat: finalCombat,
+              availableActions: newAvailableActions,
+              isAnimating: true,
+            });
+            
+            // Animation de l'attaque ennemie
+            setTimeout(() => {
+              set({ isAnimating: false });
+            }, 1200);
+          }
         }, 1200); // 800ms animation + 400ms pour afficher le résultat
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Erreur de mise à jour';
