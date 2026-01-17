@@ -46,11 +46,13 @@ export class CombatValidator {
 
     if (state.phase === CombatPhase.PLAYER_ATTACK) {
       if (state.lastRoll && !state.lastRoll.success) {
+        // Attaque ratée: options de relance
         if (!state.usedReroll) {
           actions.push({ action: { type: CombatActionType.REROLL }, enabled: true });
         }
-        actions.push({ action: { type: CombatActionType.SKIP }, enabled: true });
       }
+      // Toujours permettre de passer (attaque réussie OU ratée)
+      actions.push({ action: { type: CombatActionType.SKIP }, enabled: true });
     }
 
     if (state.phase === CombatPhase.PLAYER_ATTACK) {
