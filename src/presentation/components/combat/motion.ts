@@ -184,3 +184,97 @@ export const shakeVariants: Variants = {
     },
   }),
 };
+
+/**
+ * Action panel container variants
+ */
+export const actionPanelContainerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: (prefersReducedMotion: boolean) => ({
+    opacity: 1,
+    transition: {
+      duration: prefersReducedMotion ? 0 : 0.3,
+      staggerChildren: prefersReducedMotion ? 0 : 0.05,
+    },
+  }),
+};
+
+/**
+ * Action panel button variants
+ */
+export const actionPanelVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.2,
+      ease: 'easeOut' as const,
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    transition: { duration: 0.15 },
+  },
+};
+
+/**
+ * Action button icon pulse variants (for weapon ability highlight)
+ */
+export const actionButtonVariants: Variants = {
+  idle: { scale: 1, opacity: 1 },
+  pulse: (prefersReducedMotion: boolean) => ({
+    scale: [1, 1.1, 1],
+    opacity: [1, 0.8, 1],
+    transition: {
+      duration: prefersReducedMotion ? 0 : 1.5,
+      repeat: Infinity,
+      ease: 'easeInOut' as const,
+    },
+  }),
+};
+
+/**
+ * Item picker variants
+ */
+export const itemPickerVariants = {
+  backdrop: {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.2 } },
+  },
+  content: {
+    hidden: { y: '100%', opacity: 0 },
+    visible: (prefersReducedMotion: boolean) => ({
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: 'spring' as const,
+        damping: prefersReducedMotion ? 0 : 25,
+        stiffness: prefersReducedMotion ? 0 : 300,
+        duration: prefersReducedMotion ? 0 : 0.4,
+      },
+    }),
+  },
+} as const;
+
+/**
+ * Item option variants
+ */
+export const itemOptionVariants: Variants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: (index: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: {
+      delay: index * 0.05,
+      duration: 0.2,
+      ease: 'easeOut' as const,
+    },
+  }),
+  exit: {
+    opacity: 0,
+    x: 20,
+    transition: { duration: 0.15 },
+  },
+};

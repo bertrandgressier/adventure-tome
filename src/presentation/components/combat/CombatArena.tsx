@@ -8,10 +8,10 @@ import { useCharacterStore } from '@/src/presentation/providers/character-store-
 import { CombatantCard } from './CombatantCard';
 import { DiceAnimation } from './DiceAnimation';
 import type { DiceRollResult } from './DiceAnimation';
-import type { CombatActionType, DiceRoll } from '@/src/domain/types/combat-v2';
+import { ActionPanel } from './ActionPanel';
+import type { DiceRoll } from '@/src/domain/types/combat-v2';
 import {
   wouldBeLethal,
-  getActionMetadata,
 } from './combatUIHelpers';
 import {
   combatArenaVariants,
@@ -146,7 +146,15 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
         </div>
 
         <div className="mt-4">
-          <ActionPanel characterId={characterId} />
+          {combat.phase === 'victory' && (
+            <VictoryScreen characterId={characterId} />
+          )}
+          {combat.phase === 'defeat' && (
+            <DefeatScreen characterId={characterId} />
+          )}
+          {combat.phase !== 'victory' && combat.phase !== 'defeat' && (
+            <ActionPanel characterId={characterId} />
+          )}
         </div>
       </div>
     </motion.div>
@@ -198,95 +206,56 @@ function DamageIndicator({
   );
 }
 
-function ActionPanel({ characterId }: { characterId: string }) {
-  const availableActions = useCharacterStore((state) => state.availableActions);
-  const executeAction = useCharacterStore((state) => state.executeAction);
-  const isAnimating = useCharacterStore((state) => state.isAnimating);
-  const combat = useCharacterStore((state) => state.combat);
+function VictoryScreen({ characterId }: { characterId: string }) {
   const endCombat = useCharacterStore((state) => state.endCombat);
   const prefersReducedMotion = useReducedMotion() ?? false;
 
-  const handleAction = (actionType: CombatActionType) => {
-    if (isAnimating) return;
-
-    // Délégation au store sans logique complexe
-    executeAction({ type: actionType });
-  };
-
-  const handleFlee = () => {
-    if (isAnimating) return;
-    if (confirm('Fuir le combat ?')) {
-      executeAction({ type: 'flee' });
-    }
-  };
-
-  if (combat?.phase === 'victory') {
-    return (
-      <motion.div
-        className="bg-gradient-magic p-4 rounded-lg border border-primary/30 text-center"
-        variants={victoryScreenVariants}
-        initial="hidden"
-        animate="visible"
-        custom={prefersReducedMotion}
+  return (
+    <motion.div
+      className="bg-gradient-magic p-4 rounded-lg border border-primary/30 text-center"
+      variants={victoryScreenVariants}
+      initial="hidden"
+      animate="visible"
+      custom={prefersReducedMotion}
+    >
+      <h3 className="text-2xl font-cinzel text-primary mb-2">VICTOIRE !</h3>
+      <Button
+        onClick={async () => {
+          await endCombat();
+          window.location.href = `/characters/${characterId}`;
+        }}
+        variant="default"
+        className="btn-mobile"
       >
-        <h3 className="text-2xl font-cinzel text-primary mb-2">VICTOIRE !</h3>
-        <Button
-          onClick={async () => {
-            await endCombat();
-            window.location.href = `/characters/${characterId}`;
-          }}
-          variant="default"
-          className="btn-mobile"
-        >
-          Terminer
-        </Button>
-      </motion.div>
-    );
-  }
+        Terminer
+      </Button>
+    </motion.div>
+  );
+}
 
-  if (combat?.phase === 'defeat') {
-    return (
-      <motion.div
-        className="bg-gradient-fire p-4 rounded-lg border border-destructive/30 text-center"
-        variants={defeatScreenVariants}
-        initial="hidden"
-        animate="visible"
-        custom={prefersReducedMotion}
-      >
-        <h3 className="text-2xl font-cinzel text-destructive mb-2">DÉFAITE...</h3>
-        <Button
-          onClick={async () => {
-            await endCombat();
-            window.location.href = `/characters/${characterId}`;
-          }}
-          variant="destructive"
-          className="btn-mobile"
-        >
-          Terminer
-        </Button>
-      </motion.div>
-    );
-  }
+function DefeatScreen({ characterId }: { characterId: string }) {
+  const endCombat = useCharacterStore((state) => state.endCombat);
+  const prefersReducedMotion = useReducedMotion() ?? false;
 
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {availableActions.map((action) => {
-        const actionInfo = getActionMetadata(action.action.type);
-
-        return (
-          <Button
-            key={action.action.type}
-            variant={action.action.type === 'flee' ? 'outline' : 'default'}
-            disabled={!action.enabled || isAnimating}
-            onClick={() => action.action.type === 'flee' ? handleFlee() : handleAction(action.action.type as CombatActionType)}
-            className="btn-mobile h-14"
-            title={action.disabledReason}
-          >
-            <span className="text-xl mr-2">{actionInfo.icon}</span>
-            <span className="text-sm">{actionInfo.label}</span>
-          </Button>
-        );
-      })}
-    </div>
+    <motion.div
+      className="bg-gradient-fire p-4 rounded-lg border border-destructive/30 text-center"
+      variants={defeatScreenVariants}
+      initial="hidden"
+      animate="visible"
+      custom={prefersReducedMotion}
+    >
+      <h3 className="text-2xl font-cinzel text-destructive mb-2">DÉFAITE...</h3>
+      <Button
+        onClick={async () => {
+          await endCombat();
+          window.location.href = `/characters/${characterId}`;
+        }}
+        variant="destructive"
+        className="btn-mobile"
+      >
+        Terminer
+      </Button>
+    </motion.div>
   );
 }
