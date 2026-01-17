@@ -4,7 +4,6 @@ import { useRef, useEffect, useState } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { ScrollText, ChevronUp, ChevronDown, Swords, Heart, Sparkles, Wand2, Dices, ArrowRight, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { CombatEvent } from '@/src/domain/types/combat-v2';
 import { CombatEventType } from '@/src/domain/types/CombatEventType';
@@ -18,62 +17,99 @@ export interface CombatLogProps {
   events: readonly CombatEvent[];
 }
 
-const logContainerVariants = {
-  collapsed: {
-    height: 'auto',
-  },
-  expanded: {
-    height: 'max-content',
-  },
-};
-
 const logContentVariants = {
   collapsed: {
     opacity: 0,
     height: 0,
+    transition: {
+      height: { duration: 0.2 },
+      opacity: { duration: 0.15 },
+    },
   },
   expanded: {
     opacity: 1,
     height: 'auto',
     transition: {
+      height: { duration: 0.3, ease: 'easeOut' },
+      opacity: { duration: 0.2, delay: 0.1 },
       when: 'beforeChildren',
-      staggerChildren: 0.05,
+      staggerChildren: 0.02,
     },
   },
 };
 
 const eventVariants = {
-  collapsed: { opacity: 0, x: -20 },
-  expanded: { opacity: 1, x: 0 },
+  collapsed: { opacity: 0, y: 10 },
+  expanded: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.2,
+    },
+  },
 };
 
 export function CombatLog({ events }: CombatLogProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion() ?? false;
+  const prevEventsLengthRef = useRef(events.length);
+  const [canScrollDown, setCanScrollDown] = useState(false);
 
   const eventsByRound = groupEventsByRound(events);
   const totalEvents = events.length;
 
+  // Vérifier si on peut scroller vers le bas
+  const checkScroll = () => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      setCanScrollDown(scrollHeight - scrollTop - clientHeight > 10);
+    }
+  };
+
+  // Auto-scroll vers le bas quand de nouveaux événements arrivent
+  useEffect(() => {
+    if (scrollRef.current && events.length > prevEventsLengthRef.current) {
+      // Scroll smooth vers le bas après un court délai pour l'animation
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({
+          top: scrollRef.current.scrollHeight,
+          behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        });
+      }, 100);
+    }
+    prevEventsLengthRef.current = events.length;
+  }, [events.length, prefersReducedMotion]);
+
+  // Scroll initial quand on ouvre le log
   useEffect(() => {
     if (isExpanded && scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({
+          top: scrollRef.current.scrollHeight,
+          behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        });
+      }, 150);
     }
-  }, [isExpanded, events]);
+  }, [isExpanded, prefersReducedMotion]);
 
   const lastEventIndex = totalEvents - 1;
   const lastEvent = events[lastEventIndex];
 
   return (
-    <div className="flex flex-col gap-2">
-      <motion.div variants={prefersReducedMotion ? {} : logContainerVariants} initial="collapsed" animate={isExpanded ? 'expanded' : 'collapsed'}>
+    <motion.div 
+      className="fixed bottom-0 left-0 right-0 z-30 pointer-events-none"
+      initial={{ y: 0 }}
+      animate={{ y: 0 }}
+    >
+      <div className="pointer-events-auto px-4 pb-4 safe-area-bottom">
         <Button
           variant="outline"
           size="sm"
           onClick={() => setIsExpanded(!isExpanded)}
           className={cn(
-            'w-full justify-between font-cinzel text-sm border-primary/50 bg-card/50 hover:bg-card',
-            isExpanded && 'border-primary'
+            'w-full justify-between font-cinzel text-sm border-primary/50 bg-card/90 hover:bg-card backdrop-blur-sm shadow-lg',
+            isExpanded && 'border-primary rounded-b-none'
           )}
           aria-expanded={isExpanded}
           aria-controls="combat-log-content"
@@ -82,21 +118,24 @@ export function CombatLog({ events }: CombatLogProps) {
             <ScrollText className="size-4" />
             Historique ({totalEvents})
           </span>
-          {isExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+          {isExpanded ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
         </Button>
 
         <AnimatePresence mode="wait">
           {isExpanded && (
             <motion.div
               id="combat-log-content"
-              ref={scrollRef}
               variants={prefersReducedMotion ? {} : logContentVariants}
               initial="collapsed"
               animate="expanded"
               exit="collapsed"
-              className="mt-2 overflow-hidden max-h-[40vh] border border-border/50 rounded-lg bg-card/30"
+              className="overflow-hidden border-x border-t border-border/50 rounded-t-lg bg-card/95 backdrop-blur-md shadow-xl relative"
             >
-              <ScrollArea className="h-full">
+              <div 
+                ref={scrollRef}
+                className="max-h-[50vh] overflow-y-auto"
+                onScroll={checkScroll}
+              >
                 <div className="p-3 space-y-3">
                   {eventsByRound.map(({ roundNumber, events: roundEvents }) => (
                     <motion.div
@@ -104,7 +143,7 @@ export function CombatLog({ events }: CombatLogProps) {
                       variants={prefersReducedMotion ? {} : eventVariants}
                       className="space-y-2"
                     >
-                      <div className="flex items-center gap-2 text-xs font-cinzel text-primary/70 border-b border-primary/20 pb-1">
+                      <div className="flex items-center gap-2 text-xs font-cinzel text-primary/70 border-b border-primary/20 pb-1 sticky top-0 bg-card/95 backdrop-blur-sm z-10">
                         <span>Round {roundNumber}</span>
                       </div>
 
@@ -122,7 +161,23 @@ export function CombatLog({ events }: CombatLogProps) {
                     </div>
                   )}
                 </div>
-              </ScrollArea>
+              </div>
+
+              {/* Indicateur de scroll */}
+              <AnimatePresence>
+                {canScrollDown && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-card/95 to-transparent pointer-events-none flex items-end justify-center pb-2"
+                  >
+                    <div className="bg-primary/20 rounded-full p-1">
+                      <ChevronDown className="size-4 text-primary animate-bounce" />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {lastEvent && (
                 <div className="sr-only" aria-live="polite" aria-atomic="true">
@@ -132,8 +187,8 @@ export function CombatLog({ events }: CombatLogProps) {
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -149,18 +204,20 @@ function CombatLogEntry({ event, isLast }: CombatLogEntryProps) {
   const icon = getEventIcon(event.type);
 
   return (
-    <div
+    <motion.div
       className={cn(
-        'flex items-start gap-2 text-sm py-1',
-        isLast && 'font-semibold',
+        'flex items-start gap-2 text-sm py-1.5 px-2 rounded transition-colors',
+        isLast && 'bg-primary/10 font-semibold',
         colorClass
       )}
+      animate={isLast ? { scale: [1, 1.02, 1] } : {}}
+      transition={{ duration: 0.3 }}
     >
       <div className={cn('flex-shrink-0 mt-0.5', iconColorClass)}>
         {icon}
       </div>
       <span className="flex-1 leading-relaxed">{description}</span>
-    </div>
+    </motion.div>
   );
 }
 

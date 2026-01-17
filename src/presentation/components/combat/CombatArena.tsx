@@ -111,7 +111,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
         <X className="size-6" />
       </Button>
 
-      <div className="flex-1 flex flex-col p-4">
+      <div className="flex-1 flex flex-col p-4 pb-20">
         <div className="flex-1 min-h-0 flex flex-col">
           {activeEnemy ? (
             <CombatantCard
@@ -156,9 +156,11 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
           {combat.phase !== 'victory' && combat.phase !== 'defeat' && (
             <ActionPanel characterId={characterId} />
           )}
-          <CombatLog events={combat.events} />
         </div>
       </div>
+
+      {/* CombatLog positionné en fixed en bas de l'écran */}
+      <CombatLog events={combat.events} />
     </motion.div>
   );
 }
