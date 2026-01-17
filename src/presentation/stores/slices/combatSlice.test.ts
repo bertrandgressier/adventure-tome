@@ -212,6 +212,28 @@ describe('combatSlice', () => {
         expect(setCallArgs.combat).not.toBeNull();
       }
     });
+
+    it('should accumulate events across multiple actions', () => {
+      // After startCombat, there should be 1 event (COMBAT_START)
+      const initialCombat = currentState.combat;
+      expect(initialCombat?.events).toHaveLength(1);
+      expect(initialCombat?.events[0]?.type).toBe('combat_start');
+
+      // Execute first attack - should add ATTACK_ROLL event (and possibly DAMAGE_DEALT)
+      slice.executeAction({ type: CombatActionType.ATTACK });
+      const combat1 = currentState.combat;
+      const eventsAfterFirstAttack = combat1?.events.length ?? 0;
+      expect(eventsAfterFirstAttack).toBeGreaterThan(1); // At least combat_start + attack_roll
+
+      // Execute second attack - should accumulate more events
+      slice.executeAction({ type: CombatActionType.ATTACK });
+      const combat2 = currentState.combat;
+      const eventsAfterSecondAttack = combat2?.events.length ?? 0;
+      expect(eventsAfterSecondAttack).toBeGreaterThan(eventsAfterFirstAttack);
+
+      // Verify all events are retained
+      expect(combat2?.events[0]?.type).toBe('combat_start'); // First event still there
+    });
   });
 
   describe('endCombat', () => {

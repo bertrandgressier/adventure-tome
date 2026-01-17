@@ -151,9 +151,15 @@ export const createCombatSlice = () => {
         const result = CombatEngine.resolve(combat, action, diceOverrides);
         const availableActions = CombatEngine.getAvailableActions(result.state);
 
+        // Append new events to existing events in state
+        const updatedCombat = {
+          ...result.state,
+          events: [...result.state.events, ...result.events],
+        };
+
         // Mettre tout à jour en même temps : combat + isAnimating
         set({
-          combat: result.state,
+          combat: updatedCombat,
           availableActions,
           error: null,
           isAnimating: true, // Démarrer l'animation
