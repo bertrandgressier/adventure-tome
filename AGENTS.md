@@ -216,6 +216,25 @@ export class Stats {
 - Combat formulas: [docs/COMBAT.md](docs/COMBAT.md) (2d6 + HABILETÉ + weapon)
 - Modes: `narrative` (auto-win) | `simplified` (manual saves) | `mortal` (hardcore)
 
+### ⚠️ RÈGLE CRITIQUE : Ennemis vs Joueur
+
+**ENNEMIS** possèdent UNIQUEMENT :
+- `name` : Nom de l'ennemi
+- `dexterite` : Compétence au combat
+- `endurance` / `enduranceMax` : Points de vie
+
+**ENNEMIS N'ONT PAS** :
+- ❌ `weapon` (pas d'arme)
+- ❌ `chance` (pas de points de chance)
+- ❌ `isBoss` (supprimé, inutile)
+- ❌ Bonus de dégâts d'arme
+
+**JOUEUR UNIQUEMENT** possède :
+- Tout ce que l'ennemi possède +
+- ✅ `weapon` (arme équipée)
+- ✅ `chance` (points de chance)
+- ✅ Bonus de dégâts (DOMMAGES ACTUELS = arme + objets)
+
 ---
 
 ## Application Layer

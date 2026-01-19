@@ -136,9 +136,10 @@ startCombat(
 ```typescript
 interface EnemyConfig {
   name: string;
-  dexterite: number;
-  endurance: number;
-  attackPoints: number;
+  dexterite: number;      // Compétence au combat
+  endurance: number;      // Points de vie actuels
+  enduranceMax: number;   // Points de vie maximum
+  // ⚠️ PAS de weapon, PAS de chance, PAS de isBoss
 }
 
 interface CombatConfig {

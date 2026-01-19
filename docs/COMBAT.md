@@ -12,12 +12,20 @@ Le système de combat dans La Saga de Dagda est basé sur des lancers de dés et
 
 ### Caractéristiques de combat
 
-Chaque combattant possède :
+#### Le JOUEUR possède :
 
 - **DEXTÉRITÉ** : Adresse au combat, capacité à toucher l'adversaire
 - **POINTS DE VIE** : Capacité à encaisser les coups
 - **ARME** : Points de dommage supplémentaires
-- **DOMMAGES ACTUELS** : Total des bonus de dégâts (voir ci-dessous)
+- **DOMMAGES ACTUELS** : Total des bonus de dégâts (arme + objets)
+- **CHANCE** : Réserve de points pour modifier les jets de dés
+
+#### Les ENNEMIS possèdent UNIQUEMENT :
+
+- **DEXTÉRITÉ** : Adresse au combat
+- **POINTS DE VIE** : Capacité à encaisser les coups
+
+⚠️ **Important** : Les ennemis **N'ONT PAS d'arme** dans La Saga de Dagda. Ils n'ont pas de bonus de dégâts d'arme ni de points de CHANCE.
 
 ### DOMMAGES ACTUELS (règle officielle)
 
@@ -100,7 +108,8 @@ Lorsque vous affrontez un groupe :
 - Les ennemis sont **fusionnés** en un seul combattant
 - **DEXTÉRITÉ** : Maximum du groupe
 - **Points de Vie** : Somme des PV de tous les ennemis
-- **Arme** : Bonus maximum du groupe
+
+> ⚠️ Note : Les ennemis n'ont jamais d'arme, même en groupe
 
 ### Limite
 
@@ -134,7 +143,9 @@ Cette règle s'applique jusqu'à **5 adversaires simultanés**. Au-delà, le com
 
 **Vous** : DEXTÉRITÉ 7, PV 32/32, CHANCE 5, Épée longue (+5 dommages), DOMMAGES ACTUELS: 5
 
-**Ennemi** : GOBELIN - DEXTÉRITÉ 6, PV 15/15, Arme +2
+**Ennemi** : GOBELIN - DEXTÉRITÉ 6, PV 15/15
+
+> ⚠️ Note : Le Gobelin n'a PAS d'arme (les ennemis n'ont jamais d'arme dans ce jeu)
 
 ### Round 1 - Vous attaquez
 
@@ -173,7 +184,7 @@ Cette règle s'applique jusqu'à **5 adversaires simultanés**. Au-delà, le com
 │  VOUS                    GOBELIN    │
 │  DEX: 7                  DEX: 6     │
 │  PV: 32/32              PV: 15/15   │
-│  DOMMAGES: 5            Arme: +2    │
+│  DOMMAGES: 5                        │
 │  CHANCE: 5                          │
 │                                     │
 ├─────────────────────────────────────┤
