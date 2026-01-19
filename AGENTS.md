@@ -441,6 +441,95 @@ export function CharacterStats({ characterId }: Props) {
 
 ---
 
+## Animations avec Framer Motion
+
+### Installation
+
+Framer Motion est déjà installé (`framer-motion@^12.26.2`). **Ne pas utiliser CSS animations brutes** pour les animations complexes.
+
+### Règles obligatoires
+
+1. **TOUJOURS utiliser `useReducedMotion`** pour respecter les préférences utilisateur :
+
+```typescript
+import { motion, useReducedMotion } from 'framer-motion';
+
+export function AnimatedComponent() {
+  const shouldReduceMotion = useReducedMotion();
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
+    />
+  );
+}
+```
+
+2. **Utiliser `AnimatePresence`** pour les éléments qui apparaissent/disparaissent :
+
+```typescript
+import { AnimatePresence, motion } from 'framer-motion';
+
+<AnimatePresence mode="wait">
+  {isVisible && (
+    <motion.div
+      key="unique-key"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    />
+  )}
+</AnimatePresence>
+```
+
+3. **Centraliser les variants** pour réutilisation :
+
+```typescript
+// src/presentation/components/combat/combatAnimationVariants.ts
+export const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
+
+export const damageIndicator = {
+  initial: { opacity: 1, y: 0, scale: 0.5 },
+  animate: { opacity: 0, y: -50, scale: 1 },
+};
+```
+
+### Bonnes pratiques
+
+| ✅ Faire | ❌ Ne pas faire |
+|---------|----------------|
+| `useReducedMotion()` dans chaque composant | Ignorer l'accessibilité |
+| Durées courtes (0.2-0.5s) | Animations > 1s |
+| `type: "spring"` pour interactions | Animations linéaires ennuyeuses |
+| Variants réutilisables | Copier-coller les animations |
+| Tester sur mobile (60fps) | Animations lourdes non testées |
+
+### Composants utilisant Framer Motion
+
+```
+src/presentation/components/combat/
+├── CombatArena.tsx           # Transitions page
+├── CombatantCard.tsx         # HP bar, état actif
+├── DiceAnimation.tsx         # Animation 3D des dés
+├── DamageIndicator.tsx       # Nombres flottants
+├── ActionPanel.tsx           # Boutons animés
+├── ItemPicker.tsx            # Modal animée
+└── combatAnimationVariants.ts # Variants centralisés
+```
+
+### Ressources
+
+- [Framer Motion Docs](https://www.framer.com/motion/)
+- [useReducedMotion](https://www.framer.com/motion/use-reduced-motion/)
+
+---
+
 ## Common Tasks
 
 ### Adding a New Character Field
