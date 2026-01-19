@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { CombatantCard } from './CombatantCard';
-import type { CombatantState, EnemyState } from '@/src/domain/types/combat-v2';
+import type { PlayerState, EnemyState } from '@/src/domain/types/combat-v2';
 
 const meta = {
   title: 'Combat V2/CombatantCard',
@@ -22,8 +22,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// Helper pour créer un combattant valide
-const createCombatant = (overrides: Partial<CombatantState>): CombatantState => ({
+// Helper pour créer un joueur valide
+const createPlayer = (overrides: Partial<PlayerState>): PlayerState => ({
   name: 'Héros',
   dexterite: 12,
   endurance: 20,
@@ -42,12 +42,9 @@ const createEnemy = (overrides: Partial<EnemyState>): EnemyState => ({
   dexterite: 5,
   endurance: 6,
   enduranceMax: 6,
-  chance: 0,
-  weapon: { id: 'claws', name: 'Griffes', bonus: 0 },
   weaponDamage: 0,
   passiveDamageBonus: 0,
   totalDamageBonus: 0,
-  isBoss: false,
   ...overrides,
 });
 
@@ -56,7 +53,7 @@ const createEnemy = (overrides: Partial<EnemyState>): EnemyState => ({
  */
 export const PlayerHealthy: Story = {
   args: {
-    combatant: createCombatant({}),
+    combatant: createPlayer({}),
     type: 'player',
     isActive: false,
   },
@@ -67,7 +64,7 @@ export const PlayerHealthy: Story = {
  */
 export const PlayerModerate: Story = {
   args: {
-    combatant: createCombatant({ endurance: 12 }),
+    combatant: createPlayer({ endurance: 12 }),
     type: 'player',
     isActive: false,
   },
@@ -78,7 +75,7 @@ export const PlayerModerate: Story = {
  */
 export const PlayerCritical: Story = {
   args: {
-    combatant: createCombatant({ endurance: 4 }),
+    combatant: createPlayer({ endurance: 4 }),
     type: 'player',
     isActive: false,
   },
@@ -96,7 +93,7 @@ export const PlayerCritical: Story = {
  */
 export const PlayerActive: Story = {
   args: {
-    combatant: createCombatant({ endurance: 15 }),
+    combatant: createPlayer({ endurance: 15 }),
     type: 'player',
     isActive: true,
   },
@@ -114,7 +111,7 @@ export const PlayerActive: Story = {
  */
 export const PlayerDamaged: Story = {
   args: {
-    combatant: createCombatant({ endurance: 12 }),
+    combatant: createPlayer({ endurance: 12 }),
     type: 'player',
     isActive: false,
     lastDamage: 5,
@@ -149,7 +146,6 @@ export const EnemyBoss: Story = {
       dexterite: 15,
       endurance: 30,
       enduranceMax: 30,
-      isBoss: true,
     }),
     type: 'enemy',
     isActive: false,

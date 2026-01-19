@@ -142,8 +142,8 @@ describe('Issue #129 - Enemy interface separation', () => {
 
       // Simulate enemy attack
       const result = CombatEngine.resolve(
-        { ...state, phase: 'enemy_turn' as any },
-        { type: 'attack' as any },
+        { ...state, phase: 'enemy_turn' },
+        { type: 'attack' },
         { hitDice: [2, 2], damageDice: 3 }
       );
 

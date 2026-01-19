@@ -93,14 +93,6 @@ describe('CombatantCard', () => {
       expect(screen.getByText('15/20')).toBeInTheDocument();
     });
 
-    it('should show boss badge for boss enemies', () => {
-      render(
-        <CombatantCard combatant={bossCombatant} type="enemy" isActive={false} />
-      );
-
-      expect(screen.getByText('BOSS')).toBeInTheDocument();
-    });
-
     it('should have accessible labels', () => {
       render(
         <CombatantCard

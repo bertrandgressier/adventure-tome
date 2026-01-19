@@ -1,18 +1,22 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import type { CombatantState, EnemyState } from '@/src/domain/types/combat-v2';
-import { getCombatantHealthInfo, isEnemy } from './combatUIHelpers';
+import type { PlayerState, EnemyState } from '@/src/domain/types/combat-v2';
+import { getCombatantHealthInfo } from './combatUIHelpers';
 import { cn } from '@/lib/utils';
 import { combatantCardVariants } from './motion';
 
 export type CardVisualState = 'idle' | 'active' | 'damaged' | 'healing' | 'dead';
 
 export interface CombatantCardProps {
-  combatant: CombatantState | EnemyState;
+  combatant: PlayerState | EnemyState;
   type: 'player' | 'enemy';
   isActive: boolean;
   lastDamage?: number;
+}
+
+function isPlayer(combatant: PlayerState | EnemyState): combatant is PlayerState {
+  return 'weapon' in combatant && 'chance' in combatant;
 }
 
 export function CombatantCard({
@@ -64,11 +68,6 @@ export function CombatantCard({
             DEX: {combatant.dexterite}
           </p>
         </div>
-        {type === 'enemy' && isEnemy(combatant) && (combatant as EnemyState).isBoss && (
-          <span className="text-xs text-destructive font-bold" aria-label="Ennemi boss">
-            BOSS
-          </span>
-        )}
       </div>
 
       <div className="space-y-2">
@@ -101,7 +100,7 @@ export function CombatantCard({
           />
         </div>
 
-        {combatant.weapon && (
+        {type === 'player' && isPlayer(combatant) && combatant.weapon && (
           <div className="text-sm text-muted-foreground">
             <span className="text-xs text-secondary">{combatant.weapon.name}</span>
             {combatant.weapon.bonus > 0 && (

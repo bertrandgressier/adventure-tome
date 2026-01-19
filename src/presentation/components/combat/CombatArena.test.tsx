@@ -279,36 +279,6 @@ describe('CombatArena', () => {
         expect(screen.getByText('Épée')).toBeInTheDocument();
         expect(screen.getByText(/\+2/)).toBeInTheDocument();
       });
-
-      it('should show boss badge for boss enemies', () => {
-        const bossCombat = {
-          ...mockCombat,
-          enemy: {
-            ...mockCombat.enemy,
-            name: 'Dragon',
-            isBoss: true,
-          },
-        };
-
-        mockUseCharacterStore.mockImplementation((selector) => {
-          const state = createMockState({
-            combat: bossCombat,
-            availableActions: mockAvailableActions,
-            isAnimating: false,
-            executeAction: vi.fn(),
-            endCombat: vi.fn(),
-          });
-           
-         
-        return selector(state as any);
-        });
-
-        render(
-          <CombatArena characterId="test-id" onExit={mockOnExit} />
-        );
-
-        expect(screen.getByText('BOSS')).toBeInTheDocument();
-      });
     });
 
     describe('DiceAnimation', () => {
