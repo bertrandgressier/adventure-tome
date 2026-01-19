@@ -80,8 +80,6 @@ export interface PendingDamage {
 }
 
 export interface CombatConfig {
-  fleeCost?: number;
-  allowFlee: boolean;
   maxEnemies: number;
   damageFormula: string;
   firstAttacker?: Attacker;

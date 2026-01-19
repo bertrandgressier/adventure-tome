@@ -16,7 +16,6 @@ import {
 } from './combatUIHelpers';
 import {
   combatArenaVariants,
-  damageIndicatorVariants,
   victoryScreenVariants,
   defeatScreenVariants,
 } from './motion';

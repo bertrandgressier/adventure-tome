@@ -103,7 +103,7 @@ describe('CombatArena', () => {
       usedReroll: false,
       isFirstAttack: true,
       config: {
-        allowFlee: true,
+        
         maxEnemies: 3,
         damageFormula: 'standard',
         isSurprise: false,
@@ -589,7 +589,7 @@ describe('CombatArena', () => {
             usedReroll: false,
             isFirstAttack: true,
             config: {
-              allowFlee: true,
+              
               maxEnemies: 3,
               damageFormula: 'standard',
               isSurprise: false,

@@ -11,8 +11,8 @@ export { ItemPicker } from './ItemPicker';
 export type { ItemPickerProps } from './ItemPicker';
 export { CombatLog } from './CombatLog';
 export type { CombatLogProps } from './CombatLog';
-export { CombatDemo } from './CombatDemo';
-export type { CombatDemoProps } from './CombatDemo';
-export { CombatStateDemo } from './CombatStateDemo';
-export type { CombatStateDemoProps } from './CombatStateDemo';
+// export { CombatDemo } from './CombatDemo'; // Temporarily disabled (issue #116)
+// export type { CombatDemoProps } from './CombatDemo';
+// export { CombatStateDemo } from './CombatStateDemo'; // Temporarily disabled (issue #116)
+// export type { CombatStateDemoProps } from './CombatStateDemo';
 export * from './combatUIHelpers';

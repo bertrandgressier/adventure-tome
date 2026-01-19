@@ -49,7 +49,6 @@ const mockEnemy: EnemyConfig = {
 };
 
 const defaultConfig = {
-  allowFlee: true,
   maxEnemies: 3,
   damageFormula: '2d6 + HABILETÉ + weapon',
 };
@@ -360,20 +359,14 @@ describe('CombatOrchestrator', () => {
         defaultConfig
       );
 
-      const fleeEvent = {
-        type: CombatEventType.FLEE,
-        success: true,
-        timestamp: new Date().toISOString()
-      } as unknown as CombatEvent;
-
       const finalState: CombatState = {
         ...initialState,
         phase: CombatPhase.DEFEAT,
-        events: [...initialState.events, fleeEvent]
+        events: [...initialState.events]
       };
 
       const summary = orchestrator.generateCombatSummary(initialState, finalState);
-      expect(summary.result).toBe('fled');
+      expect(summary.result).toBe('defeat');
     });
   });
 });

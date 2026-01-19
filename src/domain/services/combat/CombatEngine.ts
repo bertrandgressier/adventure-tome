@@ -30,7 +30,7 @@ export class CombatEngine {
     characterId: string,
     player: CombatantConfig,
     enemies: EnemyConfig[],
-    config: { allowFlee: boolean; maxEnemies: number; damageFormula: string; firstAttacker?: Attacker; fleeCost?: number; isSurprise?: boolean }
+    config: { maxEnemies: number; damageFormula: string; firstAttacker?: Attacker; isSurprise?: boolean }
   ): CombatState {
     const weaponDamage = player.weapon.bonus;
     const passiveDamageBonus = 0;
@@ -63,8 +63,6 @@ export class CombatEngine {
       roundNumber: 1,
       currentAttacker: config.firstAttacker ?? Attacker.PLAYER,
       config: {
-        fleeCost: config.fleeCost ?? 2,
-        allowFlee: config.allowFlee,
         maxEnemies: config.maxEnemies,
         damageFormula: config.damageFormula,
         firstAttacker: config.firstAttacker ?? Attacker.PLAYER,
@@ -105,8 +103,6 @@ export class CombatEngine {
           return { state, events: [] };
         }
         return ItemResolver.resolve(state, item);
-      case CombatActionType.FLEE:
-        return ReactionResolver.resolveFlee(state);
       case CombatActionType.REROLL:
         return ReactionResolver.resolveReroll(state, diceOverrides);
       case CombatActionType.SPEND_CHANCE:

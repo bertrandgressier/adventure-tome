@@ -59,22 +59,10 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
     executeAction({ type: actionType });
   };
 
-  const handleFlee = () => {
-    if (isAnimating) return;
-    if (confirm('Fuir le combat ?')) {
-      executeAction({ type: 'flee' });
-    }
-  };
-
   const handleItemSelect = (itemId: string) => {
     setIsItemPickerOpen(false);
     executeAction({ type: 'use_item', payload: { itemId } });
   };
-
-  const canFlee = combat.config.allowFlee ?? false;
-  const availableActionsFiltered = availableActions.filter(
-    action => !(action.action.type === 'flee' && !canFlee)
-  );
 
   return (
     <>
@@ -86,10 +74,9 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
         custom={prefersReducedMotion}
       >
         <AnimatePresence mode="popLayout">
-          {availableActionsFiltered.map((action, index) => {
+          {availableActions.map((action, index) => {
             const actionInfo = getActionMetadata(action.action.type);
             const isWeaponAbility = action.action.type === 'weapon_ability';
-            const isFleeAction = action.action.type === 'flee';
 
             return (
               <motion.div
@@ -104,9 +91,9 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
                 }}
               >
                 <Button
-                  variant={isFleeAction ? 'outline' : 'default'}
+                  variant="default"
                   disabled={!action.enabled || isAnimating}
-                  onClick={() => isFleeAction ? handleFlee() : handleAction(action.action.type as CombatActionType)}
+                  onClick={() => handleAction(action.action.type as CombatActionType)}
                   className="btn-mobile min-h-[44px] relative group"
                   aria-label={actionInfo.label}
                   aria-disabled={!action.enabled || isAnimating}

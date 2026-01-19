@@ -5,7 +5,6 @@ import { CombatEventType } from '../../types/CombatEventType';
 import { Attacker } from '../../types/Attacker';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
-import { COMBAT_MESSAGES } from './constants';
 
 export class CombatValidator {
   static checkCombatEnd(state: CombatState): 'ongoing' | 'victory' | 'defeat' {
@@ -32,15 +31,6 @@ export class CombatValidator {
       const hasUsableItems = state.player.weapon.ability !== undefined;
       if (hasUsableItems) {
         actions.push({ action: { type: CombatActionType.USE_ITEM, payload: {} }, enabled: true });
-      }
-
-      if (state.config.allowFlee) {
-        const canFlee = state.player.endurance > (state.config.fleeCost ?? 2);
-        actions.push({
-          action: { type: CombatActionType.FLEE },
-          enabled: canFlee,
-          disabledReason: canFlee ? undefined : COMBAT_MESSAGES.FLEE.INSUFFICIENT_ENDURANCE,
-        });
       }
     }
 

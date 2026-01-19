@@ -74,7 +74,6 @@ function createCombatState(options: {
     player,
     [enemy],
     {
-      allowFlee: true,
       maxEnemies: 1,
       damageFormula: '1+1d6+weapon',
       isSurprise: options.isSurprise ?? false,

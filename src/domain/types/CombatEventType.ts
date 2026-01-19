@@ -9,7 +9,6 @@ export const CombatEventType = {
   ABILITY_USED: 'ability_used',
   LUCK_TEST: 'luck_test',
   CHANCE_SPENT: 'chance_spent',
-  FLEE: 'flee',
   WEAPON_ABILITY: 'weapon_ability',
   ITEM_USED: 'item_used',
 } as const;

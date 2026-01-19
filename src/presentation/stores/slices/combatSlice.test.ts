@@ -60,7 +60,6 @@ const mockEnemy: EnemyConfig = {
 };
 
 const defaultConfig = {
-  allowFlee: true,
   maxEnemies: 3,
   damageFormula: '2d6 + HABILETÉ + weapon',
 };

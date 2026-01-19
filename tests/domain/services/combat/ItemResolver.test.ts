@@ -38,7 +38,6 @@ function createMockCombatState(overrides?: Partial<CombatState>): CombatState {
     roundNumber: 1,
     currentAttacker: 'player',
     config: {
-      allowFlee: true,
       maxEnemies: 3,
       damageFormula: '2d6 + bonus',
     },

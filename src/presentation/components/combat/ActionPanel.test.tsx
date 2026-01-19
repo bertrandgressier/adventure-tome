@@ -122,7 +122,6 @@ const mockCombat = {
   usedReroll: false,
   isFirstAttack: true,
   config: {
-    allowFlee: true,
     maxEnemies: 3,
     damageFormula: 'standard',
     isSurprise: false,
@@ -276,50 +275,6 @@ describe('ActionPanel', () => {
       await user.click(itemButton!);
 
       expect(screen.getByText('Choisir un objet')).toBeInTheDocument();
-    });
-
-    it('should show confirmation dialog when flee button is clicked', async () => {
-      const user = userEvent.setup();
-      global.confirm = vi.fn(() => true);
-
-      render(<ActionPanel characterId="test-id" />);
-
-      const fleeButton = screen.getByText('Fuir').closest('button');
-      await user.click(fleeButton!);
-
-      expect(global.confirm).toHaveBeenCalledWith('Fuir le combat ?');
-      expect(mockExecuteAction).toHaveBeenCalledWith({ type: 'flee' });
-    });
-
-    it('should not flee when confirmation is cancelled', async () => {
-      const user = userEvent.setup();
-      global.confirm = vi.fn(() => false);
-
-      render(<ActionPanel characterId="test-id" />);
-
-      const fleeButton = screen.getByText('Fuir').closest('button');
-      await user.click(fleeButton!);
-
-      expect(global.confirm).toHaveBeenCalledWith('Fuir le combat ?');
-      expect(mockExecuteAction).not.toHaveBeenCalled();
-    });
-
-    it('should filter out flee action when allowFlee is false', () => {
-      mockUseCharacterStore.mockImplementation((selector) => {
-        const state = {
-          combat: { ...mockCombat, config: { ...mockCombat.config, allowFlee: false } },
-          availableActions: mockAvailableActions,
-          isAnimating: false,
-          characters: { 'test-id': mockCharacter },
-          executeAction: mockExecuteAction,
-          getItem: (id: string) => mockCatalogItems[id as keyof typeof mockCatalogItems],
-        };
-        return selector(state as any);
-      });
-
-      render(<ActionPanel characterId="test-id" />);
-
-      expect(screen.queryByText('Fuir')).not.toBeInTheDocument();
     });
 
     describe('Item picker', () => {
