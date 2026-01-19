@@ -16,8 +16,7 @@ export interface CombatState {
   id: string;
   characterId: string;
   player: CombatantState;
-  enemies: EnemyState[];
-  activeEnemyIndex: number;
+  enemy: EnemyState;
   phase: CombatPhase;
   roundNumber: number;
   currentAttacker: Attacker;

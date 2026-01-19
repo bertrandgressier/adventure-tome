@@ -47,13 +47,13 @@ export interface CombatSlice {
   /**
    * Démarre un nouveau combat
    * @param characterId ID du personnage
-   * @param enemies Configuration des ennemis
+   * @param enemy Configuration de l'ennemi
    * @param config Configuration du combat
    * @throws Error si le personnage n'est pas trouvé
    */
   startCombat: (
     characterId: string,
-    enemies: EnemyConfig[],
+    enemy: EnemyConfig,
     config: CombatConfig
   ) => void;
 
@@ -101,7 +101,7 @@ export const createCombatSlice = () => {
     privateInitialChance: 0,
     error: null,
 
-    startCombat: (characterId, enemies, config) => {
+    startCombat: (characterId, enemy, config) => {
       try {
         const character = get().characters[characterId];
         if (!character) {
@@ -125,7 +125,7 @@ export const createCombatSlice = () => {
         const initialState = CombatEngine.createInitialState(
           characterId,
           playerConfig,
-          enemies,
+          enemy,
           config
         );
 

@@ -29,7 +29,6 @@ function createEnemyConfig(): EnemyConfig {
 
 function createCombatConfig() {
   return {
-    maxEnemies: 3,
     damageFormula: '1 + 1d6 + weapon',
   };
 }
@@ -39,7 +38,7 @@ describe('CombatEngine - Global Scenarios', () => {
     const initialState = CombatEngine.createInitialState(
       'char-1',
       createPlayerConfig(),
-      [createEnemyConfig()],
+      createEnemyConfig(),
       createCombatConfig()
     );
 
@@ -50,7 +49,7 @@ describe('CombatEngine - Global Scenarios', () => {
     let state = result1.state;
 
     expect(state.phase).toBe(CombatPhase.ENEMY_TURN);
-    expect(state.enemies[0].endurance).toBe(5);
+    expect(state.enemy.endurance).toBe(5);
 
     const result2 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 1 });
     state = result2.state;
@@ -68,7 +67,7 @@ describe('CombatEngine - Global Scenarios', () => {
     const result4 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
     state = result4.state;
 
-    expect(state.enemies[0].endurance).toBe(0);
+    expect(state.enemy.endurance).toBe(0);
     expect(CombatEngine.checkCombatEnd(state)).toBe('victory');
   });
 
@@ -76,7 +75,7 @@ describe('CombatEngine - Global Scenarios', () => {
     const initialState = CombatEngine.createInitialState(
       'char-1',
       createPlayerConfig(),
-      [{ ...createEnemyConfig(), dexterite: 7 }],
+      { ...createEnemyConfig(), dexterite: 7 },
       createCombatConfig()
     );
 
@@ -104,7 +103,7 @@ describe('CombatEngine - Global Scenarios', () => {
     const initialState = CombatEngine.createInitialState(
       'char-1',
       createPlayerConfig(),
-      [createEnemyConfig()],
+      createEnemyConfig(),
       createCombatConfig()
     );
 

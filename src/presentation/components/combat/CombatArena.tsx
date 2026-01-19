@@ -74,7 +74,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
     return null;
   }
 
-  const activeEnemy = combat.enemies?.[combat.activeEnemyIndex];
+  const activeEnemy = combat.enemy;
 
   // Adapter le lastRoll pour DiceAnimation
   const diceResult = combat.lastRoll

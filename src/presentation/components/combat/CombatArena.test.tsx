@@ -81,21 +81,18 @@ describe('CombatArena', () => {
         passiveDamageBonus: 0,
         totalDamageBonus: 0,
       },
-      enemies: [
-        {
-          name: 'Gobelin',
-          dexterite: 6,
-          endurance: 8,
-          enduranceMax: 8,
-          chance: 0,
-          weapon: { id: 'dagger', name: 'Dague', bonus: 1 },
-          weaponDamage: 0,
-          passiveDamageBonus: 0,
-          totalDamageBonus: 0,
-          isBoss: false,
-        },
-      ],
-      activeEnemyIndex: 0,
+      enemy: {
+        name: 'Gobelin',
+        dexterite: 6,
+        endurance: 8,
+        enduranceMax: 8,
+        chance: 0,
+        weapon: { id: 'dagger', name: 'Dague', bonus: 1 },
+        weaponDamage: 0,
+        passiveDamageBonus: 0,
+        totalDamageBonus: 0,
+        isBoss: false,
+      },
       phase: 'player_turn' as const,
       roundNumber: 1,
       currentAttacker: 'player' as const,
@@ -103,8 +100,6 @@ describe('CombatArena', () => {
       usedReroll: false,
       isFirstAttack: true,
       config: {
-        
-        maxEnemies: 3,
         damageFormula: 'standard',
         isSurprise: false,
       },
@@ -288,13 +283,11 @@ describe('CombatArena', () => {
       it('should show boss badge for boss enemies', () => {
         const bossCombat = {
           ...mockCombat,
-          enemies: [
-            {
-              ...mockCombat.enemies[0],
-              name: 'Dragon',
-              isBoss: true,
-            },
-          ],
+          enemy: {
+            ...mockCombat.enemy,
+            name: 'Dragon',
+            isBoss: true,
+          },
         };
 
         mockUseCharacterStore.mockImplementation((selector) => {
@@ -580,8 +573,18 @@ describe('CombatArena', () => {
               passiveDamageBonus: 0,
               totalDamageBonus: 0,
             },
-            enemies: [],
-            activeEnemyIndex: 0,
+            enemy: {
+              name: 'Gobelin',
+              dexterite: 6,
+              endurance: 8,
+              enduranceMax: 8,
+              chance: 0,
+              weapon: { id: 'dagger', name: 'Dague', bonus: 1 },
+              weaponDamage: 0,
+              passiveDamageBonus: 0,
+              totalDamageBonus: 0,
+              isBoss: false,
+            },
             phase: 'player_turn' as const,
             roundNumber: 1,
             currentAttacker: 'player' as const,
@@ -589,8 +592,6 @@ describe('CombatArena', () => {
             usedReroll: false,
             isFirstAttack: true,
             config: {
-              
-              maxEnemies: 3,
               damageFormula: 'standard',
               isSurprise: false,
             },

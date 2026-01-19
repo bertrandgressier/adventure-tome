@@ -12,10 +12,7 @@ export class CombatValidator {
       return 'defeat';
     }
 
-    const allEnemiesDefeated = state.enemies.every(
-      (enemy: typeof state.enemies[0]) => enemy.endurance <= 0
-    );
-    if (allEnemiesDefeated) {
+    if (state.enemy.endurance <= 0) {
       return 'victory';
     }
 

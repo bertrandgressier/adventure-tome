@@ -77,16 +77,12 @@ export class ItemResolver {
 
     // Appliquer les dégâts à l'ennemi actif
     if (item.damageToEnemy && item.damageToEnemy > 0) {
-      const targetEnemy = newState.enemies[newState.activeEnemyIndex];
+      const targetEnemy = newState.enemy;
       const newEnemyEndurance = Math.max(0, targetEnemy.endurance - item.damageToEnemy);
 
       newState = {
         ...newState,
-        enemies: newState.enemies.map((enemy, index) =>
-          index === newState.activeEnemyIndex
-            ? { ...enemy, endurance: newEnemyEndurance }
-            : enemy
-        ),
+        enemy: { ...newState.enemy, endurance: newEnemyEndurance },
       };
 
       events.push({

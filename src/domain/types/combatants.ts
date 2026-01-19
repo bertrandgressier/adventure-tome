@@ -80,7 +80,6 @@ export interface PendingDamage {
 }
 
 export interface CombatConfig {
-  maxEnemies: number;
   damageFormula: string;
   firstAttacker?: Attacker;
   isSurprise?: boolean;

@@ -29,12 +29,16 @@ export class CombatEngine {
   static createInitialState(
     characterId: string,
     player: CombatantConfig,
-    enemies: EnemyConfig[],
-    config: { maxEnemies: number; damageFormula: string; firstAttacker?: Attacker; isSurprise?: boolean }
+    enemy: EnemyConfig,
+    config: { damageFormula: string; firstAttacker?: Attacker; isSurprise?: boolean }
   ): CombatState {
     const weaponDamage = player.weapon.bonus;
     const passiveDamageBonus = 0;
     const totalDamageBonus = weaponDamage + passiveDamageBonus;
+
+    const enemyWeaponDamage = enemy.weapon.bonus;
+    const enemyPassiveDamageBonus = 0;
+    const enemyTotalDamageBonus = enemyWeaponDamage + enemyPassiveDamageBonus;
 
     const state: CombatState = {
       id: this.generateId(),
@@ -46,24 +50,17 @@ export class CombatEngine {
         passiveDamageBonus,
         totalDamageBonus,
       },
-      enemies: enemies.map((enemy) => {
-        const enemyWeaponDamage = enemy.weapon.bonus;
-        const enemyPassiveDamageBonus = 0;
-        const enemyTotalDamageBonus = enemyWeaponDamage + enemyPassiveDamageBonus;
-        return {
-          ...enemy,
-          endurance: enemy.endurance,
-          weaponDamage: enemyWeaponDamage,
-          passiveDamageBonus: enemyPassiveDamageBonus,
-          totalDamageBonus: enemyTotalDamageBonus,
-        };
-      }),
-      activeEnemyIndex: 0,
+      enemy: {
+        ...enemy,
+        endurance: enemy.endurance,
+        weaponDamage: enemyWeaponDamage,
+        passiveDamageBonus: enemyPassiveDamageBonus,
+        totalDamageBonus: enemyTotalDamageBonus,
+      },
       phase: CombatPhase.PLAYER_TURN,
       roundNumber: 1,
       currentAttacker: config.firstAttacker ?? Attacker.PLAYER,
       config: {
-        maxEnemies: config.maxEnemies,
         damageFormula: config.damageFormula,
         firstAttacker: config.firstAttacker ?? Attacker.PLAYER,
         isSurprise: config.isSurprise ?? false,
