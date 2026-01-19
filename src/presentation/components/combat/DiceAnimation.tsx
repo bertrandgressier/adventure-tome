@@ -100,18 +100,14 @@ export function DiceAnimation({
   };
 
   if (!diceResult && !isRolling) {
-    return (
-      <div className="text-center p-8">
-        <span className="text-muted-foreground text-sm">Prêt pour le combat</span>
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-4 p-4">
+    <div className="flex flex-col items-center justify-center space-y-2 p-2">
       <motion.div
         className={cn(
-          'bg-card/80 border-2 rounded-xl p-6',
+          'bg-card/80 border-2 rounded-xl p-4 max-w-md',
           getOutcomeColor()
         )}
         variants={diceRollVariants}
@@ -119,13 +115,13 @@ export function DiceAnimation({
         animate={phase === 'rolling' ? 'rolling' : 'result'}
         custom={prefersReducedMotion}
       >
-        <div className="flex items-center justify-center gap-6">
+        <div className="flex items-center justify-center gap-4">
           <Die
             value={phase === 'rolling' ? null : diceResult?.dice[0] ?? null}
             isRolling={phase === 'rolling'}
             prefersReducedMotion={prefersReducedMotion}
           />
-          <span className="text-2xl text-muted-foreground font-bold">+</span>
+          <span className="text-xl text-muted-foreground font-bold">+</span>
           <Die
             value={phase === 'rolling' ? null : diceResult?.dice[1] ?? null}
             isRolling={phase === 'rolling'}
@@ -134,23 +130,23 @@ export function DiceAnimation({
         </div>
 
         {phase === 'result' && diceResult && (
-          <div className="mt-6 space-y-3">
+          <div className="mt-3 space-y-2">
             <div className="text-center">
               <div
-                className="text-5xl font-cinzel font-bold text-primary"
+                className="text-4xl font-cinzel font-bold text-primary"
                 data-testid="final-score"
               >
                 {diceResult.finalScore}
               </div>
               {diceResult.isDouble && (
-                <span className="inline-block mt-2 px-4 py-1 bg-accent text-accent-foreground text-sm font-bold rounded-full">
+                <span className="inline-block mt-1 px-3 py-0.5 bg-accent text-accent-foreground text-xs font-bold rounded-full">
                   DOUBLE !
                 </span>
               )}
             </div>
 
-            <div className="border-t border-primary/20 pt-4 mt-4">
-              <div className="text-sm text-muted-foreground font-mono text-center space-y-1">
+            <div className="border-t border-primary/20 pt-2">
+              <div className="text-xs text-muted-foreground font-mono text-center space-y-0.5">
                 <div>
                   <span className="text-primary font-bold">[{diceResult.dice[0]}]</span>
                   {' + '}
@@ -173,10 +169,10 @@ export function DiceAnimation({
             </div>
 
             {showOutcome && outcome && diceResult.success !== undefined && (
-              <div className="text-center mt-2">
+              <div className="text-center mt-1">
                 <div
                   className={cn(
-                    'text-lg font-bold',
+                    'text-base font-bold',
                     outcome === 'win' || diceResult.success
                       ? 'text-chart-5'
                       : 'text-destructive'

@@ -7,4 +7,6 @@ export { ActionPanel } from './ActionPanel';
 export type { ActionPanelProps } from './ActionPanel';
 export { ItemPicker } from './ItemPicker';
 export type { ItemPickerProps } from './ItemPicker';
+export { CombatLog } from './CombatLog';
+export type { CombatLogProps } from './CombatLog';
 export * from './combatUIHelpers';
