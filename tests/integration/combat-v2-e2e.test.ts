@@ -124,7 +124,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       expect(currentState.combat).not.toBeNull();
       expect(currentState.combat?.phase).toBe(CombatPhase.PLAYER_TURN);
 
-      const initialEnemyEndurance = currentState.combat?.enemies[0].endurance ?? 0;
+      const initialEnemyEndurance = currentState.combat?.enemy.endurance ?? 0;
       expect(initialEnemyEndurance).toBe(15);
 
       const initialPlayerEndurance = currentState.combat?.player.endurance ?? 0;
@@ -133,7 +133,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [3, 2], damageDice: 4 });
       
       const damage1 = 1 + 4 + 3;
-      expect(currentState.combat?.enemies[0].endurance).toBe(15 - damage1);
+      expect(currentState.combat?.enemy.endurance).toBe(15 - damage1);
       expect(currentState.combat?.lastRoll?.success).toBe(true);
       expect(currentState.combat?.lastRoll?.total).toBe(5);
 
@@ -146,7 +146,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       expect(currentState.combat?.player.endurance).toBe(30);
 
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 3 });
-      expect(currentState.combat?.enemies[0].endurance).toBeLessThanOrEqual(0);
+      expect(currentState.combat?.enemy.endurance).toBeLessThanOrEqual(0);
     });
   });
 
@@ -203,7 +203,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
 
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
 
-      expect(currentState.combat?.enemies[0].endurance).toBeLessThan(mockEnemy.enduranceMax);
+      expect(currentState.combat?.enemy.endurance).toBeLessThan(mockEnemy.enduranceMax);
 
       slice.executeAction(
         { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 1, targetRoll: TargetRoll.DAMAGE } }
@@ -333,7 +333,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     it('should trigger extra attack on double roll', () => {
       slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
-      const initialEnemyEndurance = currentState.combat?.enemies[0].endurance ?? 0;
+      const initialEnemyEndurance = currentState.combat?.enemy.endurance ?? 0;
       expect(initialEnemyEndurance).toBe(15);
 
       // Roll a double (2+2=4) which should hit (dexterite=8) and trigger extra attack
@@ -568,7 +568,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
 
       // Enemy should be dead
-      expect(currentState.combat?.enemies[0].endurance).toBeLessThanOrEqual(0);
+      expect(currentState.combat?.enemy.endurance).toBeLessThanOrEqual(0);
       // Player should have healed +1 PV
       expect(currentState.combat?.player.endurance).toBe(26);
     });
@@ -583,7 +583,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 1 });
 
       // Enemy should still be alive
-      expect(currentState.combat?.enemies[0].endurance).toBeGreaterThan(0);
+      expect(currentState.combat?.enemy.endurance).toBeGreaterThan(0);
       // Player should NOT have healed
       expect(currentState.combat?.player.endurance).toBe(25);
     });
@@ -795,7 +795,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       expect(currentState.combat?.isFirstAttack).toBe(true);
       expect(currentState.combat?.config.isSurprise).toBe(true);
 
-      const initialEnemyEndurance = currentState.combat?.enemies[0].endurance ?? 0;
+      const initialEnemyEndurance = currentState.combat?.enemy.endurance ?? 0;
       expect(initialEnemyEndurance).toBe(15);
 
       // First attack with surprise bonus: base 1 + dice 3 + weapon 1 + surprise 2 = 7 damage
@@ -806,7 +806,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
 
       // Damage should be higher due to bonus
       const expectedDamage = 1 + 3 + 3; // base + dice + totalDamageBonus
-      expect(currentState.combat?.enemies[0].endurance).toBe(15 - expectedDamage);
+      expect(currentState.combat?.enemy.endurance).toBe(15 - expectedDamage);
     });
 
     it('should NOT add bonus damage if NOT a surprise attack', () => {
@@ -821,7 +821,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       expect(currentState.combat?.player.totalDamageBonus).toBe(1); // Just weapon
 
       const expectedDamage = 1 + 3 + 1; // base + dice + weapon
-      expect(currentState.combat?.enemies[0].endurance).toBe(15 - expectedDamage);
+      expect(currentState.combat?.enemy.endurance).toBe(15 - expectedDamage);
     });
 
     it('should NOT add bonus damage on second attack even with surprise', () => {

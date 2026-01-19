@@ -28,7 +28,7 @@ export class AttackResolver {
     let newState = { ...state };
     const events: CombatEvent[] = [];
 
-    // Check for ON_SURPRISE ability BEFORE the attack (first attack only)
+    // Check for ON_SURPRISE ability BEFORE attack (first attack only)
     if (isPlayerAttacking && newState.isFirstAttack) {
       const surpriseAbility = WeaponAbilityResolver.checkAutoTrigger(
         newState,

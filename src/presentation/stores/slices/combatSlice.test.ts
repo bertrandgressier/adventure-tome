@@ -132,7 +132,7 @@ describe('combatSlice', () => {
 
   describe('startCombat', () => {
     it('should call set with combat state', () => {
-      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
 
       expect(mockSet).toHaveBeenCalled();
       const setCallArgs = mockSet.mock.calls[0]?.[0];
@@ -142,7 +142,7 @@ describe('combatSlice', () => {
     });
 
     it('should set isAnimating to false', () => {
-      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
 
       const setCallArgs = mockSet.mock.calls[0]?.[0];
       if (setCallArgs && typeof setCallArgs === 'object') {
@@ -151,7 +151,7 @@ describe('combatSlice', () => {
     });
 
     it('should set usedReroll to true when character has no reroll item', () => {
-      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
 
       const setCallArgs = mockSet.mock.calls[0]?.[0];
       if (setCallArgs && typeof setCallArgs === 'object' && setCallArgs.combat) {
@@ -163,7 +163,7 @@ describe('combatSlice', () => {
       currentState.characters = { 'hero-id': characterWithReroll };
       currentState = { ...currentState, ...slice };
 
-      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
 
       const setCallArgs = mockSet.mock.calls[0]?.[0];
       if (setCallArgs && typeof setCallArgs === 'object' && setCallArgs.combat) {
@@ -172,7 +172,7 @@ describe('combatSlice', () => {
     });
 
     it('should store initial chance', () => {
-      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
 
       const setCallArgs = mockSet.mock.calls[0]?.[0];
       if (setCallArgs && typeof setCallArgs === 'object') {
@@ -181,7 +181,7 @@ describe('combatSlice', () => {
     });
 
     it('should throw error when character not found', () => {
-      expect(() => slice.startCombat('unknown-id', [mockEnemy], defaultConfig)).toThrow(
+      expect(() => slice.startCombat('unknown-id', mockEnemy, defaultConfig)).toThrow(
         'Character unknown-id not found'
       );
     });
@@ -190,7 +190,7 @@ describe('combatSlice', () => {
   describe('executeAction', () => {
     beforeEach(() => {
       mockSet.mockClear();
-      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
     });
 
     it('should throw error when no active combat', () => {
@@ -237,7 +237,7 @@ describe('combatSlice', () => {
   describe('endCombat', () => {
     beforeEach(() => {
       mockSet.mockClear();
-      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
     });
 
     it('should call set with null combat', async () => {
@@ -322,7 +322,7 @@ describe('combatSlice', () => {
 
   describe('error handling', () => {
     it('should set error when startCombat fails', () => {
-      expect(() => slice.startCombat('invalid-id', [mockEnemy], defaultConfig)).toThrow();
+      expect(() => slice.startCombat('invalid-id', mockEnemy, defaultConfig)).toThrow();
 
       const setCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];
       if (setCallArgs && typeof setCallArgs === 'object') {
@@ -346,7 +346,7 @@ describe('combatSlice', () => {
     });
 
     it('should clear error on successful startCombat', () => {
-      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
 
       const setCallArgs = mockSet.mock.calls[0]?.[0];
       if (setCallArgs && typeof setCallArgs === 'object') {
@@ -355,7 +355,7 @@ describe('combatSlice', () => {
     });
 
     it('should clear error on successful executeAction', () => {
-      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
       mockSet.mockClear();
       
       slice.executeAction({ type: CombatActionType.ATTACK });
@@ -369,7 +369,7 @@ describe('combatSlice', () => {
     });
 
     it('should clear error on successful endCombat', async () => {
-      slice.startCombat('hero-id', [mockEnemy], defaultConfig);
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
       await slice.endCombat();
 
       const setCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];

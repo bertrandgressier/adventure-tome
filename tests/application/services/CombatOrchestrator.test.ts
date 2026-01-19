@@ -131,7 +131,7 @@ describe('CombatOrchestrator', () => {
           chance: 5,
           weapon: { id: 'weapon-epée', name: 'Épée', bonus: 3 },
         },
-        [mockEnemy],
+        mockEnemy,
         defaultConfig
       );
 
@@ -153,7 +153,7 @@ describe('CombatOrchestrator', () => {
           chance: 5,
           weapon: { id: 'weapon-epée', name: 'Épée', bonus: 3 },
         },
-        [mockEnemy],
+        mockEnemy,
         defaultConfig
       );
 
@@ -175,7 +175,7 @@ describe('CombatOrchestrator', () => {
           chance: 5,
           weapon: { id: 'weapon-epée', name: 'Épée', bonus: 3 },
         },
-        [mockEnemy],
+        mockEnemy,
         defaultConfig
       );
 
@@ -208,7 +208,7 @@ describe('CombatOrchestrator', () => {
           chance: 5,
           weapon: { id: 'weapon-epée', name: 'Épée', bonus: 3 },
         },
-        [mockEnemy],
+        mockEnemy,
         defaultConfig
       );
 
@@ -294,7 +294,7 @@ describe('CombatOrchestrator', () => {
           chance: 5,
           weapon: { id: 'weapon-epée', name: 'Épée', bonus: 3 },
         },
-        [mockEnemy],
+        mockEnemy,
         defaultConfig
       );
 
@@ -331,7 +331,7 @@ describe('CombatOrchestrator', () => {
           chance: 5,
           weapon: { id: 'weapon-epée', name: 'Épée', bonus: 3 },
         },
-        [mockEnemy],
+        mockEnemy,
         defaultConfig
       );
 
@@ -355,7 +355,7 @@ describe('CombatOrchestrator', () => {
           chance: 5,
           weapon: { id: 'weapon-epée', name: 'Épée', bonus: 3 },
         },
-        [mockEnemy],
+        mockEnemy,
         defaultConfig
       );
 

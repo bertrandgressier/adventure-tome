@@ -132,7 +132,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       const initialState = CombatEngine.createInitialState(
         'char-1',
         createPlayerConfig(),
-        [createGobelin()],
+        createGobelin(),
         createCombatConfig()
       );
 
