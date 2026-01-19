@@ -64,7 +64,7 @@ export function CombatantCard({
             DEX: {combatant.dexterite}
           </p>
         </div>
-        {type === 'enemy' && isEnemy(combatant) && combatant.isBoss && (
+        {type === 'enemy' && isEnemy(combatant) && (combatant as EnemyState).isBoss && (
           <span className="text-xs text-destructive font-bold" aria-label="Ennemi boss">
             BOSS
           </span>

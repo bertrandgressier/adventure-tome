@@ -158,13 +158,12 @@ export default function CharacterDetail() {
     };
 
     const config: CombatConfig = {
-      maxEnemies: 1,
       damageFormula: 'standard',
       isSurprise: false,
     };
 
     try {
-      startCombat(id, [testEnemy], config);
+      startCombat(id, testEnemy, config);
       setShowCombatV2(true);
     } catch (error) {
       console.error('Error starting Combat V2:', error);

@@ -217,32 +217,24 @@ const useItemAction = availableActions.find(a => a.type === 'use_item');
 const items = useItemAction?.payload as CombatUsableItem[] | undefined;
 ```
 
-#### C. SPEND_CHANCE (Dépenser CHANCE)
-
-```typescript
-executeAction({ type: 'spend_chance', payload: { points: 2 } })
-```
-
-- Coûte 1-3 points de CHANCE
-- Ajoute +2 bonus par point au prochain jet d'attaque
-- Utilisé pour convertir un échec en succès
-
-#### D. WEAPON_ABILITY (Pouvoir d'arme)
+#### C. WEAPON_ABILITY (Pouvoir d'arme)
 
 ```typescript
 executeAction({ type: 'weapon_ability', payload: { abilityId: 'arc-vents-convert-hit' } })
 ```
 
 **Pouvoirs manuels** :
-- **Arc des Vents** : Convertir un raté en touché (coût : 1 CHANCE)
+- **Arc des Vents** : Convertir un raté en touché (coût : 1 CHANCE, disponible après un raté)
 - **Bâton du Sage** : Annuler les dégâts ennemis (1x par combat)
+
+> **Note** : L'Arc des Vents est le seul moyen d'utiliser la CHANCE en combat. L'action générique `SPEND_CHANCE` n'existe plus car elle n'est pas conforme aux règles officielles.
 
 **Pouvoirs automatiques** (déclenchés par le système) :
 - **Lame de l'Aube** : Double aux dés → attaque supplémentaire
 - **Marteau de la Terre** : Kill enemy → +1 PV
 - **Dague des Ombres** : Première attaque surprise → +2 dégâts
 
-#### E. FLEE (Fuir)
+#### D. FLEE (Fuir)
 
 ```typescript
 executeAction({ type: 'flee' })
@@ -416,9 +408,9 @@ if (combat?.phase === 'player_turn') {
 ### Phase `enemy_attack`
 
 **Actions disponibles** :
-- `SPEND_CHANCE` : Si joueur raté et CHANCE > 0
 - `REROLL` : Si bague possédée et non utilisée
 - `WEAPON_ABILITY` : Si Bâton du Sage disponible (1x)
+- `SKIP` : Accepter les dégâts
 
 **Exemple UI** :
 ```typescript

@@ -1,7 +1,6 @@
 import type { CombatState, CombatEvent } from '../../types/combat-v2';
 import { CombatPhase } from '../../types/CombatPhase';
 import { Attacker } from '../../types/Attacker';
-import { TargetRoll } from '../../types/TargetRoll';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
 import { PhaseManager } from './PhaseManager';
@@ -62,76 +61,6 @@ export class ReactionResolver {
       });
 
       newState.phase = CombatPhase.ENEMY_TURN;
-    }
-
-    return { state: newState, events };
-  }
-
-  static resolveSpendChance(
-    state: CombatState,
-    pointsToSpend: number,
-    targetRoll: TargetRoll
-  ): ActionResolutionResult {
-    if (pointsToSpend <= 0 || pointsToSpend > state.player.chance) {
-      return { state, events: [] };
-    }
-
-    if (!state.lastRoll) {
-      return { state, events: [] };
-    }
-
-    const newRoll = {
-      ...state.lastRoll,
-      modifier: pointsToSpend,
-      modifiedTotal: state.lastRoll.total + pointsToSpend,
-    };
-
-    const newPlayer = {
-      ...state.player,
-      chance: state.player.chance - pointsToSpend,
-    };
-
-    const newState: CombatState = {
-      ...state,
-      player: newPlayer,
-      lastRoll: newRoll,
-    };
-
-    const events: CombatEvent[] = [
-      {
-        type: CombatEventType.CHANCE_SPENT,
-        timestamp: new Date().toISOString(),
-        round: state.roundNumber,
-        attacker: Attacker.PLAYER,
-        pointsSpent: pointsToSpend,
-      },
-    ];
-
-    if (targetRoll === TargetRoll.HIT && state.phase === CombatPhase.PLAYER_ATTACK) {
-      const dexterite = state.player.dexterite;
-      const hit = newRoll.modifiedTotal <= dexterite;
-
-      const finalState = { ...newState, phase: CombatPhase.PLAYER_TURN };
-
-      if (hit) {
-        const damage = DiceRoller.calculateDamage(state.player.totalDamageBonus);
-        const targetEnemy = finalState.enemy;
-        const newEnemyEndurance = Math.max(0, targetEnemy.endurance - damage);
-
-        finalState.enemy = { ...finalState.enemy, endurance: newEnemyEndurance };
-
-        events.push({
-          type: CombatEventType.DAMAGE_DEALT,
-          timestamp: new Date().toISOString(),
-          round: state.roundNumber,
-          attacker: Attacker.PLAYER,
-          damage,
-        });
-
-        return { state: { ...finalState, phase: PhaseManager.advancePhase(finalState) }, events };
-      }
-
-      return { state: finalState, events };
     }
 
     return { state: newState, events };

@@ -71,7 +71,7 @@ describe('CombatEngine - Global Scenarios', () => {
     expect(CombatEngine.checkCombatEnd(state)).toBe('victory');
   });
 
-  it('should handle spending chance on missed attack', () => {
+  it('should handle reroll on missed attack', () => {
     const initialState = CombatEngine.createInitialState(
       'char-1',
       createPlayerConfig(),
@@ -88,15 +88,14 @@ describe('CombatEngine - Global Scenarios', () => {
 
     const actions1 = CombatEngine.getAvailableActions(state);
     expect(actions1.some(a => a.action.type === CombatActionType.REROLL)).toBe(true);
-    expect(actions1.some(a => a.action.type === CombatActionType.SPEND_CHANCE)).toBe(true);
 
-    const result2 = CombatEngine.resolve(state, { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 2, targetRoll: 'hit' as const } });
+    const result2 = CombatEngine.resolve(state, { type: CombatActionType.REROLL }, { hitDice: [3, 2] });
     state = result2.state;
 
-    expect(state.player.chance).toBe(3);
-    expect(state.lastRoll?.modifier).toBe(2);
-    expect(state.lastRoll?.modifiedTotal).toBe(11);
-    expect(state.phase).toBe(CombatPhase.PLAYER_TURN);
+    expect(state.usedReroll).toBe(true);
+    expect(state.lastRoll?.total).toBe(5);
+    expect(state.lastRoll?.success).toBe(true);
+    expect(state.phase).toBe(CombatPhase.ENEMY_TURN);
   });
 
   it('should provide available actions based on phase', () => {

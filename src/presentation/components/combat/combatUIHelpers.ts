@@ -100,7 +100,7 @@ export function getActionMetadata(actionType: string): ActionMetadata {
  * Type guard pour vérifier si un combattant est un ennemi (avec isBoss)
  */
 export function isEnemy(
-  combatant: CombatState['player'] | CombatState['enemies'][number]
-): combatant is CombatState['enemies'][number] {
+  combatant: CombatState['player'] | CombatState['enemy']
+): combatant is CombatState['enemy'] {
   return 'isBoss' in combatant;
 }
