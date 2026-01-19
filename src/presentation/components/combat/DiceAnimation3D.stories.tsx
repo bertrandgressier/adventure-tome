@@ -185,6 +185,10 @@ const InteractiveRollComponent = () => {
 };
 
 export const InteractiveRoll: Story = {
+  args: {
+    result: [3, 4],
+    isRolling: false,
+  },
   render: () => <InteractiveRollComponent />,
   parameters: {
     docs: {
@@ -199,6 +203,10 @@ export const InteractiveRoll: Story = {
  * Toutes les valeurs possibles
  */
 export const AllValues: Story = {
+  args: {
+    result: [3, 4],
+    isRolling: false,
+  },
   render: () => {
     const allCombinations: Array<[number, number]> = [
       [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6],

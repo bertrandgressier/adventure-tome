@@ -42,12 +42,6 @@ export class CombatValidator {
       actions.push({ action: { type: CombatActionType.SKIP }, enabled: true });
     }
 
-    if (state.phase === CombatPhase.PLAYER_ATTACK) {
-      if (state.player.chance > 0) {
-        actions.push({ action: { type: CombatActionType.SPEND_CHANCE, payload: {} }, enabled: true });
-      }
-    }
-
     if (state.phase === CombatPhase.ENEMY_ATTACK) {
       if (state.pendingDamage?.canBlock) {
         actions.push({ action: { type: CombatActionType.BLOCK }, enabled: true });

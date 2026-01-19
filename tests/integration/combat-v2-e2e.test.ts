@@ -23,7 +23,6 @@ import { Stats, type StatsData } from '@/src/domain/value-objects/Stats';
 import { Inventory } from '@/src/domain/value-objects/Inventory';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
 import { CombatPhase } from '@/src/domain/types/CombatPhase';
-import { TargetRoll } from '@/src/domain/types/TargetRoll';
 import type { EnemyConfig } from '@/src/domain/types/combatants';
 
 type MockStoreState = CombatSlice & {
@@ -197,41 +196,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
   });
 
-  describe('Scénario 3: Combat avec test de Chance', () => {
-    it('should increase damage when lucky on dealt damage', () => {
-      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
-
-      slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
-
-      expect(currentState.combat?.enemy.endurance).toBeLessThan(mockEnemy.enduranceMax);
-
-      slice.executeAction(
-        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 1, targetRoll: TargetRoll.DAMAGE } }
-      );
-
-      expect(currentState.combat?.player.chance).toBe(4);
-      expect(currentState.combat?.lastRoll?.modifier).toBe(1);
-    });
-
-    it('should decrease damage when lucky on received damage', () => {
-      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
-
-      slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 1 });
-
-      slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [3, 2], damageDice: 5 });
-
-      expect(currentState.combat?.pendingDamage).toBeDefined();
-      expect(currentState.combat?.pendingDamage?.amount).toBeGreaterThan(0);
-
-      slice.executeAction(
-        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 1, targetRoll: TargetRoll.HIT } }
-      );
-
-      expect(currentState.combat?.player.chance).toBe(4);
-    });
-  });
-
-  describe('Scénario 4: Combat avec Bague de la deuxième chance', () => {
+  describe('Scénario 3: Combat avec Bague de la deuxième chance', () => {
     beforeEach(() => {
       const inventoryWithReroll = new Inventory(
         0,
@@ -402,30 +367,13 @@ describe('Combat V2 - End to End Integration Tests', () => {
       expect(finalPv).toBeLessThan(initialPv);
     });
 
-    it('should track chance used correctly', () => {
-      const initialChance = 5;
-      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
-
-      slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
-
-      slice.executeAction(
-        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 2, targetRoll: TargetRoll.DAMAGE } }
-      );
-
-      expect(currentState.combat?.player.chance).toBe(initialChance - 2);
-    });
-
     it('should not persist changes on cancel', () => {
       slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
 
-      slice.executeAction(
-        { type: CombatActionType.SPEND_CHANCE, payload: { pointsToSpend: 1, targetRoll: TargetRoll.DAMAGE } }
-      );
-
       const combatState = currentState.combat;
-      expect(combatState?.player.chance).toBe(4);
+      expect(combatState).not.toBeNull();
 
       slice.cancelCombat();
 

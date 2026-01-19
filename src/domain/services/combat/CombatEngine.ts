@@ -7,7 +7,6 @@ import { CombatActionType } from '../../types/CombatActionType';
 import { CombatPhase } from '../../types/CombatPhase';
 import { CombatEventType } from '../../types/CombatEventType';
 import { Attacker } from '../../types/Attacker';
-import type { TargetRoll } from '../../types/TargetRoll';
 import type { CombatantConfig, EnemyConfig } from '../../types/combatants';
 import type { DiceOverrides } from './DiceRoller';
 import { AttackResolver } from './AttackResolver';
@@ -102,9 +101,6 @@ export class CombatEngine {
         return ItemResolver.resolve(state, item);
       case CombatActionType.REROLL:
         return ReactionResolver.resolveReroll(state, diceOverrides);
-      case CombatActionType.SPEND_CHANCE:
-        const { pointsToSpend, targetRoll } = action.payload as { pointsToSpend: number; targetRoll: TargetRoll };
-        return ReactionResolver.resolveSpendChance(state, pointsToSpend, targetRoll);
       case CombatActionType.BLOCK:
         return ReactionResolver.resolveBlock(state);
       case CombatActionType.SKIP:
