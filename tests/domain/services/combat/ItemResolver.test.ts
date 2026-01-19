@@ -19,26 +19,22 @@ function createMockCombatState(overrides?: Partial<CombatState>): CombatState {
       passiveDamageBonus: 0,
       totalDamageBonus: 2,
     },
-    enemies: [
-      {
-        name: 'Gobelin',
-        dexterite: 6,
-        endurance: 15,
-        enduranceMax: 15,
-        chance: 3,
-        isBoss: false,
-        weapon: { id: 'dagger', name: 'Dague', bonus: 1 },
-        weaponDamage: 1,
-        passiveDamageBonus: 0,
-        totalDamageBonus: 1,
-      },
-    ],
-    activeEnemyIndex: 0,
+    enemy: {
+      name: 'Gobelin',
+      dexterite: 6,
+      endurance: 15,
+      enduranceMax: 15,
+      chance: 3,
+      isBoss: false,
+      weapon: { id: 'dagger', name: 'Dague', bonus: 1 },
+      weaponDamage: 1,
+      passiveDamageBonus: 0,
+      totalDamageBonus: 1,
+    },
     phase: CombatPhase.PLAYER_TURN,
     roundNumber: 1,
     currentAttacker: 'player',
     config: {
-      maxEnemies: 3,
       damageFormula: '2d6 + bonus',
     },
     usedAbilities: {},
@@ -96,7 +92,7 @@ describe('ItemResolver', () => {
 
       const result = ItemResolver.resolve(state, item);
 
-      expect(result.state.enemies[0].endurance).toBe(10); // 15 - 5
+      expect(result.state.enemy.endurance).toBe(10); // 15 - 5
       expect(result.events).toHaveLength(1);
       expect(result.events[0].type).toBe(CombatEventType.ITEM_USED);
       expect(result.events[0].damage).toBe(5);
@@ -104,7 +100,7 @@ describe('ItemResolver', () => {
 
     it('should not reduce enemy endurance below 0', () => {
       const mockState = createMockCombatState();
-      mockState.enemies[0].endurance = 3;
+      mockState.enemy.endurance = 3;
       const state = mockState;
       const item: CombatUsableItem = {
         id: 'tome3-potion-confusion',
@@ -115,7 +111,7 @@ describe('ItemResolver', () => {
 
       const result = ItemResolver.resolve(state, item);
 
-      expect(result.state.enemies[0].endurance).toBe(0); // Clamped at 0
+      expect(result.state.enemy.endurance).toBe(0); // Clamped at 0
     });
 
     it('should handle item with both heal and damage', () => {
@@ -133,7 +129,7 @@ describe('ItemResolver', () => {
       const result = ItemResolver.resolve(state, item);
 
       expect(result.state.player.endurance).toBe(23); // 20 + 3
-      expect(result.state.enemies[0].endurance).toBe(13); // 15 - 2
+      expect(result.state.enemy.endurance).toBe(13); // 15 - 2
       expect(result.events).toHaveLength(2); // One for heal, one for damage
     });
 
@@ -148,7 +144,7 @@ describe('ItemResolver', () => {
       const result = ItemResolver.resolve(state, item);
 
       expect(result.state.player.endurance).toBe(state.player.endurance);
-      expect(result.state.enemies[0].endurance).toBe(state.enemies[0].endurance);
+      expect(result.state.enemy.endurance).toBe(state.enemy.endurance);
       // Item still tracked even if no effect
       expect(result.state.usedItems).toContainEqual({ itemId: 'useless-item', itemIndex: 0 });
     });

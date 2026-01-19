@@ -119,7 +119,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
 
   describe('Scénario 1: Combat simple - Victoire', () => {
     it('should complete a full combat with victory', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       expect(currentState.combat).not.toBeNull();
       expect(currentState.combat?.phase).toBe(CombatPhase.PLAYER_TURN);
@@ -153,7 +153,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
   describe('Scénario 2: Combat avec utilisation d\'items', () => {
     it('should allow using healing potions during combat', () => {
       // Character starts with 30 PV, max is 32
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       expect(currentState.combat?.player.endurance).toBe(30);
 
@@ -175,11 +175,11 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should allow using confusion potion on enemy', () => {
-      slice.startCombat('test-char-id', [
-        { name: 'Gobelin', dexterite: 6, endurance: 10, enduranceMax: 10, chance: 3, isBoss: false, weapon: { id: 'dagger', name: 'Dague', bonus: 2 } }
-      ], defaultConfig);
+      slice.startCombat('test-char-id', 
+        { name: 'Gobelin', dexterite: 6, endurance: 10, enduranceMax: 10, chance: 3, isBoss: false, weapon: { id: 'dagger', name: 'Dague', bonus: 2 } },
+        defaultConfig);
 
-      expect(currentState.combat?.enemies[0].endurance).toBe(10);
+      expect(currentState.combat?.enemy.endurance).toBe(10);
 
       // Use confusion potion (-5 PV to enemy)
       slice.executeAction({
@@ -192,14 +192,14 @@ describe('Combat V2 - End to End Integration Tests', () => {
         }
       });
 
-      expect(currentState.combat?.enemies[0].endurance).toBe(5);
+      expect(currentState.combat?.enemy.endurance).toBe(5);
       expect(currentState.combat?.usedItems).toContainEqual({ itemId: 'tome3-potion-confusion', itemIndex: 1 });
     });
   });
 
   describe('Scénario 3: Combat avec test de Chance', () => {
     it('should increase damage when lucky on dealt damage', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
 
@@ -214,7 +214,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should decrease damage when lucky on received damage', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 1 });
 
@@ -252,7 +252,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should allow reroll once per combat', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       expect(currentState.combat?.usedReroll).toBe(false);
 
@@ -321,7 +321,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should attach weapon ability from catalog when starting combat', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       expect(currentState.combat?.player.weapon.id).toBe('tome3-lame-aube-eternelle');
       expect(currentState.combat?.player.weapon.ability).toBeDefined();
@@ -331,7 +331,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should trigger extra attack on double roll', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       const initialEnemyEndurance = currentState.combat?.enemies[0].endurance ?? 0;
       expect(initialEnemyEndurance).toBe(15);
@@ -342,31 +342,6 @@ describe('Combat V2 - End to End Integration Tests', () => {
       // First attack damage: 1 (base) + 3 (dice) + 2 (weapon) = 6
       // Extra attack should be pending
       expect(currentState.combat?.pendingExtraAttack).toBe(true);
-    });
-  });
-
-  describe('Scénario 7: Combat multiple (1vN)', () => {
-    it('should handle multiple enemies', () => {
-      slice.startCombat('test-char-id', [
-        { name: 'Gobelin 1', dexterite: 5, endurance: 10, enduranceMax: 10, chance: 3, isBoss: false, weapon: { id: 'club', name: 'Gourdin', bonus: 1 } },
-        { name: 'Gobelin 2', dexterite: 6, endurance: 12, enduranceMax: 12, chance: 3, isBoss: false, weapon: { id: 'dagger', name: 'Dague', bonus: 2 } }
-      ], defaultConfig);
-
-      expect(currentState.combat?.enemies).toHaveLength(2);
-
-      slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 6 });
-
-      expect(currentState.combat?.enemies[0].endurance).toBe(0);
-
-      slice.executeAction({ type: CombatActionType.SKIP });
-      slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
-
-      expect(currentState.combat?.lastRoll?.success).toBe(false);
-
-      slice.executeAction({ type: CombatActionType.SKIP });
-      slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 3], damageDice: 1 });
-
-      expect(currentState.combat?.enemies[1].endurance).toBeLessThanOrEqual(12);
     });
   });
 
@@ -384,9 +359,9 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should handle player death correctly', () => {
-      slice.startCombat('test-char-id', [
-        { name: 'Dragon', dexterite: 10, endurance: 100, enduranceMax: 100, chance: 5, isBoss: true, weapon: { id: 'claws', name: 'Griffes', bonus: 10 } }
-      ], defaultConfig);
+      slice.startCombat('test-char-id',
+        { name: 'Dragon', dexterite: 10, endurance: 100, enduranceMax: 100, chance: 5, isBoss: true, weapon: { id: 'claws', name: 'Griffes', bonus: 10 } },
+        defaultConfig);
 
       expect(currentState.combat?.player.endurance).toBe(5);
 
@@ -410,7 +385,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
   describe('Persistence', () => {
     it('should track damage taken correctly', () => {
       const initialPv = 30;
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
 
@@ -429,7 +404,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
 
     it('should track chance used correctly', () => {
       const initialChance = 5;
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
 
@@ -441,7 +416,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should not persist changes on cancel', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
 
@@ -458,7 +433,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should consume items when combat ends', async () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       // Use healing potion
       slice.executeAction({
@@ -497,7 +472,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should NOT consume items when combat is cancelled', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       // Use healing potion
       slice.executeAction({
@@ -564,7 +539,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should attach weapon ability from catalog when starting combat', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       expect(currentState.combat?.player.weapon.id).toBe('tome3-marteau-terre');
       expect(currentState.combat?.player.weapon.ability).toBeDefined();
@@ -584,7 +559,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
         weapon: { id: 'teeth', name: 'Dents', bonus: 0 },
       };
 
-      slice.startCombat('test-char-id', [weakEnemy], defaultConfig);
+      slice.startCombat('test-char-id', weakEnemy, defaultConfig);
 
       const initialEndurance = currentState.combat?.player.endurance ?? 0;
       expect(initialEndurance).toBe(25);
@@ -599,7 +574,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should NOT heal if enemy survives the attack', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig); // Gobelin with 15 HP
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig); // Gobelin with 15 HP
 
       const initialEndurance = currentState.combat?.player.endurance ?? 0;
       expect(initialEndurance).toBe(25);
@@ -635,7 +610,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
         weapon: { id: 'teeth', name: 'Dents', bonus: 0 },
       };
 
-      slice.startCombat('test-char-id', [weakEnemy], defaultConfig);
+      slice.startCombat('test-char-id', weakEnemy, defaultConfig);
 
       expect(currentState.combat?.player.endurance).toBe(32);
 
@@ -692,7 +667,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should attach weapon ability from catalog when starting combat', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       expect(currentState.combat?.player.weapon.id).toBe('tome3-arc-vents');
       expect(currentState.combat?.player.weapon.ability).toBeDefined();
@@ -702,7 +677,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should allow converting miss to hit by spending 1 CHANCE', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       const initialChance = currentState.combat?.player.chance ?? 0;
       expect(initialChance).toBe(5);
@@ -734,7 +709,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       currentState.characters = { 'test-char-id': character };
       currentState = { ...currentState, ...slice };
 
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       // Miss the attack
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [5, 5] });
@@ -749,7 +724,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should NOT offer ability on successful hit', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       // Hit the attack (roll 4 <= dexterity 6)
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 3 });
@@ -806,7 +781,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should attach weapon ability from catalog when starting combat', () => {
-      slice.startCombat('test-char-id', [mockEnemy], { ...defaultConfig, isSurprise: true });
+      slice.startCombat('test-char-id', mockEnemy, { ...defaultConfig, isSurprise: true });
 
       expect(currentState.combat?.player.weapon.id).toBe('tome3-dague-ombres');
       expect(currentState.combat?.player.weapon.ability).toBeDefined();
@@ -815,7 +790,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should add +2 bonus damage on first attack when surprise', () => {
-      slice.startCombat('test-char-id', [mockEnemy], { ...defaultConfig, isSurprise: true });
+      slice.startCombat('test-char-id', mockEnemy, { ...defaultConfig, isSurprise: true });
 
       expect(currentState.combat?.isFirstAttack).toBe(true);
       expect(currentState.combat?.config.isSurprise).toBe(true);
@@ -835,7 +810,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should NOT add bonus damage if NOT a surprise attack', () => {
-      slice.startCombat('test-char-id', [mockEnemy], { ...defaultConfig, isSurprise: false });
+      slice.startCombat('test-char-id', mockEnemy, { ...defaultConfig, isSurprise: false });
 
       expect(currentState.combat?.config.isSurprise).toBe(false);
 
@@ -850,7 +825,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should NOT add bonus damage on second attack even with surprise', () => {
-      slice.startCombat('test-char-id', [mockEnemy], { ...defaultConfig, isSurprise: true });
+      slice.startCombat('test-char-id', mockEnemy, { ...defaultConfig, isSurprise: true });
 
       // First attack triggers bonus
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 2 });
@@ -915,7 +890,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should attach weapon ability from catalog when starting combat', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       expect(currentState.combat?.player.weapon.id).toBe('tome3-baton-sage');
       expect(currentState.combat?.player.weapon.ability).toBeDefined();
@@ -925,7 +900,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should allow negating damage once per combat', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       const initialEndurance = currentState.combat?.player.endurance ?? 0;
       expect(initialEndurance).toBe(30);
@@ -960,7 +935,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should NOT allow using ability twice in same combat', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       // First use: player misses, enemy hits
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
@@ -989,7 +964,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
     });
 
     it('should NOT offer ability if no pending damage', () => {
-      slice.startCombat('test-char-id', [mockEnemy], defaultConfig);
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       // Player attacks and hits
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 3 });

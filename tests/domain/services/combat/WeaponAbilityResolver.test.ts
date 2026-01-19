@@ -72,9 +72,8 @@ function createCombatState(options: {
   const state = CombatEngine.createInitialState(
     'char-123',
     player,
-    [enemy],
+    enemy,
     {
-      maxEnemies: 1,
       damageFormula: '1+1d6+weapon',
       isSurprise: options.isSurprise ?? false,
     }

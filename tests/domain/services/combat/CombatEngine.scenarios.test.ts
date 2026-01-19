@@ -40,7 +40,6 @@ function createGobelin(): EnemyConfig {
 
 function createCombatConfig() {
   return {
-    maxEnemies: 3,
     damageFormula: '1 + 1d6 + DOMMAGES ACTUELS',
   };
 }
@@ -65,7 +64,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       const initialState = CombatEngine.createInitialState(
         'char-1',
         player,
-        [gobelin],
+        gobelin,
         createCombatConfig()
       );
 
@@ -73,8 +72,8 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       expect(initialState.player.passiveDamageBonus).toBe(0);
       expect(initialState.player.totalDamageBonus).toBe(5); // weapon bonus only
 
-      expect(initialState.enemies[0].weaponDamage).toBe(2);
-      expect(initialState.enemies[0].totalDamageBonus).toBe(2);
+      expect(initialState.enemy.weaponDamage).toBe(2);
+      expect(initialState.enemy.totalDamageBonus).toBe(2);
 
       // Round 1 - Joueur attaque et touche (2d6 = 2+3 = 5 ≤ 7)
       const round1 = CombatEngine.resolve(
@@ -85,7 +84,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
 
       expect(round1.state.lastRoll?.total).toBe(5);
       expect(round1.state.lastRoll?.success).toBe(true);
-      expect(round1.state.enemies[0].endurance).toBe(5); // 15 - 10 = 5
+      expect(round1.state.enemy.endurance).toBe(5); // 15 - 10 = 5
 
       // Round 2 - Gobelin attaque et rate (2d6 = 4+4 = 8 > 6)
       const round2 = CombatEngine.resolve(
@@ -113,7 +112,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
 
       expect(round3.state.lastRoll?.total).toBe(6);
       expect(round3.state.lastRoll?.success).toBe(true);
-      expect(round3.state.enemies[0].endurance).toBe(0); // 5 - 8 = -3 (mort)
+      expect(round3.state.enemy.endurance).toBe(0); // 5 - 8 = -3 (mort)
 
       // Vérifier la victoire
       expect(CombatEngine.checkCombatEnd(round3.state)).toBe('victory');
@@ -158,7 +157,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       const initialState2 = CombatEngine.createInitialState(
         'char-2',
         createPlayerConfig(),
-        [createGobelin()],
+        createGobelin(),
         createCombatConfig()
       );
 
@@ -182,7 +181,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       const initialState = CombatEngine.createInitialState(
         'char-1',
         createPlayerConfig(),
-        [createGobelin()],
+        createGobelin(),
         createCombatConfig()
       );
 
@@ -194,7 +193,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       );
 
       expect(hitAttack.state.lastRoll?.success).toBe(true);
-      expect(hitAttack.state.enemies[0].endurance).toBe(8); // 15 - 7
+      expect(hitAttack.state.enemy.endurance).toBe(8); // 15 - 7
 
       // La fonctionnalité de dépenser CHANCE sur les dégâts n'est pas encore implémentée
       // mais devrait permettre d'augmenter les dégâts
@@ -220,7 +219,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       const initialState = CombatEngine.createInitialState(
         'char-1',
         playerWithItems,
-        [createGobelin()],
+        createGobelin(),
         createCombatConfig()
       );
 
@@ -272,7 +271,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       const initialState = CombatEngine.createInitialState(
         'char-1',
         playerWithShortSword,
-        [enemy],
+        enemy,
         createCombatConfig()
       );
 
@@ -287,61 +286,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       
       // Dégâts calculés : 1 (automatique) + 3 (1d6) + 1 (arme) = 5
       const expectedDamage = 1 + 3 + 1;
-      expect(result.state.enemies[0].endurance).toBe(20 - expectedDamage); // 15
-    });
-  });
-
-  describe('Scénario 5 : Combat multiples ennemis (docs/regles.md ligne 168)', () => {
-    /**
-     * Règle officielle : "Plusieurs ennemis en même temps sont considérés comme un seul.
-     * Un groupe représente donc un seul adversaire plus puissant à combattre."
-     * 
-     * Fusion des ennemis :
-     * - DEXTÉRITÉ : Maximum du groupe
-     * - POINTS DE VIE : Somme des PV
-     * - Arme : Bonus maximum
-     */
-    it('should handle multiple enemies as single merged opponent', () => {
-      const gobelin1: EnemyConfig = {
-        name: 'Gobelin 1',
-        dexterite: 5,
-        endurance: 10,
-        enduranceMax: 10,
-        chance: 0,
-        weapon: { id: 'club', name: 'Gourdin', bonus: 1 },
-        isBoss: false,
-      };
-
-      const gobelin2: EnemyConfig = {
-        name: 'Gobelin 2',
-        dexterite: 6,
-        endurance: 12,
-        enduranceMax: 12,
-        chance: 0,
-        weapon: { id: 'axe', name: 'Hache', bonus: 2 },
-        isBoss: false,
-      };
-
-      // Pour l'instant, CombatEngine ne fusionne pas automatiquement les ennemis
-      // Ce test documente le comportement attendu pour une future implémentation
-
-      const initialState = CombatEngine.createInitialState(
-        'char-1',
-        createPlayerConfig(),
-        [gobelin1, gobelin2],
-        createCombatConfig()
-      );
-
-      // Comportement actuel : combat contre activeEnemyIndex
-      expect(initialState.enemies.length).toBe(2);
-      expect(initialState.activeEnemyIndex).toBe(0);
-
-      // TODO: Implémenter la fusion automatique selon les règles :
-      // const mergedEnemy = {
-      //   dexterite: Math.max(5, 6), // 6
-      //   endurance: 10 + 12, // 22
-      //   weapon: { bonus: Math.max(1, 2) } // 2
-      // };
+      expect(result.state.enemy.endurance).toBe(20 - expectedDamage); // 15
     });
   });
 
@@ -362,7 +307,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       const initialState = CombatEngine.createInitialState(
         'char-1',
         weakPlayer,
-        [createGobelin()],
+        createGobelin(),
         createCombatConfig()
       );
 

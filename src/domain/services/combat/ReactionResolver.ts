@@ -48,14 +48,10 @@ export class ReactionResolver {
 
     if (hit) {
       const damage = DiceRoller.calculateDamage(state.player.totalDamageBonus, diceOverrides?.damageDice);
-      const targetEnemy = newState.enemies[newState.activeEnemyIndex];
+      const targetEnemy = newState.enemy;
       const newEnemyEndurance = Math.max(0, targetEnemy.endurance - damage);
 
-      newState.enemies = newState.enemies.map((enemy: typeof newState.enemies[0], index: number) =>
-        index === newState.activeEnemyIndex
-          ? { ...enemy, endurance: newEnemyEndurance }
-          : enemy
-      );
+      newState.enemy = { ...newState.enemy, endurance: newEnemyEndurance };
 
       events.push({
         type: CombatEventType.DAMAGE_DEALT,
@@ -119,14 +115,10 @@ export class ReactionResolver {
 
       if (hit) {
         const damage = DiceRoller.calculateDamage(state.player.totalDamageBonus);
-        const targetEnemy = finalState.enemies[finalState.activeEnemyIndex];
+        const targetEnemy = finalState.enemy;
         const newEnemyEndurance = Math.max(0, targetEnemy.endurance - damage);
 
-        finalState.enemies = finalState.enemies.map((enemy: typeof finalState.enemies[0], index: number) =>
-          index === finalState.activeEnemyIndex
-            ? { ...enemy, endurance: newEnemyEndurance }
-            : enemy
-        );
+        finalState.enemy = { ...finalState.enemy, endurance: newEnemyEndurance };
 
         events.push({
           type: CombatEventType.DAMAGE_DEALT,

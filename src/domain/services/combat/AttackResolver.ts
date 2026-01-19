@@ -19,7 +19,7 @@ export class AttackResolver {
     diceOverrides?: DiceOverrides
   ): ActionResolutionResult {
     const isPlayerAttacking = state.phase === CombatPhase.PLAYER_TURN;
-    const attacker = isPlayerAttacking ? state.player : state.enemies[state.activeEnemyIndex];
+    const attacker = isPlayerAttacking ? state.player : state.enemy;
     const dexterite = attacker.dexterite;
 
     const diceRoll = DiceRoller.rollHitDice(diceOverrides?.hitDice);
@@ -70,15 +70,11 @@ export class AttackResolver {
       const damage = DiceRoller.calculateDamage(attackerBonus, diceOverrides?.damageDice);
 
       if (isPlayerAttacking) {
-        const targetEnemy = newState.enemies[newState.activeEnemyIndex];
+        const targetEnemy = newState.enemy;
         const newEnemyEndurance = Math.max(0, targetEnemy.endurance - damage);
         const killedEnemy = newEnemyEndurance === 0;
 
-        newState.enemies = newState.enemies.map((enemy: typeof newState.enemies[0], index: number) =>
-          index === newState.activeEnemyIndex
-            ? { ...enemy, endurance: newEnemyEndurance }
-            : enemy
-        );
+        newState.enemy = { ...newState.enemy, endurance: newEnemyEndurance };
 
         events.push({
           type: CombatEventType.DAMAGE_DEALT,
