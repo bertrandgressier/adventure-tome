@@ -16,6 +16,9 @@ const eslintConfig = defineConfig([
     "coverage/**",
     // Test results
     "test-results/**",
+    // Storybook
+    "storybook-static/**",
+    ".storybook/**",
   ]),
 ]);
 

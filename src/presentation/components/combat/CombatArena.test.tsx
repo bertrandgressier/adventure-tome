@@ -102,6 +102,10 @@ describe('CombatArena', () => {
     ];
 
     beforeEach(() => {
+      const mockCharacter = {
+        getInventory: () => ({ items: [] }),
+      };
+
       mockUseCharacterStore.mockImplementation((selector) => {
         const state = {
           combat: mockCombat,
@@ -110,6 +114,9 @@ describe('CombatArena', () => {
           executeAction: vi.fn(),
           endCombat: vi.fn(),
           getItem: () => undefined,
+          characters: {
+            'test-id': mockCharacter,
+          },
         };
 
         return selector(state as any);
