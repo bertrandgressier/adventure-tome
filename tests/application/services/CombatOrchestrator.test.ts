@@ -43,9 +43,6 @@ const mockEnemy: EnemyConfig = {
   dexterite: 6,
   endurance: 15,
   enduranceMax: 15,
-  chance: 3,
-  isBoss: false,
-  weapon: { id: 'goblin-dagger', name: 'Dague', bonus: 2 },
 };
 
 const defaultConfig = {

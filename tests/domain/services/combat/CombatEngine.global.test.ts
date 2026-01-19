@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
-import type { CombatantConfig, EnemyConfig } from '@/src/domain/types/combatants';
+import type { PlayerConfig, EnemyConfig } from '@/src/domain/types/combatants';
 import { CombatPhase } from '@/src/domain/types/CombatPhase';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
 
-function createPlayerConfig(): CombatantConfig {
+function createPlayerConfig(): PlayerConfig {
   return {
     name: 'Player',
     dexterite: 7,
@@ -21,9 +21,6 @@ function createEnemyConfig(): EnemyConfig {
     dexterite: 6,
     endurance: 15,
     enduranceMax: 15,
-    chance: 4,
-    weapon: { id: 'club', name: 'Gourdin', bonus: 2 },
-    isBoss: false,
   };
 }
 
@@ -55,14 +52,14 @@ describe('CombatEngine - Global Scenarios', () => {
     state = result2.state;
 
     expect(state.phase).toBe(CombatPhase.ENEMY_ATTACK);
-    expect(state.pendingDamage?.amount).toBe(4);
+    expect(state.pendingDamage?.amount).toBe(2); // 1 + 1 (dice) + 0 (no weapon bonus)
 
     const result3 = CombatEngine.resolve(state, { type: CombatActionType.SKIP });
     state = result3.state;
 
     expect(state.phase).toBe(CombatPhase.PLAYER_TURN);
     expect(state.roundNumber).toBe(2);
-    expect(state.player.endurance).toBe(26);
+    expect(state.player.endurance).toBe(28); // 30 - 2 damage
 
     const result4 = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
     state = result4.state;

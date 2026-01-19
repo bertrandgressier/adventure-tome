@@ -10,9 +10,12 @@ export type { CombatEventType };
 
 export type {
   CombatantState,
-  CombatantConfig,
+  PlayerState,
   EnemyState,
+  BaseCombatantConfig,
+  PlayerConfig,
   EnemyConfig,
+  CombatantConfig,
   CombatWeapon,
   WeaponAbility,
   WeaponEffect,

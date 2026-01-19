@@ -7,7 +7,7 @@ import { CombatActionType } from '../../types/CombatActionType';
 import { CombatPhase } from '../../types/CombatPhase';
 import { CombatEventType } from '../../types/CombatEventType';
 import { Attacker } from '../../types/Attacker';
-import type { CombatantConfig, EnemyConfig } from '../../types/combatants';
+import type { PlayerConfig, EnemyConfig } from '../../types/combatants';
 import type { DiceOverrides } from './DiceRoller';
 import { AttackResolver } from './AttackResolver';
 import { ReactionResolver } from './ReactionResolver';
@@ -27,7 +27,7 @@ export class CombatEngine {
 
   static createInitialState(
     characterId: string,
-    player: CombatantConfig,
+    player: PlayerConfig,
     enemy: EnemyConfig,
     config: { damageFormula: string; firstAttacker?: Attacker; isSurprise?: boolean }
   ): CombatState {
@@ -35,9 +35,10 @@ export class CombatEngine {
     const passiveDamageBonus = 0;
     const totalDamageBonus = weaponDamage + passiveDamageBonus;
 
-    const enemyWeaponDamage = enemy.weapon.bonus;
+    // Les ennemis n'ont pas d'arme - pas de bonus de dégâts
+    const enemyWeaponDamage = 0;
     const enemyPassiveDamageBonus = 0;
-    const enemyTotalDamageBonus = enemyWeaponDamage + enemyPassiveDamageBonus;
+    const enemyTotalDamageBonus = 0;
 
     const state: CombatState = {
       id: this.generateId(),

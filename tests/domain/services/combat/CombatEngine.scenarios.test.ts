@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
-import type { CombatantConfig, EnemyConfig } from '@/src/domain/types/combatants';
+import type { PlayerConfig, EnemyConfig } from '@/src/domain/types/combatants';
 import { CombatPhase } from '@/src/domain/types/CombatPhase';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
 
@@ -15,7 +15,7 @@ import { CombatActionType } from '@/src/domain/types/CombatActionType';
  * - Utilisation de CHANCE (dépenser N points = +N au jet)
  */
 
-function createPlayerConfig(): CombatantConfig {
+function createPlayerConfig(): PlayerConfig {
   return {
     name: 'Héros',
     dexterite: 7,
@@ -32,9 +32,6 @@ function createGobelin(): EnemyConfig {
     dexterite: 6,
     endurance: 15,
     enduranceMax: 15,
-    chance: 0,
-    weapon: { id: 'club', name: 'Gourdin', bonus: 2 },
-    isBoss: false,
   };
 }
 
@@ -49,7 +46,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
     /**
      * Test inspiré de l'exemple officiel :
      * - Joueur : DEXTÉRITÉ 7, PV 32/32, CHANCE 5, Épée longue (+5), DOMMAGES ACTUELS: 5
-     * - Gobelin : DEXTÉRITÉ 6, PV 15/15, Arme +2
+     * - Gobelin : DEXTÉRITÉ 6, PV 15/15, pas d'arme (0 bonus)
      * 
      * Round 1 : Joueur touche (2d6 = 5 ≤ 7), inflige 10 dégâts (1 + 4 + 5), Gobelin: 5 PV
      * Round 2 : Gobelin rate (2d6 = 8 > 6), 0 dégât
@@ -72,8 +69,8 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       expect(initialState.player.passiveDamageBonus).toBe(0);
       expect(initialState.player.totalDamageBonus).toBe(5); // weapon bonus only
 
-      expect(initialState.enemy.weaponDamage).toBe(2);
-      expect(initialState.enemy.totalDamageBonus).toBe(2);
+      expect(initialState.enemy.weaponDamage).toBe(0); // Ennemis n'ont pas d'arme
+      expect(initialState.enemy.totalDamageBonus).toBe(0);
 
       // Round 1 - Joueur attaque et touche (2d6 = 2+3 = 5 ≤ 7)
       const round1 = CombatEngine.resolve(
@@ -263,9 +260,6 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
         dexterite: 5,
         endurance: 20,
         enduranceMax: 20,
-        chance: 0,
-        weapon: { id: 'none', name: 'Poings', bonus: 0 },
-        isBoss: false,
       };
 
       const initialState = CombatEngine.createInitialState(
@@ -328,10 +322,10 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       const enemyHit = CombatEngine.resolve(
         afterSkip.state,
         { type: CombatActionType.ATTACK },
-        { hitDice: [2, 1], damageDice: 3 } // 1 + 3 + 2 = 6 dégâts
+        { hitDice: [2, 1], damageDice: 3 } // 1 + 3 + 0 (no weapon) = 4 dégâts
       );
 
-      expect(enemyHit.state.pendingDamage?.amount).toBe(6);
+      expect(enemyHit.state.pendingDamage?.amount).toBe(4);
 
       // Accepter les dégâts
       const afterDamage = CombatEngine.resolve(
@@ -339,8 +333,33 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
         { type: CombatActionType.SKIP }
       );
 
-      expect(afterDamage.state.player.endurance).toBe(0); // 5 - 6 = -1 → 0
-      expect(CombatEngine.checkCombatEnd(afterDamage.state)).toBe('defeat');
+      expect(afterDamage.state.player.endurance).toBe(1); // 5 - 4 = 1
+      
+      // Second enemy attack to finish the player
+      const afterSkip2 = CombatEngine.resolve(
+        afterDamage.state,
+        { type: CombatActionType.ATTACK },
+        { hitDice: [5, 5] } // Player miss
+      );
+      
+      const skipToEnemy2 = CombatEngine.resolve(
+        afterSkip2.state,
+        { type: CombatActionType.SKIP }
+      );
+      
+      const enemyHit2 = CombatEngine.resolve(
+        skipToEnemy2.state,
+        { type: CombatActionType.ATTACK },
+        { hitDice: [2, 1], damageDice: 3 } // 1 + 3 + 0 = 4 dégâts
+      );
+      
+      const finalDamage = CombatEngine.resolve(
+        enemyHit2.state,
+        { type: CombatActionType.SKIP }
+      );
+      
+      expect(finalDamage.state.player.endurance).toBe(0); // 1 - 4 = -3 → 0
+      expect(CombatEngine.checkCombatEnd(finalDamage.state)).toBe('defeat');
     });
   });
 });

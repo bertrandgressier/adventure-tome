@@ -1,7 +1,7 @@
 import type { Character } from '@/src/domain/entities/Character';
 import type {
   CombatState,
-  CombatantConfig,
+  PlayerConfig,
   CombatWeapon,
   CombatEvent,
 } from '@/src/domain/types/combat-v2';
@@ -49,7 +49,7 @@ export class CombatOrchestrator {
    * Prépare les données du personnage pour initialiser un combat
    * Extrait les statistiques et l'arme équipée
    */
-  prepareCombatantFromCharacter(character: Character): CombatantConfig {
+  prepareCombatantFromCharacter(character: Character): PlayerConfig {
     const stats = character.getStats();
     const inventory = character.getInventory();
 
