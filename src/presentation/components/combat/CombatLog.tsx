@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
-import { ScrollText, ChevronUp, ChevronDown, Swords, Heart, Sparkles, Wand2, Dices, ArrowRight, Zap } from 'lucide-react';
+import { ScrollText, ChevronUp, ChevronDown, Swords, Heart, Sparkles, Wand2, Dices, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { CombatEvent } from '@/src/domain/types/combat-v2';
@@ -266,8 +266,6 @@ function getEventIcon(type: string): React.ReactNode {
       return <Sparkles className="size-4" />;
     case CombatEventType.CHANCE_SPENT:
       return <Zap className="size-4" />;
-    case CombatEventType.FLEE:
-      return <ArrowRight className="size-4" />;
     case CombatEventType.ITEM_USED:
       return <Wand2 className="size-4" />;
     default:

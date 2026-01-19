@@ -40,10 +40,8 @@ function createGobelin(): EnemyConfig {
 
 function createCombatConfig() {
   return {
-    allowFlee: true,
     maxEnemies: 3,
     damageFormula: '1 + 1d6 + DOMMAGES ACTUELS',
-    fleeCost: 2,
   };
 }
 
@@ -344,31 +342,6 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       //   endurance: 10 + 12, // 22
       //   weapon: { bonus: Math.max(1, 2) } // 2
       // };
-    });
-  });
-
-  describe('Scénario 6 : Fuite avec coût de PV (docs/COMBAT.md ligne 199)', () => {
-    /**
-     * Règle : "Fuir : Perdre 2 PV et quitter le combat (si autorisé)"
-     */
-    it('should allow fleeing with HP cost', () => {
-      const initialState = CombatEngine.createInitialState(
-        'char-1',
-        createPlayerConfig(),
-        [createGobelin()],
-        { ...createCombatConfig(), fleeCost: 2 }
-      );
-
-      expect(initialState.player.endurance).toBe(32);
-      expect(initialState.config.fleeCost).toBe(2);
-
-      const result = CombatEngine.resolve(
-        initialState,
-        { type: CombatActionType.FLEE }
-      );
-
-      expect(result.state.player.endurance).toBe(30); // 32 - 2
-      expect(result.state.phase).toBe(CombatPhase.DEFEAT);
     });
   });
 

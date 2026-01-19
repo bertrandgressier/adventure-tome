@@ -158,7 +158,6 @@ export default function CharacterDetail() {
     };
 
     const config: CombatConfig = {
-      allowFlee: true,
       maxEnemies: 1,
       damageFormula: 'standard',
       isSurprise: false,

@@ -35,10 +35,6 @@ const EVENT_STYLE_MAP: Record<string, EventStyleConfig> = {
     iconColor: 'text-secondary',
     textColor: 'text-secondary/90',
   },
-  [CombatEventType.FLEE]: {
-    iconColor: 'text-muted-foreground',
-    textColor: 'text-foreground/90',
-  },
 };
 
 const DEFAULT_STYLE: EventStyleConfig = {
@@ -113,9 +109,6 @@ export function formatEventDescription(event: CombatEvent): string {
     case CombatEventType.CHANCE_SPENT:
       if (event.pointsSpent) return `⚡ ${event.pointsSpent} point(s) de chance dépensé(s)`;
       return '⚡ Chance dépensée';
-
-    case CombatEventType.FLEE:
-      return event.damage ? `🏃 Fuite ! (-${event.damage} END)` : '🏃 Fuite !';
 
     case CombatEventType.ITEM_USED:
       if (event.abilityId) return `🎒 Item utilisé : ${event.abilityId}`;

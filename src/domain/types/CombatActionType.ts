@@ -3,7 +3,6 @@ export const CombatActionType = {
   USE_ITEM: 'use_item',
   SPEND_CHANCE: 'spend_chance',
   WEAPON_ABILITY: 'weapon_ability',
-  FLEE: 'flee',
   REROLL: 'reroll',
   BLOCK: 'block',
   SKIP: 'skip',

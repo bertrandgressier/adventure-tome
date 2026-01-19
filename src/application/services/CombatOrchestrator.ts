@@ -12,7 +12,7 @@ import { CombatEventType } from '@/src/domain/types/CombatEventType';
  * Résumé de fin de combat pour l'UI
  */
 export interface CombatEndSummary {
-  result: 'victory' | 'defeat' | 'fled';
+  result: 'victory' | 'defeat';
   rounds: number;
   damageDealt: number;
   damageTaken: number;
@@ -157,14 +157,10 @@ export class CombatOrchestrator {
   }
 
   /**
-   * Détermine le résultat du combat (victoire, défaite, fuite)
+   * Détermine le résultat du combat (victoire, défaite)
    */
-  private determineCombatResult(state: CombatState): 'victory' | 'defeat' | 'fled' {
+  private determineCombatResult(state: CombatState): 'victory' | 'defeat' {
     if (state.phase === 'victory') return 'victory';
-    if (state.phase === 'defeat') {
-      const fleeEvent = state.events.find((e) => e.type === CombatEventType.FLEE && 'success' in e && e.success);
-      return fleeEvent ? 'fled' : 'defeat';
-    }
     return 'defeat';
   }
 

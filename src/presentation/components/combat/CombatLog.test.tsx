@@ -255,41 +255,6 @@ describe('CombatLog', () => {
       expect(screen.getAllByText((content) => content.includes('⚡ 2 point(s) de chance dépensé(s)')).length).toBeGreaterThan(0);
     });
 
-    it('should format flee success event', () => {
-      const fleeEvent: CombatEvent[] = [
-        {
-          type: CombatEventType.FLEE,
-          timestamp: '2024-01-01T10:00:02Z',
-          round: 1,
-          success: true,
-        },
-      ];
-
-      render(<CombatLog events={fleeEvent} />);
-
-      fireEvent.click(screen.getByRole('button', { name: /Historique \(1\)/ }));
-
-      expect(screen.getAllByText((content) => content.includes('🏃 Fuite !')).length).toBeGreaterThan(0);
-    });
-
-    it('should format flee failure event', () => {
-      const fleeEvent: CombatEvent[] = [
-        {
-          type: CombatEventType.FLEE,
-          timestamp: '2024-01-01T10:00:02Z',
-          round: 1,
-          success: false,
-          damage: 2,
-        },
-      ];
-
-      render(<CombatLog events={fleeEvent} />);
-
-      fireEvent.click(screen.getByRole('button', { name: /Historique \(1\)/ }));
-
-      expect(screen.getAllByText((content) => content.includes('🏃 Fuite ! (-2 END)')).length).toBeGreaterThan(0);
-    });
-
     it('should format item used event', () => {
       const itemEvent: CombatEvent[] = [
         {

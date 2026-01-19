@@ -50,8 +50,6 @@ function createMockCombatState(overrides?: Partial<CombatState>): CombatState {
     usedReroll: false,
     isFirstAttack: true,
     config: {
-      fleeCost: 2,
-      allowFlee: true,
       maxEnemies: 3,
       damageFormula: '2d6+DEX+weapon',
     },

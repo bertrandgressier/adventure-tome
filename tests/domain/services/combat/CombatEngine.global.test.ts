@@ -29,10 +29,8 @@ function createEnemyConfig(): EnemyConfig {
 
 function createCombatConfig() {
   return {
-    allowFlee: true,
     maxEnemies: 3,
     damageFormula: '1 + 1d6 + weapon',
-    fleeCost: 2,
   };
 }
 
@@ -102,22 +100,6 @@ describe('CombatEngine - Global Scenarios', () => {
     expect(state.phase).toBe(CombatPhase.PLAYER_TURN);
   });
 
-  it('should handle flee action', () => {
-    const initialState = CombatEngine.createInitialState(
-      'char-1',
-      createPlayerConfig(),
-      [createEnemyConfig()],
-      createCombatConfig()
-    );
-
-    const result = CombatEngine.resolve(initialState, { type: CombatActionType.FLEE });
-    const state = result.state;
-
-    expect(state.player.endurance).toBe(28);
-    expect(state.phase).toBe(CombatPhase.DEFEAT);
-    expect(result.events.some(e => e.type === 'flee')).toBe(true);
-  });
-
   it('should provide available actions based on phase', () => {
     const initialState = CombatEngine.createInitialState(
       'char-1',
@@ -128,7 +110,6 @@ describe('CombatEngine - Global Scenarios', () => {
 
     const actions1 = CombatEngine.getAvailableActions(initialState);
     expect(actions1.map(a => a.action.type)).toContain(CombatActionType.ATTACK);
-    expect(actions1.map(a => a.action.type)).toContain(CombatActionType.FLEE);
 
     const result = CombatEngine.resolve(initialState, { type: CombatActionType.ATTACK }, { hitDice: [5, 4] });
     const state = result.state;

@@ -13,29 +13,6 @@ export interface ActionResolutionResult {
 }
 
 export class ReactionResolver {
-  static resolveFlee(state: CombatState): ActionResolutionResult {
-    const fleeCost = state.config.fleeCost ?? 2;
-    const newEndurance = Math.max(0, state.player.endurance - fleeCost);
-
-    const newState: CombatState = {
-      ...state,
-      player: { ...state.player, endurance: newEndurance },
-      phase: CombatPhase.DEFEAT,
-      events: [
-        ...state.events,
-        {
-          type: CombatEventType.FLEE,
-          timestamp: new Date().toISOString(),
-          round: state.roundNumber,
-          attacker: Attacker.PLAYER,
-          damage: fleeCost,
-        },
-      ],
-    };
-
-    return { state: newState, events: newState.events };
-  }
-
   static resolveReroll(
     state: CombatState,
     diceOverrides?: DiceOverrides

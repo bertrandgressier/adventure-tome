@@ -9,9 +9,6 @@ export const COMBAT_MESSAGES = {
     ALREADY_USED: 'Déjà utilisé ce combat',
     NO_DAMAGE_TO_BLOCK: 'Pas de dégâts à bloquer',
   },
-  FLEE: {
-    INSUFFICIENT_ENDURANCE: 'Endurance insuffisante pour fuir',
-  },
 } as const;
 
 export const COMBAT_ERRORS = {

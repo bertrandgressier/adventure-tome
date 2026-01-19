@@ -76,7 +76,6 @@ const mockEnemy: EnemyConfig = {
 };
 
 const defaultConfig = {
-  allowFlee: true,
   maxEnemies: 3,
   damageFormula: '2d6 + HABILETÉ + weapon',
 };
@@ -343,27 +342,6 @@ describe('Combat V2 - End to End Integration Tests', () => {
       // First attack damage: 1 (base) + 3 (dice) + 2 (weapon) = 6
       // Extra attack should be pending
       expect(currentState.combat?.pendingExtraAttack).toBe(true);
-    });
-  });
-
-  describe('Scénario 6: Combat avec fuite', () => {
-    it('should allow flee and apply damage', () => {
-      slice.startCombat('test-char-id', [mockEnemy], { ...defaultConfig, fleeCost: 2 });
-
-      const initialEndurance = currentState.combat?.player.endurance ?? 0;
-      expect(initialEndurance).toBe(30);
-
-      slice.executeAction({ type: CombatActionType.FLEE });
-
-      expect(currentState.combat?.phase).toBe(CombatPhase.DEFEAT);
-      expect(currentState.combat?.player.endurance).toBe(28);
-    });
-
-    it('should not allow flee when disabled', () => {
-      slice.startCombat('test-char-id', [mockEnemy], { ...defaultConfig, allowFlee: false });
-
-      const actions = currentState.availableActions;
-      expect(actions.some(a => a.action.type === CombatActionType.FLEE)).toBe(false);
     });
   });
 
