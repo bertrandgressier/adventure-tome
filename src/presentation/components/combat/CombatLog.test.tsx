@@ -269,7 +269,7 @@ describe('CombatLog', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /Historique \(1\)/ }));
 
-      expect(screen.getAllByText((content) => content.includes('🏃 Fuite réussie !')).length).toBeGreaterThan(0);
+      expect(screen.getAllByText((content) => content.includes('🏃 Fuite !')).length).toBeGreaterThan(0);
     });
 
     it('should format flee failure event', () => {
@@ -279,6 +279,7 @@ describe('CombatLog', () => {
           timestamp: '2024-01-01T10:00:02Z',
           round: 1,
           success: false,
+          damage: 2,
         },
       ];
 
@@ -286,7 +287,7 @@ describe('CombatLog', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /Historique \(1\)/ }));
 
-      expect(screen.getAllByText((content) => content.includes('🚫 Fuite échouée')).length).toBeGreaterThan(0);
+      expect(screen.getAllByText((content) => content.includes('🏃 Fuite ! (-2 END)')).length).toBeGreaterThan(0);
     });
 
     it('should format item used event', () => {

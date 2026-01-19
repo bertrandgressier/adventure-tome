@@ -39,11 +39,10 @@ describe('DiceAnimation', () => {
 
   describe('rendering - idle state', () => {
     it('should render empty state when no dice result and not rolling', () => {
-      render(<DiceAnimation diceResult={null} isRolling={false} />);
+      const { container } = render(<DiceAnimation diceResult={null} isRolling={false} />);
 
-      expect(
-        screen.getByText('Prêt pour le combat')
-      ).toBeInTheDocument();
+      // Le composant retourne null en idle state
+      expect(container.firstChild).toBeNull();
     });
   });
 
@@ -230,15 +229,17 @@ describe('DiceAnimation', () => {
 
   describe('animation phases', () => {
     it('should transition from idle to rolling when isRolling becomes true', () => {
-      const { rerender } = render(
+      const { container, rerender } = render(
         <DiceAnimation diceResult={null} isRolling={false} />
       );
 
-      expect(screen.getByText('Prêt pour le combat')).toBeInTheDocument();
+      // En idle, le composant ne rend rien
+      expect(container.firstChild).toBeNull();
 
       rerender(<DiceAnimation diceResult={mockDiceResult} isRolling={true} />);
 
-      expect(screen.queryByText('Prêt pour le combat')).not.toBeInTheDocument();
+      // Pendant le rolling, le composant s'affiche
+      expect(container.firstChild).not.toBeNull();
     });
   });
 
@@ -346,14 +347,15 @@ describe('DiceAnimation', () => {
     });
 
     it('should handle rapid state changes', () => {
-      const { rerender } = render(
+      const { container, rerender } = render(
         <DiceAnimation diceResult={null} isRolling={false} />
       );
 
       rerender(<DiceAnimation diceResult={mockDiceResult} isRolling={true} />);
       rerender(<DiceAnimation diceResult={null} isRolling={false} />);
 
-      expect(screen.getByText('Prêt pour le combat')).toBeInTheDocument();
+      // Retour à idle: le composant ne rend rien
+      expect(container.firstChild).toBeNull();
     });
   });
 

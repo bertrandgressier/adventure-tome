@@ -2,6 +2,8 @@
 
 Guide d'utilisation de Storybook pour le développement et le test des composants Combat V2.
 
+> 📖 **Guide complet Combat V2** : [docs/STORYBOOK_COMBAT_GUIDE.md](./STORYBOOK_COMBAT_GUIDE.md)
+
 ## 🚀 Démarrage rapide
 
 ### Lancer Storybook
@@ -11,6 +13,45 @@ pnpm storybook
 ```
 
 Storybook sera accessible sur `http://localhost:6006`
+
+### Composants de démonstration
+
+#### 🎯 **État Combat Complet** (RECOMMANDÉ ⭐)
+**Affichage direct de l'interface complète par état**
+- ✅ Pas de bouton à cliquer
+- ✅ État pré-chargé instantanément
+- ✅ Interface complète visible (combattants + actions + historique)
+- ✅ 12 scénarios prêts (tour joueur, ennemi, victoire, défaite, boss, critique)
+
+**Navigation** : Combat V2 > **État Combat Complet**
+
+**Scénarios disponibles** :
+- SimpleGoblinPlayerTurn - Combat basique tour joueur
+- SimpleGoblinEnemyTurn - Tour de l'ennemi
+- SimpleGoblinRolling - Animation dés
+- MidCombatWithHistory - Milieu de combat avec historique
+- MultipleEnemiesPlayerTurn - 3 ennemis
+- BossFightPlayerTurn - Combat de boss
+- CriticalHealthPlayerTurn - Santé critique
+- VictoryScreen - Écran de victoire
+- DefeatScreen - Écran de défaite
+- RestrictedCombatPlayerTurn - Combat mortel
+- Et plus...
+
+#### 🎮 **CombatDemo** (Interactif)
+Pour tester le flow complet avec bouton :
+- Configuration visuelle (ennemis, options)
+- Bouton "Démarrer le combat"
+- Test bout en bout (nécessite store fonctionnel)
+
+**Navigation** : Combat V2 > CombatDemo
+
+#### 📦 Autres stories disponibles
+- **CombatArena** : États directs (similaire à État Combat Complet)
+- **ActionPanel** : Test des boutons d'action isolés
+- **CombatLog** : Historique avec différents événements
+- **CombatantCard** : Cartes joueur/ennemi
+- **DiceAnimation** : Animation des dés
 
 ### Build de production
 
