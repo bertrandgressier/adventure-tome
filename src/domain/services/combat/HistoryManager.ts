@@ -4,7 +4,7 @@ import type {
   DamageRollDetails,
   HPSnapshot,
 } from '../../types/combat-history';
-import type { CombatState } from '../../types/combat-v2';
+import type { CombatState } from '../../types/combat-state';
 import type { CombatActionType } from '../../types/CombatActionType';
 import type { Attacker } from '../../types/Attacker';
 import type { DiceRoll } from '../../types/combatants';

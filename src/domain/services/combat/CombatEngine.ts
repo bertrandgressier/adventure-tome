@@ -173,12 +173,10 @@ export class CombatEngine {
     };
 
     if (hit) {
-      // Calculate and apply damage
+      // Calculate and apply damage (V3 formule: dice + bonus, pas de +1)
       const damageDice = diceOverrides?.damageDice ?? Math.floor(Math.random() * 6) + 1;
-      const baseDamage = damageDice;
       const totalDamageBonus = isPlayerAttacking ? state.player.totalDamageBonus : 0; // Enemy has no weapons
-      const damage = baseDamage + totalDamageBonus;
-      const damageDealt = Math.max(0, damage);
+      const damageDealt = damageDice + totalDamageBonus;
 
       events.push({
         type: CombatEventType.DAMAGE_ROLL,
@@ -200,7 +198,16 @@ export class CombatEngine {
     const combatEnded = CombatValidator.checkCombatEnd(newState) !== 'ongoing';
     
     // Avancer la phase selon le résultat
-    const phaseUpdate = PhaseManager.advancePhase(newState, { hit, combatEnded });
+    let phaseUpdate = PhaseManager.advancePhase(newState, { hit, combatEnded });
+    
+    // Si on a touché, on est à WAITING_DAMAGE_ROLL, mais les dégâts sont déjà appliqués
+    // Il faut avancer une fois de plus à TURN_COMPLETE
+    if (hit && !combatEnded && phaseUpdate.phase === CombatPhaseV3.WAITING_DAMAGE_ROLL) {
+      phaseUpdate = PhaseManager.advancePhase(
+        { ...newState, phase: phaseUpdate.phase, currentTurn: phaseUpdate.currentTurn, roundNumber: phaseUpdate.roundNumber }, 
+        { combatEnded }
+      );
+    }
     
     const finalState: CombatState = {
       ...newState,
