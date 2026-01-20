@@ -1,20 +1,42 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DiceAnimation, DiceRollResult } from './DiceAnimation';
 
+// Mock Framer Motion with better simulation of animation lifecycle
 vi.mock('framer-motion', async (importOriginal) => {
   const actual = await importOriginal<typeof import('framer-motion')>();
+  
+  const MockMotionDiv = ({ children, onAnimationComplete, onAnimationStart, animate, ...props }: any) => {
+    // Simulate animation lifecycle
+    React.useEffect(() => {
+      // Call onAnimationStart when animate changes
+      if (onAnimationStart) {
+        onAnimationStart();
+      }
+      
+      // Simulate animation completion after a microtask
+      if (onAnimationComplete && animate !== 'rolling') {
+        Promise.resolve().then(() => {
+          onAnimationComplete();
+        });
+      }
+    }, [animate, onAnimationComplete, onAnimationStart]);
+    
+    return <div {...props}>{children}</div>;
+  };
+  
   return {
     ...actual,
     useReducedMotion: () => false,
     motion: {
-      div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+      div: MockMotionDiv,
     },
+    AnimatePresence: ({ children }: any) => <>{children}</>,
   };
 });
 
-
+import React from 'react';
 
 describe('DiceAnimation', () => {
   const mockDiceResult: DiceRollResult = {
@@ -30,7 +52,7 @@ describe('DiceAnimation', () => {
   };
 
   beforeEach(() => {
-    vi.useFakeTimers();
+    // Note: We no longer need fake timers since we're using Framer Motion callbacks
   });
 
   afterEach(() => {
@@ -108,13 +130,12 @@ describe('DiceAnimation', () => {
         <DiceAnimation diceResult={mockDiceResult} isRolling={false} outcome="win" />
       );
 
-      await act(async () => {
-        vi.runAllTimers();
+      // Wait for the outcome to appear after animation completes
+      await waitFor(() => {
+        const status = screen.queryByTestId('outcome-status');
+        expect(status).toBeInTheDocument();
+        expect(status).toHaveTextContent('TOUCHÉ !');
       });
-
-      const status = screen.queryByTestId('outcome-status');
-      expect(status).toBeInTheDocument();
-      expect(status).toHaveTextContent('TOUCHÉ !');
     });
 
     it('should display fail status when miss', async () => {
@@ -125,13 +146,12 @@ describe('DiceAnimation', () => {
 
       render(<DiceAnimation diceResult={missResult} isRolling={false} outcome="lose" />);
 
-      await act(async () => {
-        vi.runAllTimers();
+      // Wait for the outcome to appear after animation completes
+      await waitFor(() => {
+        const status = screen.queryByTestId('outcome-status');
+        expect(status).toBeInTheDocument();
+        expect(status).toHaveTextContent('RATÉ !');
       });
-
-      const status = screen.queryByTestId('outcome-status');
-      expect(status).toBeInTheDocument();
-      expect(status).toHaveTextContent('RATÉ !');
     });
 
     it('should display double badge when isDouble is true', () => {
@@ -166,10 +186,10 @@ describe('DiceAnimation', () => {
         />
       );
 
-      await act(async () => { vi.runAllTimers(); });
+      await waitFor(() => {
         const container = document.querySelector('.bg-card\\/80');
         expect(container?.className).toContain('border-chart-5/50');
-      
+      });
     });
 
     it('should apply red border and glow for lose outcome', async () => {
@@ -181,10 +201,10 @@ describe('DiceAnimation', () => {
         />
       );
 
-      await act(async () => { vi.runAllTimers(); });
+      await waitFor(() => {
         const container = document.querySelector('.bg-card\\/80');
         expect(container?.className).toContain('border-destructive/50');
-      
+      });
     });
 
     it('should apply yellow border and glow for tie outcome', async () => {
@@ -196,10 +216,10 @@ describe('DiceAnimation', () => {
         />
       );
 
-      await act(async () => { vi.runAllTimers(); });
+      await waitFor(() => {
         const container = document.querySelector('.bg-card\\/80');
         expect(container?.className).toContain('border-accent/50');
-      
+      });
     });
 
     it('should not apply outcome colors during rolling', () => {
@@ -220,10 +240,10 @@ describe('DiceAnimation', () => {
         />
       );
 
-      await act(async () => { vi.runAllTimers(); });
+      await waitFor(() => {
         const container = document.querySelector('.bg-card\\/80');
         expect(container?.className).toContain('border-chart-5/50');
-      
+      });
     });
   });
 
@@ -260,13 +280,11 @@ describe('DiceAnimation', () => {
         <DiceAnimation diceResult={mockDiceResult} isRolling={false} outcome="win" />
       );
 
-      await act(async () => {
-        vi.runAllTimers();
+      await waitFor(() => {
+        const status = screen.queryByRole('status');
+        expect(status).toBeInTheDocument();
+        expect(status).toHaveAttribute('aria-live', 'polite');
       });
-
-      const status = screen.queryByRole('status');
-      expect(status).toBeInTheDocument();
-      expect(status).toHaveAttribute('aria-live', 'polite');
     });
 
     it('should announce hit status to screen readers', async () => {
@@ -274,13 +292,11 @@ describe('DiceAnimation', () => {
         <DiceAnimation diceResult={mockDiceResult} isRolling={false} outcome="win" />
       );
 
-      await act(async () => {
-        vi.runAllTimers();
+      await waitFor(() => {
+        const status = screen.queryByRole('status');
+        expect(status).toBeInTheDocument();
+        expect(status).toHaveTextContent('TOUCHÉ !');
       });
-
-      const status = screen.queryByRole('status');
-      expect(status).toBeInTheDocument();
-      expect(status).toHaveTextContent('TOUCHÉ !');
     });
   });
 
@@ -340,8 +356,6 @@ describe('DiceAnimation', () => {
 
       render(<DiceAnimation diceResult={noSuccessResult} isRolling={false} />);
 
-      vi.advanceTimersByTime(500);
-
       const status = screen.queryByRole('status');
       expect(status).not.toBeInTheDocument();
     });
@@ -367,8 +381,6 @@ describe('DiceAnimation', () => {
 
       unmount();
 
-      vi.advanceTimersByTime(1000);
-
       expect(screen.queryByTestId('final-score')).not.toBeInTheDocument();
     });
 
@@ -379,9 +391,41 @@ describe('DiceAnimation', () => {
 
       rerender(<DiceAnimation diceResult={mockDiceResult} isRolling={false} />);
 
-      vi.advanceTimersByTime(100);
-
       expect(screen.getByTestId('final-score')).toBeInTheDocument();
+    });
+  });
+  
+  describe('animation callbacks', () => {
+    it('should call onAnimationComplete after outcome is shown', async () => {
+      const onComplete = vi.fn();
+      
+      render(
+        <DiceAnimation 
+          diceResult={mockDiceResult} 
+          isRolling={false} 
+          outcome="win"
+          onAnimationComplete={onComplete}
+        />
+      );
+
+      // Wait for animations to complete
+      await waitFor(() => {
+        expect(onComplete).toHaveBeenCalled();
+      }, { timeout: 1000 });
+    });
+
+    it('should not call onAnimationComplete while rolling', () => {
+      const onComplete = vi.fn();
+      
+      render(
+        <DiceAnimation 
+          diceResult={mockDiceResult} 
+          isRolling={true} 
+          onAnimationComplete={onComplete}
+        />
+      );
+
+      expect(onComplete).not.toHaveBeenCalled();
     });
   });
 });

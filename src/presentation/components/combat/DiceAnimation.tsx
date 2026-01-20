@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useRef, useMemo } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { useState, useMemo, useCallback } from 'react';
+import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
   diceRollVariants,
@@ -36,56 +36,35 @@ export function DiceAnimation({
   onAnimationComplete,
 }: DiceAnimationProps) {
   const [showOutcome, setShowOutcome] = useState(false);
-  const prefersReducedMotion = useReducedMotion() ?? false;
-  const previousPhaseRef = useRef<'idle' | 'rolling' | 'result'>('idle');
+  const shouldReduceMotion = useReducedMotion() ?? false;
 
-  // Derive phase from props instead of managing it in state
+  // Derive phase from props
   const phase = useMemo<'idle' | 'rolling' | 'result'>(() => {
     if (!diceResult && !isRolling) return 'idle';
     if (isRolling) return 'rolling';
     return 'result';
   }, [diceResult, isRolling]);
 
-  // Handle outcome display timing
-  useEffect(() => {
-    const phaseChanged = previousPhaseRef.current !== phase;
-    previousPhaseRef.current = phase;
-
-    // Reset showOutcome when transitioning to idle
-    if (phase === 'idle' && phaseChanged) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShowOutcome(false);
-      return;
+  // Handle dice animation complete - triggers outcome display
+  const handleDiceAnimationComplete = useCallback(() => {
+    if (phase === 'result' && !showOutcome) {
+      setShowOutcome(true);
     }
+  }, [phase, showOutcome]);
 
-    // Show outcome after delay when transitioning to result phase
-    if (phase === 'result' && phaseChanged) {
-      const outcomeDelay = prefersReducedMotion ? 100 : 500;
-      const timer = setTimeout(() => {
-        setShowOutcome(true);
-      }, outcomeDelay);
-
-      return () => clearTimeout(timer);
+  // Handle outcome animation complete - triggers parent callback
+  const handleOutcomeAnimationComplete = useCallback(() => {
+    if (onAnimationComplete) {
+      onAnimationComplete();
     }
+  }, [onAnimationComplete]);
 
-    // Hide outcome during rolling
-    if (phase === 'rolling' && phaseChanged) {
+  // Reset outcome when transitioning to rolling
+  const handleAnimationStart = useCallback(() => {
+    if (phase === 'rolling' && showOutcome) {
       setShowOutcome(false);
     }
-  }, [phase, prefersReducedMotion]);
-
-  // Handle animation complete callback
-  useEffect(() => {
-    const phaseIsResult = phase === 'result';
-    if (phaseIsResult && onAnimationComplete) {
-      const completeDelay = prefersReducedMotion ? 100 : 300;
-      const timer = setTimeout(() => {
-        onAnimationComplete();
-      }, completeDelay);
-
-      return () => clearTimeout(timer);
-    }
-  }, [phase, onAnimationComplete, prefersReducedMotion]);
+  }, [phase, showOutcome]);
 
   const getOutcomeColor = (): string => {
     if (!showOutcome || !outcome) return '';
@@ -113,19 +92,21 @@ export function DiceAnimation({
         variants={diceRollVariants}
         initial="idle"
         animate={phase === 'rolling' ? 'rolling' : 'result'}
-        custom={prefersReducedMotion}
+        custom={shouldReduceMotion}
+        onAnimationComplete={handleDiceAnimationComplete}
+        onAnimationStart={handleAnimationStart}
       >
         <div className="flex items-center justify-center gap-4">
           <Die
             value={phase === 'rolling' ? null : diceResult?.dice[0] ?? null}
             isRolling={phase === 'rolling'}
-            prefersReducedMotion={prefersReducedMotion}
+            shouldReduceMotion={shouldReduceMotion}
           />
           <span className="text-xl text-muted-foreground font-bold">+</span>
           <Die
             value={phase === 'rolling' ? null : diceResult?.dice[1] ?? null}
             isRolling={phase === 'rolling'}
-            prefersReducedMotion={prefersReducedMotion}
+            shouldReduceMotion={shouldReduceMotion}
           />
         </div>
 
@@ -168,23 +149,35 @@ export function DiceAnimation({
               </div>
             </div>
 
-            {showOutcome && outcome && diceResult.success !== undefined && (
-              <div className="text-center mt-1">
-                <div
-                  className={cn(
-                    'text-base font-bold',
-                    outcome === 'win' || diceResult.success
-                      ? 'text-chart-5'
-                      : 'text-destructive'
-                  )}
-                  role="status"
-                  aria-live="polite"
-                  data-testid="outcome-status"
+            <AnimatePresence>
+              {showOutcome && outcome && diceResult.success !== undefined && (
+                <motion.div
+                  className="text-center mt-1"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: shouldReduceMotion ? 0 : 0.3,
+                    delay: shouldReduceMotion ? 0 : 0.2,
+                  }}
+                  onAnimationComplete={handleOutcomeAnimationComplete}
                 >
-                  {diceResult.success ? 'TOUCHÉ !' : 'RATÉ !'}
-                </div>
-              </div>
-            )}
+                  <div
+                    className={cn(
+                      'text-base font-bold',
+                      outcome === 'win' || diceResult.success
+                        ? 'text-chart-5'
+                        : 'text-destructive'
+                    )}
+                    role="status"
+                    aria-live="polite"
+                    data-testid="outcome-status"
+                  >
+                    {diceResult.success ? 'TOUCHÉ !' : 'RATÉ !'}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </motion.div>
@@ -195,10 +188,10 @@ export function DiceAnimation({
 interface DieProps {
   value: number | null;
   isRolling: boolean;
-  prefersReducedMotion: boolean;
+  shouldReduceMotion: boolean;
 }
 
-function Die({ value, isRolling, prefersReducedMotion }: DieProps) {
+function Die({ value, isRolling, shouldReduceMotion }: DieProps) {
   return (
     <motion.div
       className={cn(
@@ -208,7 +201,7 @@ function Die({ value, isRolling, prefersReducedMotion }: DieProps) {
       variants={diceBounceVariants}
       initial="idle"
       animate={isRolling ? 'bouncing' : 'idle'}
-      custom={prefersReducedMotion}
+      custom={shouldReduceMotion}
       role="img"
       aria-label={`Dé ${value ?? '?'}`}
     >
