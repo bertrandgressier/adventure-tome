@@ -35,34 +35,16 @@ import {
 
 describe('CombatEngine V3 - Tests E2E Complets', () => {
   describe('Scénario 1 : Victoire rapide (Easy)', () => {
-    it('should defeat a weak goblin in 2 rounds', () => {
+    it('should defeat a weak goblin in 1 round', () => {
       const state = createTestCombat(
         TEST_PLAYERS.WARRIOR,
         TEST_ENEMIES.WEAK_GOBLIN
       );
 
-      // Round 1 : Joueur touche (2d6 = 3 ≤ 7), inflige 7 dégâts (1d6=4 + 3 bonus)
-      let newState = simulateAttack(state, [2, 1], 4);
-      assertEnemyHP(newState, 1); // 8 - 7 = 1
-      assertOngoing(newState);
-      
-      // Skip to next turn
-      const skip1 = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
-      newState = skip1.state;
-
-      // Ennemi rate (2d6 = 8 > 5)
-      newState = simulateAttack(newState, [4, 4]);
-      assertPlayerHP(newState, 32);
-      
-      const skip2 = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
-      newState = skip2.state;
-
-      // Round 2 : Joueur touche et tue
-      newState = simulateAttack(newState, [3, 2], 3);
-      
+      // Round 1 : Joueur touche (2d6 = 3 ≤ 7), inflige 8 dégâts (1 + 1d6=4 + 3 bonus)
+      const newState = simulateAttack(state, [2, 1], 4);
+      assertEnemyHP(newState, 0); // 8 - 8 = 0
       assertVictory(newState);
-      assertEnemyHP(newState, 0);
-      assertPlayerHP(newState, 32);
       assertPhase(newState, CombatPhaseV3.ENDED);
     });
   });
@@ -82,11 +64,11 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
       const skip1 = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
       newState = skip1.state;
 
-      // Troll touche (2d6 = 7 ≤ 8), inflige 6 dégâts (1d6=6 + 0 bonus ennemi)
+      // Troll touche (2d6 = 7 ≤ 8), inflige 7 dégâts (1 + 1d6=6 + 0 bonus ennemi)
       newState = simulateAttack(newState, [3, 4], 6);
       
       assertDefeat(newState);
-      assertPlayerHP(newState, 0);
+      assertPlayerHP(newState, 0); // 5 - 7 = -2, capped at 0
       assertPhase(newState, CombatPhaseV3.ENDED);
     });
   });
@@ -101,32 +83,32 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
       // Round 1 : Joueur touche, Orc touche
       let newState = simulateFullRound(
         state,
-        { hit: [3, 2], damage: 5 }, // Joueur: 5 + 3 = 8 dégâts
-        { hit: [3, 3], damage: 4 }  // Orc: 4 + 0 = 4 dégâts
+        { hit: [3, 2], damage: 5 }, // Joueur: 1 + 5 + 3 = 9 dégâts
+        { hit: [3, 3], damage: 4 }  // Orc: 1 + 4 + 0 = 5 dégâts
       );
 
-      assertPlayerHP(newState, 28); // 32 - 4
-      assertEnemyHP(newState, 12); // 20 - 8
+      assertPlayerHP(newState, 27); // 32 - 5
+      assertEnemyHP(newState, 11); // 20 - 9
       assertRound(newState, 2);
       assertOngoing(newState);
 
       // Round 2 : Joueur touche, Orc touche
       newState = simulateFullRound(
         newState,
-        { hit: [2, 3], damage: 6 }, // 6 + 3 = 9 dégâts
-        { hit: [4, 2], damage: 5 }  // 5 + 0 = 5 dégâts
+        { hit: [2, 3], damage: 6 }, // 1 + 6 + 3 = 10 dégâts
+        { hit: [4, 2], damage: 5 }  // 1 + 5 + 0 = 6 dégâts
       );
 
-      assertPlayerHP(newState, 23); // 28 - 5
-      assertEnemyHP(newState, 3);   // 12 - 9
+      assertPlayerHP(newState, 21); // 27 - 6
+      assertEnemyHP(newState, 1);   // 11 - 10
       assertRound(newState, 3);
 
       // Round 3 : Joueur finit l'Orc
-      newState = simulateAttack(newState, [3, 1], 4); // 4 + 3 = 7 dégâts
+      newState = simulateAttack(newState, [3, 1], 1); // 1 + 1 + 3 = 5 dégâts (overkill)
 
       assertVictory(newState);
       assertEnemyHP(newState, 0);
-      assertPlayerHP(newState, 23);
+      assertPlayerHP(newState, 21);
     });
   });
 
@@ -142,19 +124,19 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
 
       // Simuler 4 rounds de combat épique
       const attacks = [
-        { player: { hit: [4, 3], damage: 6 }, enemy: { hit: [5, 4], damage: 5 } }, // R1: Joueur 14 dmg, Dragon 5 dmg
-        { player: { hit: [3, 3], damage: 5 }, enemy: { hit: [4, 4], damage: 4 } }, // R2: Joueur 13 dmg, Dragon 4 dmg
-        { player: { hit: [2, 4], damage: 6 }, enemy: { hit: [6, 3], damage: 6 } }, // R3: Joueur 14 dmg, Dragon 6 dmg
-        { player: { hit: [5, 2], damage: 5 }, enemy: { hit: [5, 5] } },            // R4: Joueur 13 dmg, Dragon rate
+        { player: { hit: [4, 3], damage: 6 }, enemy: { hit: [5, 4], damage: 5 } }, // R1: Joueur 1+6+8=15 dmg, Dragon 1+5+0=6 dmg
+        { player: { hit: [3, 3], damage: 5 }, enemy: { hit: [4, 4], damage: 4 } }, // R2: Joueur 1+5+8=14 dmg, Dragon 1+4+0=5 dmg
+        { player: { hit: [2, 4], damage: 6 }, enemy: { hit: [6, 3], damage: 6 } }, // R3: Joueur 1+6+8=15 dmg, Dragon 1+6+0=7 dmg
+        { player: { hit: [5, 2], damage: 5 }, enemy: { hit: [5, 5] } },            // R4: Joueur 1+5+8=14 dmg, Dragon rate
       ];
 
       const newState = simulateUntilEnd(state, attacks, 4);
 
-      // Joueur: 50 - (5 + 4 + 6) = 35 HP
-      // Dragon: 50 - (14 + 13 + 14 + 13) = -4 HP
+      // Joueur: 50 - (6 + 5 + 7) = 32 HP
+      // Dragon: 50 - (15 + 14 + 15 + 14) = -8 HP
       assertVictory(newState);
       assertEnemyHP(newState, 0);
-      assertPlayerHP(newState, 35);
+      assertPlayerHP(newState, 32);
     });
   });
 
@@ -170,8 +152,8 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
       assertPhase(state, CombatPhaseV3.WAITING_ATTACK_ROLL);
 
       // Ennemi attaque en premier
-      let newState = simulateAttack(state, [2, 3], 4); // Touche, 4 dégâts
-      assertPlayerHP(newState, 28); // 32 - 4
+      let newState = simulateAttack(state, [2, 3], 4); // Touche, 1 + 4 + 0 = 5 dégâts
+      assertPlayerHP(newState, 27); // 32 - 5
       
       const skip = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
       newState = skip.state;
@@ -179,8 +161,8 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
       assertCurrentTurn(newState, 'player');
       
       // Joueur contre-attaque
-      newState = simulateAttack(newState, [3, 2], 5); // 5 + 3 = 8 dégâts
-      assertEnemyHP(newState, 7); // 15 - 8
+      newState = simulateAttack(newState, [3, 2], 5); // 1 + 5 + 3 = 9 dégâts
+      assertEnemyHP(newState, 6); // 15 - 9
     });
   });
 
@@ -194,8 +176,8 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
       expect(state.player.weapon.bonus).toBe(8);
       expect(state.player.totalDamageBonus).toBe(8);
 
-      const newState = simulateAttack(state, [3, 2], 4); // 4 + 8 = 12 dégâts
-      assertEnemyHP(newState, 3); // 15 - 12
+      const newState = simulateAttack(state, [3, 2], 4); // 1 + 4 + 8 = 13 dégâts
+      assertEnemyHP(newState, 2); // 15 - 13
     });
 
     it('should apply Durandal damage bonus (+6)', () => {
@@ -206,8 +188,8 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
 
       expect(state.player.totalDamageBonus).toBe(6);
 
-      const newState = simulateAttack(state, [2, 3], 5); // 5 + 6 = 11 dégâts
-      assertEnemyHP(newState, 4); // 15 - 11
+      const newState = simulateAttack(state, [2, 3], 5); // 1 + 5 + 6 = 12 dégâts
+      assertEnemyHP(newState, 3); // 15 - 12
     });
 
     it('should apply Fragarach damage bonus (+7)', () => {
@@ -218,8 +200,8 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
 
       expect(state.player.totalDamageBonus).toBe(7);
 
-      const newState = simulateAttack(state, [4, 2], 3); // 3 + 7 = 10 dégâts
-      assertEnemyHP(newState, 10); // 20 - 10
+      const newState = simulateAttack(state, [4, 2], 3); // 1 + 3 + 7 = 11 dégâts
+      assertEnemyHP(newState, 9); // 20 - 11
     });
   });
 
@@ -405,9 +387,9 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
 
       const result = CombatEngine.resolve(state, { type: CombatActionType.ATTACK }, { hitDice: [3, 2], damageDice: 5 });
 
-      expect(result.events).toHaveLength(2); // ATTACK_ROLL + DAMAGE_ROLL
+      expect(result.events).toHaveLength(2); // ATTACK_ROLL + DAMAGE_DEALT
       expect(result.events[0].type).toBe('attack_roll');
-      expect(result.events[1].type).toBe('damage_roll');
+      expect(result.events[1]?.type).toBe('damage_dealt');
     });
 
     it('should handle multiple rounds without errors', () => {
@@ -435,8 +417,8 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
         TEST_ENEMIES.GOBLIN
       );
 
-      const newState = simulateAttack(state, [3, 2], 3); // dice=3, bonus=4, total=7
-      assertEnemyHP(newState, 8); // 15 - 7
+      const newState = simulateAttack(state, [3, 2], 3); // 1 + 3 + 4 = 8 dégâts
+      assertEnemyHP(newState, 7); // 15 - 8
     });
 
     it('should calculate enemy damage correctly (base + dice, no weapon)', () => {
@@ -446,8 +428,8 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
         { firstAttacker: 'enemy' }
       );
 
-      const newState = simulateAttack(state, [3, 2], 5); // dice=5, no bonus, total=5
-      assertPlayerHP(newState, 27); // 32 - 5
+      const newState = simulateAttack(state, [3, 2], 5); // 1 + 5 + 0 = 6 dégâts
+      assertPlayerHP(newState, 26); // 32 - 6
     });
 
     it('should not allow negative HP', () => {
@@ -456,8 +438,8 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
         { endurance: 2, enduranceMax: 15 }
       );
 
-      const newState = simulateAttack(state, [2, 3], 6); // 6 + 3 = 9 dégâts > 2 HP
-      assertEnemyHP(newState, 0); // Capped at 0, not -7
+      const newState = simulateAttack(state, [2, 3], 6); // 1 + 6 + 3 = 10 dégâts > 2 HP
+      assertEnemyHP(newState, 0); // Capped at 0, not -8
     });
   });
 });

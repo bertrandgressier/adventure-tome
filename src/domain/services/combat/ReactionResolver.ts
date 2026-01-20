@@ -18,7 +18,7 @@ export interface ActionResolutionResultV3 {
 }
 
 // Type guard to check if state is V3
-function isStateV3(state: any): state is CombatStateV3 {
+function isStateV3(state: CombatState | CombatStateV3): state is CombatStateV3 {
   return 'currentTurn' in state && typeof state.currentTurn === 'string';
 }
 

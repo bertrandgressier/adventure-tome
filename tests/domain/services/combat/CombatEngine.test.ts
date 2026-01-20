@@ -343,7 +343,7 @@ describe('CombatEngine', () => {
 
       const result = CombatEngine.resolve(
         state,
-        { type: 'UNKNOWN_ACTION' as any }
+        { type: 'UNKNOWN_ACTION' as CombatActionType }
       );
 
       expect(result.state).toEqual(state);

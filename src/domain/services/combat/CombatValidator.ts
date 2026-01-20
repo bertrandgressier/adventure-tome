@@ -58,8 +58,17 @@ export class CombatValidator {
       // Enemy damage roll est aussi automatique
     }
 
-    // TURN_COMPLETE - skip to next turn
+    // TURN_COMPLETE - skip to next turn or reroll if player missed and hasn't used reroll
     if (state.phase === CombatPhaseV3.TURN_COMPLETE) {
+      // Allow reroll if: player's turn just ended, they missed, haven't used reroll yet
+      if (
+        state.currentTurn === 'player' &&
+        state.lastRoll &&
+        !state.lastRoll.success &&
+        !state.usedReroll
+      ) {
+        actions.push({ action: { type: CombatActionType.REROLL }, enabled: true });
+      }
       actions.push({ action: { type: CombatActionType.SKIP }, enabled: true });
     }
 

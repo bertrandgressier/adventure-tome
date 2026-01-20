@@ -14,6 +14,7 @@ import { ItemResolver, type CombatUsableItem } from './ItemResolver';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
 import { PhaseManager } from './PhaseManager';
 import { CombatValidator } from './CombatValidator';
+import { HistoryManager } from './HistoryManager';
 
 export type CombatResult = {
   state: CombatState;
@@ -61,7 +62,7 @@ export class CombatEngine {
       },
       enemy: {
         ...enemy,
-        endurance: enemy.enduranceMax,
+        endurance: enemy.endurance ?? enemy.enduranceMax,
         weaponDamage: 0,
         passiveDamageBonus: 0,
         totalDamageBonus: enemyTotalDamageBonus,
@@ -140,6 +141,9 @@ export class CombatEngine {
     const attacker = isPlayerAttacking ? state.player : state.enemy;
     const dexterite = attacker.dexterite;
 
+    // Capture HP before action
+    const hpBefore = HistoryManager.createHPSnapshot(state);
+
     // Simuler le DiceRoller pour les tests avec des overrides simples
     const dice1 = diceOverrides?.hitDice?.[0] ?? Math.floor(Math.random() * 6) + 1;
     const dice2 = diceOverrides?.hitDice?.[1] ?? Math.floor(Math.random() * 6) + 1;
@@ -172,14 +176,17 @@ export class CombatEngine {
       isDouble: dice1 === dice2,
     };
 
+    let damageDealt = 0;
+    let damageDice = 0;
+
     if (hit) {
-      // Calculate and apply damage (V3 formule: dice + bonus, pas de +1)
-      const damageDice = diceOverrides?.damageDice ?? Math.floor(Math.random() * 6) + 1;
+      // Calculate and apply damage (formule officielle: 1 + 1d6 + DOMMAGES ACTUELS)
+      damageDice = diceOverrides?.damageDice ?? Math.floor(Math.random() * 6) + 1;
       const totalDamageBonus = isPlayerAttacking ? state.player.totalDamageBonus : 0; // Enemy has no weapons
-      const damageDealt = damageDice + totalDamageBonus;
+      damageDealt = 1 + damageDice + totalDamageBonus; // Formule officielle
 
       events.push({
-        type: CombatEventType.DAMAGE_ROLL,
+        type: CombatEventType.DAMAGE_DEALT,
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
         attacker: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
@@ -193,6 +200,9 @@ export class CombatEngine {
         newState.player.endurance = Math.max(0, newState.player.endurance - damageDealt);
       }
     }
+
+    // Capture HP after action
+    const hpAfter = HistoryManager.createHPSnapshot(newState);
 
     // Check if combat ended
     const combatEnded = CombatValidator.checkCombatEnd(newState) !== 'ongoing';
@@ -208,12 +218,39 @@ export class CombatEngine {
         { combatEnded }
       );
     }
-    
+
+    // Add history entry
+    const historyEntry = {
+      round: state.roundNumber,
+      turn: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+      action: CombatActionType.ATTACK,
+      hitRoll: HistoryManager.createHitRollDetails(
+        { dice1, dice2, total, success: hit, isDouble: dice1 === dice2 },
+        dexterite
+      ),
+      damageRoll: hit
+        ? HistoryManager.createDamageRollDetails(
+            damageDice,
+            isPlayerAttacking ? state.player.totalDamageBonus : 0,
+            damageDealt
+          )
+        : undefined,
+      hpBefore,
+      hpAfter,
+      timestamp: new Date().toISOString(),
+      description: HistoryManager.generateAttackDescription(
+        isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+        hit,
+        hit ? damageDealt : undefined
+      ),
+    };
+
     const finalState: CombatState = {
       ...newState,
       phase: phaseUpdate.phase,
       currentTurn: phaseUpdate.currentTurn,
       roundNumber: phaseUpdate.roundNumber,
+      history: HistoryManager.addEntry(newState, historyEntry),
     };
 
     // Ajouter événement de fin si le combat est terminé
@@ -232,9 +269,20 @@ export class CombatEngine {
    * Résout un reroll (uniquement joueur)
    */
   private static resolveReroll(state: CombatState, diceOverrides?: DiceOverrides): CombatResult {
-    if (state.currentTurn !== 'player' || !state.lastRoll || state.usedReroll) {
+    // Can only reroll if: player's turn, has a last roll, hasn't used reroll, and either in WAITING_ATTACK_ROLL or TURN_COMPLETE after a miss
+    const canReroll =
+      state.currentTurn === 'player' &&
+      state.lastRoll &&
+      !state.usedReroll &&
+      (state.phase === CombatPhaseV3.WAITING_ATTACK_ROLL ||
+        (state.phase === CombatPhaseV3.TURN_COMPLETE && !state.lastRoll.success));
+
+    if (!canReroll) {
       return { state, events: [] };
     }
+
+    // Capture HP before action
+    const hpBefore = HistoryManager.createHPSnapshot(state);
 
     const dice1 = diceOverrides?.hitDice?.[0] ?? Math.floor(Math.random() * 6) + 1;
     const dice2 = diceOverrides?.hitDice?.[1] ?? Math.floor(Math.random() * 6) + 1;
@@ -252,6 +300,8 @@ export class CombatEngine {
         isDouble: dice1 === dice2,
       },
       usedReroll: true,
+      // Si on était en TURN_COMPLETE, revenir à WAITING_ATTACK_ROLL pour pouvoir continuer
+      phase: state.phase === CombatPhaseV3.TURN_COMPLETE ? CombatPhaseV3.WAITING_ATTACK_ROLL : state.phase,
     };
 
     const events: CombatEvent[] = [
@@ -265,7 +315,30 @@ export class CombatEngine {
       },
     ];
 
-    return { state: newState, events };
+    // Capture HP after action (no change for reroll)
+    const hpAfter = HistoryManager.createHPSnapshot(newState);
+
+    // Add history entry
+    const historyEntry = {
+      round: state.roundNumber,
+      turn: Attacker.PLAYER,
+      action: CombatActionType.REROLL,
+      hitRoll: HistoryManager.createHitRollDetails(
+        { dice1, dice2, total, success: hit, isDouble: dice1 === dice2 },
+        dexterite
+      ),
+      hpBefore,
+      hpAfter,
+      timestamp: new Date().toISOString(),
+      description: HistoryManager.generateRerollDescription(),
+    };
+
+    const finalState: CombatState = {
+      ...newState,
+      history: HistoryManager.addEntry(newState, historyEntry),
+    };
+
+    return { state: finalState, events };
   }
 
   /**

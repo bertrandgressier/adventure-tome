@@ -39,12 +39,6 @@ describe('CombatantCard', () => {
     isBoss: false,
   };
 
-  const bossCombatant = {
-    ...enemyCombatant,
-    name: 'Dragon',
-    isBoss: true,
-  };
-
   describe('rendering', () => {
     it('should render player combatant', () => {
       render(

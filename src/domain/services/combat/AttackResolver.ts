@@ -1,7 +1,6 @@
 import type { CombatState, CombatEvent } from '../../types/combat-v2';
 import type { CombatStateV3 } from '../../types/combat-state';
 import { CombatPhase } from '../../types/CombatPhase';
-import { CombatPhaseV3 } from '../../types/CombatPhaseV3';
 import { Attacker } from '../../types/Attacker';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
@@ -23,7 +22,7 @@ export interface ActionResolutionResultV3 {
 }
 
 // Type guard to check if state is V3
-function isStateV3(state: any): state is CombatStateV3 {
+function isStateV3(state: CombatState | CombatStateV3): state is CombatStateV3 {
   return 'currentTurn' in state && typeof state.currentTurn === 'string';
 }
 
@@ -213,7 +212,7 @@ export class AttackResolver {
     const dexterite = attacker.dexterite;
 
     // Capture HP avant l'action
-    const hpBefore = HistoryManager.createHPSnapshot(state as any);
+    const hpBefore = HistoryManager.createHPSnapshot(state as CombatState);
 
     const diceRoll = DiceRoller.rollHitDice(diceOverrides?.hitDice);
     const hit = diceRoll.total <= dexterite;
@@ -224,12 +223,12 @@ export class AttackResolver {
     // Check for ON_SURPRISE ability BEFORE attack (first attack only)
     if (isPlayerAttacking && newState.isFirstAttack) {
       const surpriseAbility = WeaponAbilityResolver.checkAutoTrigger(
-        newState as any,
+        newState as CombatState,
         WeaponAbilityTrigger.ON_SURPRISE,
         {}
       );
       if (surpriseAbility) {
-        const surpriseResult = WeaponAbilityResolver.resolveAbility(newState as any, surpriseAbility.id);
+        const surpriseResult = WeaponAbilityResolver.resolveAbility(newState as CombatState, surpriseAbility.id);
         // Copy back changed fields from V2 result
         newState.player = surpriseResult.state.player;
         newState.enemy = surpriseResult.state.enemy;
@@ -281,12 +280,12 @@ export class AttackResolver {
       // Check for weapon abilities on successful attack
       if (isPlayerAttacking && newState.lastRoll?.isDouble) {
         const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
-          newState as any,
+          newState as CombatState,
           WeaponAbilityTrigger.ON_DOUBLE,
           { roll: newState.lastRoll }
         );
         if (doubleAbility) {
-          const doubleResult = WeaponAbilityResolver.resolveAbility(newState as any, doubleAbility.id);
+          const doubleResult = WeaponAbilityResolver.resolveAbility(newState as CombatState, doubleAbility.id);
           newState.player = doubleResult.state.player;
           newState.enemy = doubleResult.state.enemy;
           newState.usedAbilities = doubleResult.state.usedAbilities;
@@ -297,12 +296,12 @@ export class AttackResolver {
       // Check for ON_KILL ability if enemy was defeated
       if (isPlayerAttacking && newState.enemy.endurance <= 0) {
         const killAbility = WeaponAbilityResolver.checkAutoTrigger(
-          newState as any,
+          newState as CombatState,
           WeaponAbilityTrigger.ON_KILL,
           {}
         );
         if (killAbility) {
-          const killResult = WeaponAbilityResolver.resolveAbility(newState as any, killAbility.id);
+          const killResult = WeaponAbilityResolver.resolveAbility(newState as CombatState, killAbility.id);
           newState.player = killResult.state.player;
           newState.enemy = killResult.state.enemy;
           newState.usedAbilities = killResult.state.usedAbilities;
@@ -312,7 +311,7 @@ export class AttackResolver {
     }
 
     // Capture HP après l'action
-    const hpAfter = HistoryManager.createHPSnapshot(newState as any);
+    const hpAfter = HistoryManager.createHPSnapshot(newState as CombatState);
 
     // Enregistrer dans l'historique
     const historyEntry = {
@@ -325,7 +324,7 @@ export class AttackResolver {
       ),
       damageRoll: hit
         ? HistoryManager.createDamageRollDetails(
-            { total: diceRoll.total, dice1: diceRoll.dice1 } as any,
+            { total: diceRoll.total, dice1: diceRoll.dice1, dice2: 0 },
             isPlayerAttacking ? state.player.totalDamageBonus : 0,
             hit ? Math.max(0, diceRoll.total + (isPlayerAttacking ? state.player.totalDamageBonus : 0)) : 0
           )
@@ -340,7 +339,7 @@ export class AttackResolver {
       ),
     };
 
-    newState.history = HistoryManager.addEntry(newState as any, historyEntry);
+    newState.history = HistoryManager.addEntry(newState as CombatState, historyEntry);
 
     return { state: newState, events };
   }
