@@ -1,8 +1,8 @@
-import type { CombatState, CombatEvent, AvailableAction } from '../../types/combat-v2';
-import { CombatPhase } from '../../types/CombatPhase';
+import type { CombatState, CombatEvent } from '../../types/combat-state';
+import type { AvailableAction } from '../../types/combat-state';
+import { CombatPhaseV3 } from '../../types/CombatPhaseV3';
 import { CombatActionType } from '../../types/CombatActionType';
 import { CombatEventType } from '../../types/CombatEventType';
-import { Attacker } from '../../types/Attacker';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 
@@ -22,36 +22,54 @@ export class CombatValidator {
   static getAvailableActions(state: CombatState): AvailableAction[] {
     const actions: AvailableAction[] = [];
 
-    if (state.phase === CombatPhase.PLAYER_TURN) {
-      actions.push({ action: { type: CombatActionType.ATTACK }, enabled: true });
+    // WAITING_ATTACK_ROLL - selon qui joue
+    if (state.phase === CombatPhaseV3.WAITING_ATTACK_ROLL) {
+      if (state.currentTurn === 'player') {
+        actions.push({ action: { type: CombatActionType.ATTACK }, enabled: true });
 
-      const hasUsableItems = state.player.weapon.ability !== undefined;
-      if (hasUsableItems) {
-        actions.push({ action: { type: CombatActionType.USE_ITEM, payload: {} }, enabled: true });
-      }
-    }
+        // TODO: Items consommables (potions, etc.) - pas les weapon abilities
+        // const hasUsableItems = ...;
+        // if (hasUsableItems) {
+        //   actions.push({ action: { type: CombatActionType.USE_ITEM, payload: {} }, enabled: true });
+        // }
 
-    if (state.phase === CombatPhase.PLAYER_ATTACK) {
-      if (state.lastRoll && !state.lastRoll.success) {
-        // Attaque ratée: options de relance
-        if (!state.usedReroll) {
-          actions.push({ action: { type: CombatActionType.REROLL }, enabled: true });
+        // Weapon abilities (MANUAL trigger) - ajoutées ici, pas à la fin
+        const weaponAbility = state.player.weapon.ability;
+        if (weaponAbility && weaponAbility.trigger === WeaponAbilityTrigger.MANUAL) {
+          const { canUse, reason } = WeaponAbilityResolver.canUseAbility(state, weaponAbility.id);
+          actions.push({
+            action: {
+              type: CombatActionType.WEAPON_ABILITY,
+              payload: { abilityId: weaponAbility.id },
+            },
+            enabled: canUse,
+            disabledReason: canUse ? undefined : reason,
+          });
         }
       }
-      // Toujours permettre de passer (attaque réussie OU ratée)
+      // Enemy turn: actions automatiques (pas d'actions manuelles)
+      return actions;
+    }
+
+    // WAITING_DAMAGE_ROLL - automatique, passe à turn_complete via SKIP
+    if (state.phase === CombatPhaseV3.WAITING_DAMAGE_ROLL) {
+      // Les dégâts sont appliqués automatiquement
+      // Le joueur peut simplement passer (via SKIP implicite)
+      // Enemy damage roll est aussi automatique
+    }
+
+    // TURN_COMPLETE - skip to next turn
+    if (state.phase === CombatPhaseV3.TURN_COMPLETE) {
       actions.push({ action: { type: CombatActionType.SKIP }, enabled: true });
     }
 
-    if (state.phase === CombatPhase.ENEMY_ATTACK) {
-      if (state.pendingDamage?.canBlock) {
-        actions.push({ action: { type: CombatActionType.BLOCK }, enabled: true });
-      }
-      actions.push({ action: { type: CombatActionType.SKIP }, enabled: true });
-    }
-
-    // Add WEAPON_ABILITY action only in appropriate context
+    // Weapon abilities contextuelles (ON_MISS, ON_ENEMY_HIT)
     const weaponAbility = state.player.weapon.ability;
-    if (weaponAbility && this.isAbilityAvailableInCurrentPhase(state, weaponAbility.trigger)) {
+    if (
+      weaponAbility &&
+      state.currentTurn === 'player' &&
+      this.isAbilityAvailableInCurrentPhase(state, weaponAbility.trigger)
+    ) {
       const { canUse, reason } = WeaponAbilityResolver.canUseAbility(state, weaponAbility.id);
       actions.push({
         action: { type: CombatActionType.WEAPON_ABILITY, payload: { abilityId: weaponAbility.id } },
@@ -64,7 +82,7 @@ export class CombatValidator {
   }
 
   /**
-   * Check if a weapon ability is contextually available in the current phase
+   * Vérifie si une capacité d'arme est disponible dans la phase actuelle
    */
   private static isAbilityAvailableInCurrentPhase(
     state: CombatState,
@@ -72,25 +90,25 @@ export class CombatValidator {
   ): boolean {
     switch (trigger) {
       case WeaponAbilityTrigger.ON_MISS:
-        // ON_MISS abilities (Arc des Vents) available only after a missed attack
+        // Disponible après un raté (turn_complete après miss)
         return (
-          state.phase === CombatPhase.PLAYER_ATTACK &&
+          state.phase === CombatPhaseV3.TURN_COMPLETE &&
           state.lastRoll !== undefined &&
           !state.lastRoll.success
         );
 
       case WeaponAbilityTrigger.ON_ENEMY_HIT:
-        // ON_ENEMY_HIT abilities (Bâton du Sage) available only when enemy deals damage
-        return state.phase === CombatPhase.ENEMY_ATTACK && state.pendingDamage !== undefined;
+        // Disponible quand l'ennemi attaque (waiting_damage_roll en enemy turn)
+        return state.phase === CombatPhaseV3.WAITING_DAMAGE_ROLL && state.currentTurn === 'enemy';
 
       case WeaponAbilityTrigger.MANUAL:
-        // MANUAL abilities always available during player turn
-        return state.phase === CombatPhase.PLAYER_TURN;
+        // Disponible pendant waiting_attack_roll (player turn)
+        return state.phase === CombatPhaseV3.WAITING_ATTACK_ROLL && state.currentTurn === 'player';
 
       case WeaponAbilityTrigger.ON_DOUBLE:
       case WeaponAbilityTrigger.ON_KILL:
       case WeaponAbilityTrigger.ON_SURPRISE:
-        // These are auto-triggered, never manual
+        // Auto-triggered, jamais manuel
         return false;
 
       default:
@@ -103,7 +121,7 @@ export class CombatValidator {
       type: CombatEventType.COMBAT_END,
       timestamp: new Date().toISOString(),
       round: state.roundNumber,
-      attacker: Attacker.PLAYER,
+      attacker: state.currentTurn === 'player' ? 'player' : 'enemy',
       result,
     };
   }

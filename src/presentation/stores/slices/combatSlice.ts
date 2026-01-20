@@ -2,11 +2,13 @@ import type {
   CombatState,
   CombatAction,
   AvailableAction,
+} from '@/src/domain/types/combat-state';
+import type {
   EnemyConfig,
   CombatConfig,
   CombatWeapon,
   WeaponAbility,
-} from '@/src/domain/types/combat-v2';
+} from '@/src/domain/types/combatants';
 import type { CatalogItem, WeaponAbilityDefinition } from '@/src/domain/types/items';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
 import type { DiceOverrides } from '@/src/domain/services/combat/DiceRoller';
@@ -23,7 +25,7 @@ import { handleSliceError } from './sliceHelpers';
 export type AnimationPhase = 'idle' | 'rolling' | 'result' | 'damage';
 
 /**
- * Combat Slice - Gère l'état du combat V2
+ * Combat Slice - Gère l'état du combat V3
  * 
  * Centralise l'état du combat et délègue la logique métier au CombatEngine.
  * Suit le pattern des autres slices avec gestion d'erreur cohérente.

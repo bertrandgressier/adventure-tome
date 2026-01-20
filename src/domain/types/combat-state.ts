@@ -1,5 +1,4 @@
-import type { CombatPhase } from './CombatPhase';
-import type { CombatPhaseV3, CurrentTurn } from './CombatPhaseV3';
+import type { CombatPhaseV3, CurrentTurn } from '../../types/CombatPhaseV3';
 import type { CombatActionType } from './CombatActionType';
 import type { Attacker } from './Attacker';
 import type { PlayerState, EnemyState, DiceRoll, PendingDamage, CombatConfig } from './combatants';
@@ -14,32 +13,10 @@ export interface UsedItem {
   itemIndex: number;
 }
 
-export interface CombatState {
-  id: string;
-  characterId: string;
-  player: PlayerState;
-  enemy: EnemyState;
-  phase: CombatPhase;
-  roundNumber: number;
-  currentAttacker: Attacker;
-  lastRoll?: DiceRoll;
-  pendingDamage?: PendingDamage;
-  usedAbilities: Record<string, number>;
-  usedReroll: boolean;
-  isFirstAttack: boolean;
-  pendingExtraAttack?: boolean;
-  config: CombatConfig;
-  events: CombatEvent[];
-  /** Items utilisés pendant le combat, à consommer via consumeItem() à la fin */
-  usedItems: UsedItem[];
-  /** Historique détaillé du combat avec jets et HP tracking */
-  history: CombatHistoryEntry[];
-}
-
 /**
- * CombatStateV3 - État du combat avec phases simplifiées et currentTurn
+ * CombatState - État du combat avec phases simplifiées et currentTurn
  */
-export interface CombatStateV3 {
+export interface CombatState {
   id: string;
   characterId: string;
   player: PlayerState;
@@ -79,4 +56,10 @@ export interface CombatEvent {
 export interface CombatAction {
   type: CombatActionType;
   payload?: unknown;
+}
+
+export interface AvailableAction {
+  action: CombatAction;
+  enabled: boolean;
+  disabledReason?: string;
 }
