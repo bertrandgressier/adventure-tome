@@ -5,6 +5,10 @@ export type { CombatState as CombatStateV1 } from './combat';
 // V2 Combat types (current)
 export * from './combat-v2';
 
+// V3 Combat types (new simplified system)
+export { CombatPhaseV3, type CurrentTurn } from './CombatPhaseV3';
+export type { CombatStateV3 } from './combat-state';
+
 // Combat constants
 export { CombatActionType } from './CombatActionType';
 export { CombatEventType } from './CombatEventType';
