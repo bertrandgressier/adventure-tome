@@ -1,5 +1,7 @@
 import type { CombatState, CombatEvent } from '../../types/combat-v2';
+import type { CombatStateV3 } from '../../types/combat-state';
 import { CombatPhase } from '../../types/CombatPhase';
+import { CombatPhaseV3 } from '../../types/CombatPhaseV3';
 import { Attacker } from '../../types/Attacker';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
@@ -15,8 +17,41 @@ export interface ActionResolutionResult {
   events: CombatEvent[];
 }
 
+export interface ActionResolutionResultV3 {
+  state: CombatStateV3;
+  events: CombatEvent[];
+}
+
+// Type guard to check if state is V3
+function isStateV3(state: any): state is CombatStateV3 {
+  return 'currentTurn' in state && typeof state.currentTurn === 'string';
+}
+
 export class AttackResolver {
+  // Overload for V2 state
   static resolve(
+    state: CombatState,
+    diceOverrides?: DiceOverrides
+  ): ActionResolutionResult;
+  
+  // Overload for V3 state
+  static resolve(
+    state: CombatStateV3,
+    diceOverrides?: DiceOverrides
+  ): ActionResolutionResultV3;
+  
+  // Implementation
+  static resolve(
+    state: CombatState | CombatStateV3,
+    diceOverrides?: DiceOverrides
+  ): ActionResolutionResult | ActionResolutionResultV3 {
+    if (isStateV3(state)) {
+      return this.resolveV3(state, diceOverrides);
+    }
+    return this.resolveV2(state as CombatState, diceOverrides);
+  }
+
+  private static resolveV2(
     state: CombatState,
     diceOverrides?: DiceOverrides
   ): ActionResolutionResult {
@@ -165,6 +200,147 @@ export class AttackResolver {
     };
 
     newState.history = HistoryManager.addEntry(newState, historyEntry);
+
+    return { state: newState, events };
+  }
+
+  private static resolveV3(
+    state: CombatStateV3,
+    diceOverrides?: DiceOverrides
+  ): ActionResolutionResultV3 {
+    const isPlayerAttacking = state.currentTurn === 'player';
+    const attacker = isPlayerAttacking ? state.player : state.enemy;
+    const dexterite = attacker.dexterite;
+
+    // Capture HP avant l'action
+    const hpBefore = HistoryManager.createHPSnapshot(state as any);
+
+    const diceRoll = DiceRoller.rollHitDice(diceOverrides?.hitDice);
+    const hit = diceRoll.total <= dexterite;
+
+    const newState = { ...state };
+    const events: CombatEvent[] = [];
+
+    // Check for ON_SURPRISE ability BEFORE attack (first attack only)
+    if (isPlayerAttacking && newState.isFirstAttack) {
+      const surpriseAbility = WeaponAbilityResolver.checkAutoTrigger(
+        newState as any,
+        WeaponAbilityTrigger.ON_SURPRISE,
+        {}
+      );
+      if (surpriseAbility) {
+        const surpriseResult = WeaponAbilityResolver.resolveAbility(newState as any, surpriseAbility.id);
+        // Copy back changed fields from V2 result
+        newState.player = surpriseResult.state.player;
+        newState.enemy = surpriseResult.state.enemy;
+        newState.usedAbilities = surpriseResult.state.usedAbilities;
+        events.push(...surpriseResult.events);
+      }
+      // Mark first attack as done
+      newState.isFirstAttack = false;
+    }
+
+    events.push({
+      type: CombatEventType.ATTACK_ROLL,
+      timestamp: new Date().toISOString(),
+      round: state.roundNumber,
+      attacker: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+      roll: diceRoll,
+      hit,
+    });
+
+    newState.lastRoll = {
+      ...diceRoll,
+      success: hit,
+      isDouble: diceRoll.dice1 === diceRoll.dice2,
+    };
+
+    if (hit) {
+      // Calculate and apply damage
+      const damageDiceRolled = DiceRoller.rollDamageDice(diceOverrides?.damageDice);
+      const baseDamage = damageDiceRolled.total;
+      const totalDamageBonus = isPlayerAttacking ? state.player.totalDamageBonus : 0; // Enemy has no weapons
+      const damage = baseDamage + totalDamageBonus;
+      const damageDealt = Math.max(0, damage);
+
+      events.push({
+        type: CombatEventType.DAMAGE_ROLL,
+        timestamp: new Date().toISOString(),
+        round: state.roundNumber,
+        attacker: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+        roll: damageDiceRolled,
+        damage: damageDealt,
+      });
+
+      if (isPlayerAttacking) {
+        newState.enemy.endurance = Math.max(0, newState.enemy.endurance - damageDealt);
+      } else {
+        newState.player.endurance = Math.max(0, newState.player.endurance - damageDealt);
+      }
+
+      // Check for weapon abilities on successful attack
+      if (isPlayerAttacking && newState.lastRoll?.isDouble) {
+        const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState as any,
+          WeaponAbilityTrigger.ON_DOUBLE,
+          { roll: newState.lastRoll }
+        );
+        if (doubleAbility) {
+          const doubleResult = WeaponAbilityResolver.resolveAbility(newState as any, doubleAbility.id);
+          newState.player = doubleResult.state.player;
+          newState.enemy = doubleResult.state.enemy;
+          newState.usedAbilities = doubleResult.state.usedAbilities;
+          events.push(...doubleResult.events);
+        }
+      }
+
+      // Check for ON_KILL ability if enemy was defeated
+      if (isPlayerAttacking && newState.enemy.endurance <= 0) {
+        const killAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState as any,
+          WeaponAbilityTrigger.ON_KILL,
+          {}
+        );
+        if (killAbility) {
+          const killResult = WeaponAbilityResolver.resolveAbility(newState as any, killAbility.id);
+          newState.player = killResult.state.player;
+          newState.enemy = killResult.state.enemy;
+          newState.usedAbilities = killResult.state.usedAbilities;
+          events.push(...killResult.events);
+        }
+      }
+    }
+
+    // Capture HP après l'action
+    const hpAfter = HistoryManager.createHPSnapshot(newState as any);
+
+    // Enregistrer dans l'historique
+    const historyEntry = {
+      round: state.roundNumber,
+      turn: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+      action: CombatActionType.ATTACK,
+      hitRoll: HistoryManager.createHitRollDetails(
+        { ...diceRoll, success: hit },
+        dexterite
+      ),
+      damageRoll: hit
+        ? HistoryManager.createDamageRollDetails(
+            { total: diceRoll.total, dice1: diceRoll.dice1 } as any,
+            isPlayerAttacking ? state.player.totalDamageBonus : 0,
+            hit ? Math.max(0, diceRoll.total + (isPlayerAttacking ? state.player.totalDamageBonus : 0)) : 0
+          )
+        : undefined,
+      hpBefore,
+      hpAfter,
+      timestamp: new Date().toISOString(),
+      description: HistoryManager.generateAttackDescription(
+        isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+        hit,
+        hit ? Math.max(0, diceRoll.total + (isPlayerAttacking ? state.player.totalDamageBonus : 0)) : undefined
+      ),
+    };
+
+    newState.history = HistoryManager.addEntry(newState as any, historyEntry);
 
     return { state: newState, events };
   }

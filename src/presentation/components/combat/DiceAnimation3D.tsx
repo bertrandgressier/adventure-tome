@@ -5,7 +5,8 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export interface DiceAnimation3DProps {
-  result: [number, number];
+  /** Résultat des dés - supporte 1 ou 2 dés */
+  result: [number] | [number, number];
   isRolling: boolean;
   onComplete?: () => void;
 }
@@ -366,12 +367,17 @@ export function DiceAnimation3D({ result, isRolling, onComplete }: DiceAnimation
     previousIsRolling.current = isRolling;
   }, [isRolling, onComplete, prefersReducedMotion]);
 
+  const diceCount = result.length;
+  const ariaLabel = diceCount === 1 
+    ? 'Animation de lancer de dé 3D' 
+    : 'Animation de lancer de dés 3D';
+
   return (
     <div
       className="flex items-center justify-center gap-6 p-6"
       data-testid="dice-animation-3d"
       role="region"
-      aria-label="Animation de lancer de dés 3D"
+      aria-label={ariaLabel}
     >
       <Die3D
         value={isRolling ? null : result[0]}
@@ -379,12 +385,14 @@ export function DiceAnimation3D({ result, isRolling, onComplete }: DiceAnimation
         prefersReducedMotion={prefersReducedMotion}
         delay={0}
       />
-      <Die3D
-        value={isRolling ? null : result[1]}
-        isRolling={isRolling}
-        prefersReducedMotion={prefersReducedMotion}
-        delay={0.1}
-      />
+      {diceCount === 2 && (
+        <Die3D
+          value={isRolling ? null : result[1]}
+          isRolling={isRolling}
+          prefersReducedMotion={prefersReducedMotion}
+          delay={0.1}
+        />
+      )}
     </div>
   );
 }

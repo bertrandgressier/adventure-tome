@@ -6,7 +6,7 @@
  * pas de logique métier du jeu.
  */
 
-import type { CombatState } from '@/src/domain/types/combat-v2';
+import type { CombatState } from '@/src/domain/types/combat-state';
 
 export type HealthStatus = 'normal' | 'critical' | 'dead';
 
@@ -97,10 +97,12 @@ export function getActionMetadata(actionType: string): ActionMetadata {
 }
 
 /**
- * Type guard pour vérifier si un combattant est un ennemi (avec isBoss)
+ * Type guard pour vérifier si un combattant est un ennemi
+ * Note: En V3, les ennemis n'ont plus de propriété isBoss
  */
 export function isEnemy(
   combatant: CombatState['player'] | CombatState['enemy']
 ): combatant is CombatState['enemy'] {
-  return 'isBoss' in combatant;
+  // En V3, on distingue par l'absence de 'weapon' et 'chance'
+  return !('weapon' in combatant) && !('chance' in combatant);
 }
