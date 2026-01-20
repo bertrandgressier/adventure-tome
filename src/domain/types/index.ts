@@ -9,6 +9,14 @@ export * from './combat-v2';
 export { CombatPhaseV3, type CurrentTurn } from './CombatPhaseV3';
 export type { CombatStateV3 } from './combat-state';
 
+// Combat History types
+export type {
+  CombatHistoryEntry,
+  HitRollDetails,
+  DamageRollDetails,
+  HPSnapshot,
+} from './combat-history';
+
 // Combat constants
 export { CombatActionType } from './CombatActionType';
 export { CombatEventType } from './CombatEventType';
