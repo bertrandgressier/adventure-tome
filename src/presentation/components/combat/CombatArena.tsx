@@ -81,7 +81,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
     ? convertToDiceRollResult(
         combat.lastRoll,
         combat.currentAttacker === 'player' ? combat.player.dexterite : (activeEnemy?.dexterite ?? 0),
-        combat.currentAttacker === 'player' ? combat.player.weapon.bonus : (activeEnemy?.weapon?.bonus ?? 0)
+        combat.currentAttacker === 'player' ? combat.player.weapon.bonus : 0 // Enemies have no weapon bonus
       )
     : null;
 

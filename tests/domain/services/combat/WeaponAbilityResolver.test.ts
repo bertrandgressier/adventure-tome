@@ -8,7 +8,7 @@ import { CombatPhase } from '@/src/domain/types/CombatPhase';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
 import { WeaponAbilityTrigger } from '@/src/domain/types/WeaponAbilityTrigger';
 import { CombatEventType } from '@/src/domain/types/CombatEventType';
-import type { CombatantConfig, EnemyConfig } from '@/src/domain/types/combatants';
+import type { PlayerConfig, EnemyConfig } from '@/src/domain/types/combatants';
 import type { CombatState } from '@/src/domain/types/combat-v2';
 
 function getLegendaryWeapon(itemId: string) {
@@ -19,7 +19,7 @@ function getLegendaryWeapon(itemId: string) {
   return catalogWeaponToCombatWeapon(catalogItem);
 }
 
-function createTestPlayer(overrides: Partial<CombatantConfig> = {}): CombatantConfig {
+function createTestPlayer(overrides: Partial<PlayerConfig> = {}): PlayerConfig {
   return {
     name: 'Héros',
     dexterite: 8,
@@ -37,9 +37,6 @@ function createTestEnemy(overrides: Partial<EnemyConfig> = {}): EnemyConfig {
     dexterite: 6,
     endurance: 10,
     enduranceMax: 10,
-    chance: 0,
-    weapon: { id: 'griffe', name: 'Griffe', bonus: 0 },
-    isBoss: false,
     ...overrides,
   };
 }

@@ -69,9 +69,6 @@ const mockEnemy: EnemyConfig = {
   dexterite: 6,
   endurance: 15,
   enduranceMax: 15,
-  chance: 3,
-  isBoss: false,
-  weapon: { id: 'goblin-dagger', name: 'Dague', bonus: 2 },
 };
 
 const defaultConfig = {
@@ -175,7 +172,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
 
     it('should allow using confusion potion on enemy', () => {
       slice.startCombat('test-char-id', 
-        { name: 'Gobelin', dexterite: 6, endurance: 10, enduranceMax: 10, chance: 3, isBoss: false, weapon: { id: 'dagger', name: 'Dague', bonus: 2 } },
+        { name: 'Gobelin', dexterite: 6, endurance: 10, enduranceMax: 10 },
         defaultConfig);
 
       expect(currentState.combat?.enemy.endurance).toBe(10);
@@ -325,7 +322,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
 
     it('should handle player death correctly', () => {
       slice.startCombat('test-char-id',
-        { name: 'Dragon', dexterite: 10, endurance: 100, enduranceMax: 100, chance: 5, isBoss: true, weapon: { id: 'claws', name: 'Griffes', bonus: 10 } },
+        { name: 'Dragon', dexterite: 10, endurance: 100, enduranceMax: 100 },
         defaultConfig);
 
       expect(currentState.combat?.player.endurance).toBe(5);
@@ -502,9 +499,6 @@ describe('Combat V2 - End to End Integration Tests', () => {
         dexterite: 3,
         endurance: 5,
         enduranceMax: 5,
-        chance: 1,
-        isBoss: false,
-        weapon: { id: 'teeth', name: 'Dents', bonus: 0 },
       };
 
       slice.startCombat('test-char-id', weakEnemy, defaultConfig);
@@ -553,9 +547,6 @@ describe('Combat V2 - End to End Integration Tests', () => {
         dexterite: 3,
         endurance: 3,
         enduranceMax: 3,
-        chance: 1,
-        isBoss: false,
-        weapon: { id: 'teeth', name: 'Dents', bonus: 0 },
       };
 
       slice.startCombat('test-char-id', weakEnemy, defaultConfig);

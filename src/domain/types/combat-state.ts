@@ -1,7 +1,7 @@
 import type { CombatPhase } from './CombatPhase';
 import type { CombatActionType } from './CombatActionType';
 import type { Attacker } from './Attacker';
-import type { CombatantState, EnemyState, DiceRoll, PendingDamage, CombatConfig } from './combatants';
+import type { PlayerState, EnemyState, DiceRoll, PendingDamage, CombatConfig } from './combatants';
 import { CombatEventType } from './CombatEventType';
 
 /**
@@ -15,7 +15,7 @@ export interface UsedItem {
 export interface CombatState {
   id: string;
   characterId: string;
-  player: CombatantState;
+  player: PlayerState;
   enemy: EnemyState;
   phase: CombatPhase;
   roundNumber: number;

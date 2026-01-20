@@ -8,24 +8,35 @@ export interface CombatantState {
   dexterite: number;
   endurance: number;
   enduranceMax: number;
-  chance: number;
-  weapon: CombatWeapon;
   weaponDamage: number;
   passiveDamageBonus: number;
   totalDamageBonus: number;
 }
 
-export interface CombatantConfig {
-  name: string;
-  dexterite: number;
-  endurance: number;
-  enduranceMax: number;
+export interface PlayerState extends CombatantState {
   chance: number;
   weapon: CombatWeapon;
 }
 
-export interface EnemyConfig extends CombatantConfig {
-  isBoss: boolean;
+export type EnemyState = CombatantState;
+
+export interface BaseCombatantConfig {
+  name: string;
+  dexterite: number;
+  endurance: number;
+  enduranceMax: number;
+}
+
+export interface PlayerConfig extends BaseCombatantConfig {
+  chance: number;
+  weapon: CombatWeapon;
+}
+
+export type EnemyConfig = BaseCombatantConfig;
+
+export interface CombatantConfig extends BaseCombatantConfig {
+  chance: number;
+  weapon: CombatWeapon;
 }
 
 export interface CombatWeapon {
@@ -54,10 +65,6 @@ export type WeaponEffect =
   | { type: WeaponEffectType & 'convert_miss_to_hit' }
   | { type: WeaponEffectType & 'bonus_damage'; amount: number; firstAttackOnly?: boolean }
   | { type: WeaponEffectType & 'negate_damage' };
-
-export interface EnemyState extends CombatantState {
-  isBoss: boolean;
-}
 
 export interface DiceRoll {
   dice1: number;

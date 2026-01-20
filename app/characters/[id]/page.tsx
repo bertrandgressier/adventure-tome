@@ -152,9 +152,6 @@ export default function CharacterDetail() {
       dexterite: 6,
       endurance: 25, // PV augmentés pour un combat plus long
       enduranceMax: 25,
-      chance: 0,
-      weapon: { id: 'dagger', name: 'Dague', bonus: 1 },
-      isBoss: false,
     };
 
     const config: CombatConfig = {
