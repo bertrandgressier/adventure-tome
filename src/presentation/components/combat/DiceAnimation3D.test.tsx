@@ -38,6 +38,15 @@ describe('DiceAnimation3D', () => {
       expect(container).toHaveAttribute('aria-label', 'Animation de lancer de dés 3D');
     });
 
+    it('should render the component with one die', () => {
+      render(<DiceAnimation3D result={[5]} isRolling={false} />);
+
+      const container = screen.getByTestId('dice-animation-3d');
+      expect(container).toBeInTheDocument();
+      expect(container).toHaveAttribute('role', 'region');
+      expect(container).toHaveAttribute('aria-label', 'Animation de lancer de dé 3D');
+    });
+
     it('should render dice with correct values when not rolling', () => {
       render(<DiceAnimation3D result={[5, 6]} isRolling={false} />);
 
@@ -53,6 +62,18 @@ describe('DiceAnimation3D', () => {
       const allFaces = document.querySelectorAll('.dice-face');
       expect(allFaces.length).toBe(12);
     });
+
+    it('should render only 6 faces for single die mode', () => {
+      render(<DiceAnimation3D result={[4]} isRolling={false} />);
+
+      // Single die has 6 faces
+      const allFaces = document.querySelectorAll('.dice-face');
+      expect(allFaces.length).toBe(6);
+
+      // Only one dice-3d container
+      const diceContainers = document.querySelectorAll('.dice-3d');
+      expect(diceContainers.length).toBe(1);
+    });
   });
 
   describe('rolling state', () => {
@@ -61,6 +82,16 @@ describe('DiceAnimation3D', () => {
 
       const container = screen.getByTestId('dice-animation-3d');
       expect(container).toBeInTheDocument();
+    });
+
+    it('should show animation with single die when isRolling is true', () => {
+      render(<DiceAnimation3D result={[3]} isRolling={true} />);
+
+      const container = screen.getByTestId('dice-animation-3d');
+      expect(container).toBeInTheDocument();
+      
+      const diceContainers = document.querySelectorAll('.dice-3d');
+      expect(diceContainers.length).toBe(1);
     });
 
     it('should not highlight any face when rolling', () => {
@@ -284,6 +315,31 @@ describe('DiceAnimation3D', () => {
 
       const container = screen.getByTestId('dice-animation-3d');
       expect(container).toBeInTheDocument();
+    });
+
+    it('should handle single die mode', () => {
+      render(<DiceAnimation3D result={[3]} isRolling={false} />);
+
+      const container = screen.getByTestId('dice-animation-3d');
+      expect(container).toBeInTheDocument();
+      
+      const diceContainers = document.querySelectorAll('.dice-3d');
+      expect(diceContainers.length).toBe(1);
+    });
+
+    it('should handle single die with onComplete callback', async () => {
+      const onComplete = vi.fn();
+      const { rerender } = render(
+        <DiceAnimation3D result={[5]} isRolling={true} onComplete={onComplete} />
+      );
+
+      rerender(<DiceAnimation3D result={[5]} isRolling={false} onComplete={onComplete} />);
+
+      await act(async () => {
+        vi.runAllTimers();
+      });
+
+      expect(onComplete).toHaveBeenCalledTimes(1);
     });
 
     it('should handle rapid rolling state changes', () => {
