@@ -7,6 +7,8 @@ import { PhaseManager } from './PhaseManager';
 import { CombatEventType } from '../../types/CombatEventType';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
+import { HistoryManager } from './HistoryManager';
+import { CombatActionType } from '../../types/CombatActionType';
 
 export interface ActionResolutionResult {
   state: CombatState;
@@ -21,6 +23,9 @@ export class AttackResolver {
     const isPlayerAttacking = state.phase === CombatPhase.PLAYER_TURN;
     const attacker = isPlayerAttacking ? state.player : state.enemy;
     const dexterite = attacker.dexterite;
+
+    // Capture HP avant l'action
+    const hpBefore = HistoryManager.createHPSnapshot(state);
 
     const diceRoll = DiceRoller.rollHitDice(diceOverrides?.hitDice);
     const hit = diceRoll.total <= dexterite;
@@ -65,9 +70,14 @@ export class AttackResolver {
       newState.phase = CombatPhase.ENEMY_ATTACK;
     }
 
+    let damageDealt = 0;
+    let damageDiceRolled = 0;
+
     if (hit) {
       const attackerBonus = isPlayerAttacking ? newState.player.totalDamageBonus : attacker.totalDamageBonus;
-      const damage = DiceRoller.calculateDamage(attackerBonus, diceOverrides?.damageDice);
+      damageDiceRolled = DiceRoller.rollDamageDice(diceOverrides?.damageDice);
+      const damage = 1 + damageDiceRolled + attackerBonus;
+      damageDealt = damage;
 
       if (isPlayerAttacking) {
         const targetEnemy = newState.enemy;
@@ -124,6 +134,37 @@ export class AttackResolver {
       // Note: ON_MISS abilities (like Arc des Vents) are NOT auto-resolved.
       // They are detected by CombatValidator and made available as manual actions.
     }
+
+    // Capture HP après l'action
+    const hpAfter = HistoryManager.createHPSnapshot(newState);
+
+    // Enregistrer dans l'historique
+    const historyEntry = {
+      round: state.roundNumber,
+      turn: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+      action: CombatActionType.ATTACK,
+      hitRoll: HistoryManager.createHitRollDetails(
+        { ...diceRoll, success: hit },
+        dexterite
+      ),
+      damageRoll: hit
+        ? HistoryManager.createDamageRollDetails(
+            damageDiceRolled,
+            isPlayerAttacking ? state.player.totalDamageBonus : attacker.totalDamageBonus,
+            damageDealt
+          )
+        : undefined,
+      hpBefore,
+      hpAfter,
+      timestamp: new Date().toISOString(),
+      description: HistoryManager.generateAttackDescription(
+        isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+        hit,
+        hit ? damageDealt : undefined
+      ),
+    };
+
+    newState.history = HistoryManager.addEntry(newState, historyEntry);
 
     return { state: newState, events };
   }

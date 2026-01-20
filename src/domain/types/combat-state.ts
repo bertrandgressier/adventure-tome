@@ -4,6 +4,7 @@ import type { CombatActionType } from './CombatActionType';
 import type { Attacker } from './Attacker';
 import type { PlayerState, EnemyState, DiceRoll, PendingDamage, CombatConfig } from './combatants';
 import { CombatEventType } from './CombatEventType';
+import type { CombatHistoryEntry } from './combat-history';
 
 /**
  * Item utilisé pendant le combat, à consommer à la fin
@@ -31,6 +32,8 @@ export interface CombatState {
   events: CombatEvent[];
   /** Items utilisés pendant le combat, à consommer via consumeItem() à la fin */
   usedItems: UsedItem[];
+  /** Historique détaillé du combat avec jets et HP tracking */
+  history: CombatHistoryEntry[];
 }
 
 /**
@@ -53,6 +56,8 @@ export interface CombatStateV3 {
   config: CombatConfig;
   events: CombatEvent[];
   usedItems: UsedItem[];
+  /** Historique détaillé du combat avec jets et HP tracking */
+  history: CombatHistoryEntry[];
 }
 
 export interface CombatEvent {
