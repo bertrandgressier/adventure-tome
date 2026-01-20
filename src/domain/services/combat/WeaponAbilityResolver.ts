@@ -1,9 +1,29 @@
 import type { CombatState, CombatEvent } from '../../types/combat-v2';
-import type { WeaponAbility, DiceRoll } from '../../types/combatants';
+import type { CombatStateV3 } from '../../types/combat-state';
+import type { WeaponAbility, DiceRoll, PendingDamage } from '../../types/combatants';
 import { CombatEventType } from '../../types/CombatEventType';
 import { CombatPhase } from '../../types/CombatPhase';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 import { COMBAT_MESSAGES } from './constants';
+
+/**
+ * Type union des états de combat compatibles avec WeaponAbilityResolver
+ */
+export type CompatibleCombatState = CombatState | CombatStateV3;
+
+/**
+ * Interface commune minimale pour les vérifications d'armes légendaires
+ */
+export interface WeaponAbilityCheckState {
+  player: {
+    weapon: {
+      ability?: WeaponAbility;
+    };
+    chance: number;
+  };
+  usedAbilities: Record<string, number>;
+  pendingDamage?: PendingDamage;
+}
 
 export interface TriggerContext {
   roll?: DiceRoll;
@@ -49,7 +69,7 @@ export class WeaponAbilityResolver {
   }
 
   static canUseAbility(
-    state: CombatState,
+    state: WeaponAbilityCheckState,
     abilityId: string
   ): { canUse: boolean; reason?: string } {
     const weapon = state.player.weapon;
