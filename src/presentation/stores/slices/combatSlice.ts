@@ -33,6 +33,9 @@ export interface CombatSlice {
   /** Actions disponibles pour le joueur dans l'état actuel */
   availableActions: AvailableAction[];
   
+  /** Timestamp de la dernière action (pour déclencher animations React) */
+  lastActionTimestamp: number;
+  
   /** Erreur éventuelle lors des opérations de combat */
   error: string | null;
 
@@ -86,6 +89,7 @@ export const createCombatSlice = (): StateCreator<
   return (set, get) => ({
     combat: null,
     availableActions: [],
+    lastActionTimestamp: 0,
     privateInitialChance: 0,
     error: null,
 
@@ -128,6 +132,7 @@ export const createCombatSlice = (): StateCreator<
 
         set({
           combat: stateWithReroll,
+          lastActionTimestamp: Date.now(),
           availableActions,
           privateInitialChance: stats.chanceInitiale,
           error: null,
@@ -161,6 +166,7 @@ export const createCombatSlice = (): StateCreator<
 
         set({
           combat: updatedCombat,
+          lastActionTimestamp: Date.now(),
           availableActions,
           error: null,
         }, false, `combat/executeAction/${action.type}`);
@@ -199,6 +205,7 @@ export const createCombatSlice = (): StateCreator<
 
         set({
           combat: null,
+          lastActionTimestamp: 0,
           availableActions: [],
           privateInitialChance: 0,
           error: null,
@@ -212,6 +219,7 @@ export const createCombatSlice = (): StateCreator<
     cancelCombat: () => {
       set({
         combat: null,
+        lastActionTimestamp: 0,
         availableActions: [],
         privateInitialChance: 0,
         error: null,

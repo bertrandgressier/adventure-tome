@@ -52,7 +52,7 @@ describe('CombatArena', () => {
         return selector({
           combat: null,
           availableActions: [],
-          isAnimating: false,
+          lastActionTimestamp: 0,
           executeAction: vi.fn(),
           endCombat: vi.fn(),
         } as any);
@@ -129,7 +129,7 @@ describe('CombatArena', () => {
         const state = {
           combat: mockCombat,
           availableActions: mockAvailableActions,
-          isAnimating: false,
+          lastActionTimestamp: 0,
           executeAction: vi.fn(),
           endCombat: vi.fn(),
           getItem: () => undefined,
@@ -219,7 +219,7 @@ describe('CombatArena', () => {
             enemies: [{ name: 'Gobelin', dexterite: 6, endurance: 0, enduranceMax: 8 }], // Victory
           },
           availableActions: [],
-          isAnimating: false,
+          lastActionTimestamp: 0,
           executeAction: vi.fn(),
           endCombat: vi.fn(),
           characters: { 'test-id': createMockCharacter() },
@@ -298,7 +298,7 @@ describe('CombatArena', () => {
           const state = createMockState({
             combat: noRollCombat,
             availableActions: mockAvailableActions,
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
           });
@@ -333,7 +333,7 @@ describe('CombatArena', () => {
             const state = createMockState({
               combat: withRollCombat,
               availableActions: mockAvailableActions,
-              isAnimating: false,
+              lastActionTimestamp: 0,
               executeAction: vi.fn(),
               endCombat: vi.fn(),
             });
@@ -373,7 +373,7 @@ describe('CombatArena', () => {
           const state = createMockState({
             combat: doubleRollCombat,
             availableActions: mockAvailableActions,
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
           });
@@ -403,7 +403,7 @@ describe('CombatArena', () => {
           const state = {
             combat: victoryCombat,
             availableActions: [],
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
             characters: { 'test-id': createMockCharacter() },
@@ -435,7 +435,7 @@ describe('CombatArena', () => {
           const state = {
             combat: defeatCombat,
             availableActions: [],
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
             characters: { 'test-id': createMockCharacter() },
@@ -466,7 +466,7 @@ describe('CombatArena', () => {
           const state = createMockState({
             combat: noDamageCombat,
             availableActions: mockAvailableActions,
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
           });
@@ -495,7 +495,7 @@ describe('CombatArena', () => {
           const state = createMockState({
             combat: damageCombat,
             availableActions: mockAvailableActions,
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
           });
@@ -581,7 +581,7 @@ describe('CombatArena', () => {
             usedItems: [],
           },
           availableActions: [],
-          isAnimating: false,
+          lastActionTimestamp: 0,
           executeAction: vi.fn(),
           endCombat: vi.fn(),
           characters: {
