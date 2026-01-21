@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useMemo } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion, type TargetAndTransition } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export interface DiceAnimation3DProps {
@@ -53,7 +53,7 @@ function Die3D({ value, isRolling, prefersReducedMotion, delay = 0 }: Die3DProps
     return getFaceRotation(value);
   }, [isRolling, value]);
 
-  const rollingAnimation = useMemo(() => {
+  const rollingAnimation = useMemo<TargetAndTransition>(() => {
     if (prefersReducedMotion) {
       return {
         rotateX: 0,
@@ -76,7 +76,7 @@ function Die3D({ value, isRolling, prefersReducedMotion, delay = 0 }: Die3DProps
     };
   }, [prefersReducedMotion, delay]);
 
-  const resultAnimation = useMemo(() => {
+  const resultAnimation = useMemo<TargetAndTransition>(() => {
     if (prefersReducedMotion) {
       return {
         ...currentRotation,

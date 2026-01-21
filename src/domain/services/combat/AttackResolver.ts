@@ -236,20 +236,23 @@ export class AttackResolver {
       isDouble: diceRoll.dice1 === diceRoll.dice2,
     };
 
+    let damageDiceRolled = 0;
+    let damageDealt = 0;
+
     if (hit) {
       // Calculate and apply damage
-      const damageDiceRolled = DiceRoller.rollDamageDice(diceOverrides?.damageDice);
+      damageDiceRolled = DiceRoller.rollDamageDice(diceOverrides?.damageDice);
       const baseDamage = damageDiceRolled; // rollDamageDice returns a number
       const totalDamageBonus = isPlayerAttacking ? state.player.totalDamageBonus : 0; // Enemy has no weapons
       const damage = baseDamage + totalDamageBonus;
-      const damageDealt = Math.max(0, damage);
+      damageDealt = Math.max(0, damage);
 
       events.push({
         type: CombatEventType.DAMAGE_DEALT,
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
         attacker: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
-        roll: damageDiceRolled,
+        roll: { dice1: damageDiceRolled, dice2: 0, total: damageDiceRolled },
         damage: damageDealt,
       });
 
@@ -307,9 +310,9 @@ export class AttackResolver {
       ),
       damageRoll: hit
         ? HistoryManager.createDamageRollDetails(
-            { total: diceRoll.total, dice1: diceRoll.dice1, dice2: 0 },
-            isPlayerAttacking ? state.player.totalDamageBonus : 0,
-            hit ? Math.max(0, diceRoll.total + (isPlayerAttacking ? state.player.totalDamageBonus : 0)) : 0
+            damageDiceRolled,
+            isPlayerAttacking ? newState.player.totalDamageBonus : 0,
+            damageDealt
           )
         : undefined,
       hpBefore,

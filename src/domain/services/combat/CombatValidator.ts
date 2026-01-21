@@ -12,7 +12,12 @@ export class CombatValidator {
       return 'defeat';
     }
 
-    if (state.enemy.endurance <= 0) {
+    // V3: Check if all enemies are dead (support both V2 single enemy and V3 enemies array)
+    const allEnemiesDead = state.enemies 
+      ? state.enemies.every(enemy => enemy.endurance <= 0)
+      : state.enemy?.endurance <= 0;
+
+    if (allEnemiesDead) {
       return 'victory';
     }
 

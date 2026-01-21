@@ -5,6 +5,7 @@ import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
+import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
 import { CombatantCard } from './CombatantCard';
 import { DiceAnimation } from './DiceAnimation';
 import type { DiceRollResult } from './DiceAnimation';
@@ -61,7 +62,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   }, []);
 
   const handleExit = () => {
-    if (combat && combat.phase !== 'victory' && combat.phase !== 'defeat') {
+    if (combat && CombatValidator.checkCombatEnd(combat) === 'ongoing') {
       if (confirm('Quitter le combat en cours ? La progression sera perdue.')) {
         onExit();
       }
@@ -80,8 +81,8 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const diceResult = combat.lastRoll
     ? convertToDiceRollResult(
         combat.lastRoll,
-        combat.currentAttacker === 'player' ? combat.player.dexterite : (activeEnemy?.dexterite ?? 0),
-        combat.currentAttacker === 'player' ? combat.player.weapon.bonus : 0 // Enemies have no weapon bonus
+        combat.currentTurn === 'player' ? combat.player.dexterite : (activeEnemy?.dexterite ?? 0),
+        combat.currentTurn === 'player' ? combat.player.weapon.bonus : 0 // Enemies have no weapon bonus
       )
     : null;
 
@@ -180,13 +181,13 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
         </AnimatePresence>
 
         <div className="mt-4">
-          {combat.phase === 'victory' && (
+          {CombatValidator.checkCombatEnd(combat) === 'victory' && (
             <VictoryScreen characterId={characterId} />
           )}
-          {combat.phase === 'defeat' && (
+          {CombatValidator.checkCombatEnd(combat) === 'defeat' && (
             <DefeatScreen characterId={characterId} />
           )}
-          {combat.phase !== 'victory' && combat.phase !== 'defeat' && (
+          {CombatValidator.checkCombatEnd(combat) === 'ongoing' && (
             <ActionPanel characterId={characterId} />
           )}
         </div>

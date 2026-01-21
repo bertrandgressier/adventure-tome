@@ -124,7 +124,7 @@ export class CombatEngine {
         return this.resolveSkip(newState);
 
       case CombatActionType.USE_ITEM:
-        return this.resolveUseItem(newState, action.payload as CombatUsableItem, diceOverrides);
+        return this.resolveUseItem(newState, action.payload as CombatUsableItem);
 
       case CombatActionType.WEAPON_ABILITY:
         return this.resolveWeaponAbility(newState, action.payload as { abilityId: string });
@@ -212,7 +212,7 @@ export class CombatEngine {
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
         attacker: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
-        roll: { dice1: damageDice, total: damageDice },
+        roll: { dice1: damageDice, dice2: 0, total: damageDice },
         damage: damageDealt,
       });
 
@@ -421,12 +421,9 @@ export class CombatEngine {
     state: CombatState,
     item: CombatUsableItem
   ): CombatResult {
-    // Pour la compatibilité, on peut adapter temporairement
-    const adaptedStateV2 = this.adaptStateV3ToV2(state);
-    const result = ItemResolver.resolve(adaptedStateV2, item);
-    const newStateV3 = this.adaptStateV2ToV3(result.state, state);
-
-    return { state: newStateV3, events: result.events };
+    // ItemResolver fonctionne directement avec V3
+    const result = ItemResolver.resolve(state, item);
+    return { state: result.state, events: result.events };
   }
 
   /**
@@ -436,12 +433,9 @@ export class CombatEngine {
     state: CombatState,
     payload: { abilityId: string }
   ): CombatResult {
-    // Pour la compatibilité, on peut adapter temporairement
-    const adaptedStateV2 = this.adaptStateV3ToV2(state);
-    const result = WeaponAbilityResolver.resolveAbility(adaptedStateV2, payload.abilityId);
-    const newStateV3 = this.adaptStateV2ToV3(result.state, state);
-
-    return { state: newStateV3, events: result.events };
+    // WeaponAbilityResolver fonctionne directement avec V3
+    const result = WeaponAbilityResolver.resolveAbility(state, payload.abilityId);
+    return { state: result.state, events: result.events };
   }
 
   /**

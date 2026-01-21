@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
+import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
 import { ItemPicker } from './ItemPicker';
 import type { CombatActionType } from '@/src/domain/types/CombatActionType';
 import type { CatalogItem } from '@/src/domain/types/items';
@@ -30,8 +31,8 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
 
   const [isItemPickerOpen, setIsItemPickerOpen] = useState(false);
 
-  // Early return if no combat or end phases
-  if (!combat || combat.phase === 'victory' || combat.phase === 'defeat') {
+  // Early return if no combat or combat ended
+  if (!combat || CombatValidator.checkCombatEnd(combat) !== 'ongoing') {
     return null;
   }
 

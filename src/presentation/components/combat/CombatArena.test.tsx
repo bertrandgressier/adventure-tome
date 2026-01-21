@@ -213,11 +213,17 @@ describe('CombatArena', () => {
     it('should call onExit when exit button clicked without active combat', async () => {
       mockUseCharacterStore.mockImplementation((selector) => {
         const state = {
-          combat: { ...mockCombat, phase: 'victory' as const },
+          combat: { 
+            ...mockCombat, 
+            phase: 'ENDED' as const,
+            enemies: [{ name: 'Gobelin', dexterite: 6, endurance: 0, enduranceMax: 8 }], // Victory
+          },
           availableActions: [],
           isAnimating: false,
           executeAction: vi.fn(),
           endCombat: vi.fn(),
+          characters: { 'test-id': createMockCharacter() },
+          getItem: () => undefined,
         };
          
          
@@ -389,7 +395,8 @@ describe('CombatArena', () => {
       it('should display victory message', () => {
         const victoryCombat = {
           ...mockCombat,
-          phase: 'victory' as const,
+          phase: 'ENDED' as const,
+          enemies: [{ name: 'Gobelin', dexterite: 6, endurance: 0, enduranceMax: 8 }],
         };
 
         mockUseCharacterStore.mockImplementation((selector) => {
@@ -399,6 +406,8 @@ describe('CombatArena', () => {
             isAnimating: false,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
+            characters: { 'test-id': createMockCharacter() },
+            getItem: () => undefined,
           };
            
          
@@ -418,7 +427,8 @@ describe('CombatArena', () => {
       it('should display defeat message', () => {
         const defeatCombat = {
           ...mockCombat,
-          phase: 'defeat' as const,
+          phase: 'ENDED' as const,
+          player: { ...mockCombat.player, endurance: 0 }, // Defeat
         };
 
         mockUseCharacterStore.mockImplementation((selector) => {
@@ -428,6 +438,8 @@ describe('CombatArena', () => {
             isAnimating: false,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
+            characters: { 'test-id': createMockCharacter() },
+            getItem: () => undefined,
           };
            
          
