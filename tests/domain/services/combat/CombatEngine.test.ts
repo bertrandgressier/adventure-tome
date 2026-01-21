@@ -157,11 +157,15 @@ describe('CombatEngine', () => {
         { hitDice: [1, 1] } // total 2, hits dexterite 12
       );
 
-      expect(result.state.phase).toBe(CombatPhase.WAITING_DAMAGE_ROLL);
+      // En V3, après une attaque réussie, les dégâts sont appliqués immédiatement
+      // donc la phase avance automatiquement à TURN_COMPLETE
+      expect(result.state.phase).toBe(CombatPhase.TURN_COMPLETE);
       expect(result.state.currentTurn).toBe('player');
       expect(result.state.lastRoll).toBeDefined();
       expect(result.state.lastRoll?.success).toBe(true);
       expect(result.events.length).toBeGreaterThan(0);
+      // Vérifier que les dégâts ont été appliqués
+      expect(result.state.enemy.endurance).toBeLessThan(mockEnemyConfig.enduranceMax);
     });
 
     it('should process attack and advance phase on miss', () => {

@@ -214,7 +214,18 @@ export class CombatEngine {
     const combatEnded = CombatValidator.checkCombatEnd(newState) !== 'ongoing';
     
     // Avancer la phase selon le résultat
-    const phaseUpdate = PhaseManager.advancePhase(newState, { hit, combatEnded });
+    // En V3, le flow est : WAITING_ATTACK_ROLL → WAITING_DAMAGE_ROLL → TURN_COMPLETE
+    // Mais ici on applique les dégâts immédiatement, donc on avance directement à TURN_COMPLETE
+    let phaseUpdate = PhaseManager.advancePhase(newState, { hit, combatEnded });
+    
+    // Si on a touché, on est à WAITING_DAMAGE_ROLL mais dégâts déjà appliqués
+    // → avancer automatiquement à TURN_COMPLETE
+    if (hit && phaseUpdate.phase === CombatPhase.WAITING_DAMAGE_ROLL && !combatEnded) {
+      phaseUpdate = PhaseManager.advancePhase(
+        { ...newState, ...phaseUpdate }, 
+        { combatEnded }
+      );
+    }
     
     // Add history entry
     const historyEntry = {

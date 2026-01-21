@@ -179,12 +179,6 @@ export function simulateFullRound(
     return newState;
   }
   
-  // Avancer après l'attaque (WAITING_DAMAGE_ROLL → TURN_COMPLETE)
-  if (newState.phase === CombatPhase.WAITING_DAMAGE_ROLL) {
-    const skipResult = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
-    newState = skipResult.state;
-  }
-  
   // Passer au tour ennemi si nécessaire
   if (newState.phase === CombatPhase.TURN_COMPLETE) {
     const skipResult = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
@@ -204,12 +198,6 @@ export function simulateFullRound(
   combatStatus = CombatValidator.checkCombatEnd(newState);
   if (combatStatus !== 'ongoing') {
     return newState;
-  }
-  
-  // Avancer après l'attaque (WAITING_DAMAGE_ROLL → TURN_COMPLETE)
-  if (newState.phase === CombatPhase.WAITING_DAMAGE_ROLL) {
-    const skipResult = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
-    newState = skipResult.state;
   }
   
   // Passer au round suivant si nécessaire
