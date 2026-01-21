@@ -145,6 +145,9 @@ export class CombatValidator {
   /**
    * Vérifie si l'état actuel nécessite un auto-skip
    * (phase TURN_COMPLETE sans actions manuelles disponibles)
+   * 
+   * IMPORTANT : Ne pas auto-skip si c'est le tour de l'ennemi
+   * (l'attaque ennemi est gérée depuis React avec délai d'animation)
    */
   static shouldAutoSkip(state: CombatState): boolean {
     if (state.phase !== CombatPhase.TURN_COMPLETE) {
@@ -153,6 +156,12 @@ export class CombatValidator {
 
     // Si le combat est terminé, pas d'auto-skip
     if (this.checkCombatEnd(state) !== 'ongoing') {
+      return false;
+    }
+
+    // Ne pas auto-skip si c'est le tour de l'ennemi
+    // (React gère l'attaque ennemi avec délai pour les animations)
+    if (state.currentTurn === 'enemy') {
       return false;
     }
 
