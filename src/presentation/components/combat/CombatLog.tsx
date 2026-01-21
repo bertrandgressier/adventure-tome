@@ -5,7 +5,7 @@ import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { ScrollText, ChevronUp, ChevronDown, Swords, Heart, Sparkles, Wand2, Dices, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { CombatEvent } from '@/src/domain/types/combat-v2';
+import type { CombatEvent } from '@/src/domain/types/combat-state';
 import { CombatEventType } from '@/src/domain/types/CombatEventType';
 import {
   getIconColorClass,

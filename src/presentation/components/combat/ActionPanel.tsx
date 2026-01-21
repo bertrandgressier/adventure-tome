@@ -5,7 +5,7 @@ import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { ItemPicker } from './ItemPicker';
-import type { CombatActionType } from '@/src/domain/types/combat-v2';
+import type { CombatActionType } from '@/src/domain/types/CombatActionType';
 import type { CatalogItem } from '@/src/domain/types/items';
 import { getActionMetadata } from './combatUIHelpers';
 import {

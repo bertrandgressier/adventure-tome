@@ -20,7 +20,7 @@ import DiceRoller from '@/components/character/DiceRoller';
 import { AddItemModal } from '@/src/presentation/components/AddItemModal';
 import { GameModeBadge } from '@/components/ui/game-mode-badge';
 import { CombatArena } from '@/src/presentation/components/combat';
-import type { EnemyConfig, CombatConfig } from '@/src/domain/types/combat-v2';
+import type { EnemyConfig, CombatConfig } from '@/src/domain/types/combatants';
 
 export default function CharacterDetail() {
   const router = useRouter();

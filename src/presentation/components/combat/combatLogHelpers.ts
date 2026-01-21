@@ -1,4 +1,4 @@
-import type { CombatEvent } from '@/src/domain/types/combat-v2';
+import type { CombatEvent } from '@/src/domain/types/combat-state';
 import { CombatEventType } from '@/src/domain/types/CombatEventType';
 
 /**

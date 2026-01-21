@@ -1,4 +1,4 @@
-import type { CombatState, CombatEvent } from '../../types/combat-v2';
+import type { CombatState, CombatEvent } from '../../types/combat-state';
 import { CombatEventType } from '../../types/CombatEventType';
 
 /**

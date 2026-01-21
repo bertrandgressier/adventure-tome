@@ -4,7 +4,7 @@ import type {
   CombatEvent,
 } from '../../types/combat-state';
 import { CombatActionType } from '../../types/CombatActionType';
-import { CombatPhaseV3 } from '../../types/CombatPhaseV3';
+import { CombatPhase } from '../../types/CombatPhase';
 import { CombatEventType } from '../../types/CombatEventType';
 import { Attacker } from '../../types/Attacker';
 import type { PlayerConfig, EnemyConfig, CombatConfig } from '../../types/combatants';
@@ -133,7 +133,7 @@ export class CombatEngine {
    * Résout une attaque (player ou enemy selon currentTurn)
    */
   private static resolveAttack(state: CombatState, diceOverrides?: DiceOverrides): CombatResult {
-    if (state.phase !== CombatPhaseV3.WAITING_ATTACK_ROLL) {
+    if (state.phase !== CombatPhase.WAITING_ATTACK_ROLL) {
       return { state, events: [] };
     }
 
@@ -212,7 +212,7 @@ export class CombatEngine {
     
     // Si on a touché, on est à WAITING_DAMAGE_ROLL, mais les dégâts sont déjà appliqués
     // Il faut avancer une fois de plus à TURN_COMPLETE
-    if (hit && !combatEnded && phaseUpdate.phase === CombatPhaseV3.WAITING_DAMAGE_ROLL) {
+    if (hit && !combatEnded && phaseUpdate.phase === CombatPhase.WAITING_DAMAGE_ROLL) {
       phaseUpdate = PhaseManager.advancePhase(
         { ...newState, phase: phaseUpdate.phase, currentTurn: phaseUpdate.currentTurn, roundNumber: phaseUpdate.roundNumber }, 
         { combatEnded }
@@ -274,8 +274,8 @@ export class CombatEngine {
       state.currentTurn === 'player' &&
       state.lastRoll &&
       !state.usedReroll &&
-      (state.phase === CombatPhaseV3.WAITING_ATTACK_ROLL ||
-        (state.phase === CombatPhaseV3.TURN_COMPLETE && !state.lastRoll.success));
+      (state.phase === CombatPhase.WAITING_ATTACK_ROLL ||
+        (state.phase === CombatPhase.TURN_COMPLETE && !state.lastRoll.success));
 
     if (!canReroll) {
       return { state, events: [] };
@@ -301,7 +301,7 @@ export class CombatEngine {
       },
       usedReroll: true,
       // Si on était en TURN_COMPLETE, revenir à WAITING_ATTACK_ROLL pour pouvoir continuer
-      phase: state.phase === CombatPhaseV3.TURN_COMPLETE ? CombatPhaseV3.WAITING_ATTACK_ROLL : state.phase,
+      phase: state.phase === CombatPhase.TURN_COMPLETE ? CombatPhase.WAITING_ATTACK_ROLL : state.phase,
     };
 
     const events: CombatEvent[] = [
@@ -396,19 +396,19 @@ export class CombatEngine {
     let currentAttacker: string;
 
     switch (stateV3.phase) {
-      case CombatPhaseV3.WAITING_ATTACK_ROLL:
+      case CombatPhase.WAITING_ATTACK_ROLL:
         phaseV2 = stateV3.currentTurn === 'player' ? 'player_turn' : 'enemy_turn';
         currentAttacker = stateV3.currentTurn;
         break;
-      case CombatPhaseV3.WAITING_DAMAGE_ROLL:
+      case CombatPhase.WAITING_DAMAGE_ROLL:
         phaseV2 = stateV3.currentTurn === 'player' ? 'enemy_reaction' : 'player_reaction';
         currentAttacker = stateV3.currentTurn;
         break;
-      case CombatPhaseV3.TURN_COMPLETE:
+      case CombatPhase.TURN_COMPLETE:
         phaseV2 = 'turn_end';
         currentAttacker = stateV3.currentTurn;
         break;
-      case CombatPhaseV3.ENDED:
+      case CombatPhase.ENDED:
         phaseV2 = 'ended';
         currentAttacker = stateV3.currentTurn;
         break;

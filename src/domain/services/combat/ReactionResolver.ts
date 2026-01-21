@@ -1,6 +1,4 @@
-import type { CombatState, CombatEvent } from '../../types/combat-v2';
-import type { CombatStateV3 } from '../../types/combat-state';
-import { CombatPhase } from '../../types/CombatPhase';
+import type { CombatState, CombatEvent } from '../../types/combat-state';
 import { Attacker } from '../../types/Attacker';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
@@ -12,13 +10,8 @@ export interface ActionResolutionResult {
   events: CombatEvent[];
 }
 
-export interface ActionResolutionResultV3 {
-  state: CombatStateV3;
-  events: CombatEvent[];
-}
-
 // Type guard to check if state is V3
-function isStateV3(state: CombatState | CombatStateV3): state is CombatStateV3 {
+function isStateV3(state: CombatState | CombatState): state is CombatState {
   return 'currentTurn' in state && typeof state.currentTurn === 'string';
 }
 
@@ -31,15 +24,15 @@ export class ReactionResolver {
   
   // Overload for V3 state
   static resolveReroll(
-    state: CombatStateV3,
+    state: CombatState,
     diceOverrides?: DiceOverrides
-  ): ActionResolutionResultV3;
+  ): ActionResolutionResult;
   
   // Implementation
   static resolveReroll(
-    state: CombatState | CombatStateV3,
+    state: CombatState | CombatState,
     diceOverrides?: DiceOverrides
-  ): ActionResolutionResult | ActionResolutionResultV3 {
+  ): ActionResolutionResult | ActionResolutionResult {
     if (isStateV3(state)) {
       return this.resolveRerollV3(state, diceOverrides);
     }
@@ -65,7 +58,7 @@ export class ReactionResolver {
         success: hit,
       },
       usedReroll: true,
-      phase: CombatPhase.PLAYER_TURN,
+      phase: 'player_turn' as const,
     };
 
     const events: CombatEvent[] = [
@@ -94,16 +87,16 @@ export class ReactionResolver {
         damage,
       });
 
-      newState.phase = CombatPhase.ENEMY_TURN;
+      newState.phase = 'enemy_turn' as const;
     }
 
     return { state: newState, events };
   }
 
   private static resolveRerollV3(
-    state: CombatStateV3,
+    state: CombatState,
     diceOverrides?: DiceOverrides
-  ): ActionResolutionResultV3 {
+  ): ActionResolutionResult {
     if (!state.lastRoll || state.usedReroll) {
       return { state, events: [] };
     }
@@ -112,7 +105,7 @@ export class ReactionResolver {
     const dexterite = state.player.dexterite;
     const hit = diceRoll.total <= dexterite;
 
-    const newState: CombatStateV3 = {
+    const newState: CombatState = {
       ...state,
       lastRoll: {
         ...diceRoll,
@@ -144,7 +137,7 @@ export class ReactionResolver {
     const newState: CombatState = {
       ...state,
       pendingDamage: undefined,
-      phase: CombatPhase.PLAYER_TURN,
+      phase: 'player_turn' as const,
     };
 
     return { state: newState, events: [] };
@@ -153,16 +146,17 @@ export class ReactionResolver {
   static resolveSkip(state: CombatState): ActionResolutionResult {
     let newState: CombatState = { ...state };
 
-    if (state.phase === CombatPhase.PLAYER_ATTACK) {
-      newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
-    } else if (state.phase === CombatPhase.ENEMY_ATTACK && state.pendingDamage) {
+    if (state.phase === 'player_attack' as const) {
+      const phaseUpdate = PhaseManager.advancePhase(newState, {});
+      newState = { ...newState, ...phaseUpdate };
+    } else if (state.phase === 'enemy_attack' as const && state.pendingDamage) {
       const newEndurance = Math.max(0, state.player.endurance - state.pendingDamage.amount);
 
       newState = {
         ...state,
         player: { ...state.player, endurance: newEndurance },
         pendingDamage: undefined,
-        phase: CombatPhase.PLAYER_TURN,
+        phase: 'player_turn' as const,
         roundNumber: state.roundNumber + 1,
       };
     }

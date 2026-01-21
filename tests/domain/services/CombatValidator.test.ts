@@ -1,18 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { CombatValidatorV3 } from '../../../src/domain/services/combat/CombatValidatorV3';
-import { CombatPhaseV3 } from '../../../src/domain/types/CombatPhaseV3';
+import { CombatValidator } from '../../../src/domain/services/combat/CombatValidator';
+import { CombatPhase } from '../../../src/domain/types/CombatPhase';
 import { CombatActionType } from '../../../src/domain/types/CombatActionType';
 import { WeaponAbilityTrigger } from '../../../src/domain/types/WeaponAbilityTrigger';
 import { WeaponEffectType } from '../../../src/domain/types/WeaponEffectType';
-import type { CombatStateV3 } from '../../../src/domain/types/combat-state';
+import type { CombatState } from '../../../src/domain/types/combat-state';
 import { CombatEventType } from '../../../src/domain/types/CombatEventType';
 
-describe('CombatValidatorV3', () => {
+describe('CombatValidator', () => {
   const createMockState = (
-    phase: CombatPhaseV3,
+    phase: CombatPhase,
     currentTurn: 'player' | 'enemy',
-    overrides?: Partial<CombatStateV3>
-  ): CombatStateV3 => ({
+    overrides?: Partial<CombatState>
+  ): CombatState => ({
     id: 'test-combat',
     characterId: 'test-char',
     player: {
@@ -63,13 +63,13 @@ describe('CombatValidatorV3', () => {
 
   describe('checkCombatEnd', () => {
     it('should return ongoing when both combatants are alive', () => {
-      const state = createMockState(CombatPhaseV3.WAITING_ATTACK_ROLL, 'player');
-      const result = CombatValidatorV3.checkCombatEnd(state);
+      const state = createMockState(CombatPhase.WAITING_ATTACK_ROLL, 'player');
+      const result = CombatValidator.checkCombatEnd(state);
       expect(result).toBe('ongoing');
     });
 
     it('should return victory when enemy endurance reaches 0', () => {
-      const state = createMockState(CombatPhaseV3.WAITING_DAMAGE_ROLL, 'player', {
+      const state = createMockState(CombatPhase.WAITING_DAMAGE_ROLL, 'player', {
         enemy: {
           name: 'Goblin',
           dexterite: 8,
@@ -80,12 +80,12 @@ describe('CombatValidatorV3', () => {
           totalDamageBonus: 0,
         },
       });
-      const result = CombatValidatorV3.checkCombatEnd(state);
+      const result = CombatValidator.checkCombatEnd(state);
       expect(result).toBe('victory');
     });
 
     it('should return defeat when player endurance reaches 0', () => {
-      const state = createMockState(CombatPhaseV3.WAITING_DAMAGE_ROLL, 'enemy', {
+      const state = createMockState(CombatPhase.WAITING_DAMAGE_ROLL, 'enemy', {
         player: {
           name: 'Hero',
           dexterite: 10,
@@ -102,14 +102,14 @@ describe('CombatValidatorV3', () => {
           },
         },
       });
-      const result = CombatValidatorV3.checkCombatEnd(state);
+      const result = CombatValidator.checkCombatEnd(state);
       expect(result).toBe('defeat');
     });
   });
 
   describe('getAvailableActions - WAITING_ATTACK_ROLL', () => {
     it('should return ATTACK and WEAPON_ABILITY during player turn with MANUAL ability', () => {
-      const state = createMockState(CombatPhaseV3.WAITING_ATTACK_ROLL, 'player', {
+      const state = createMockState(CombatPhase.WAITING_ATTACK_ROLL, 'player', {
         player: {
           name: 'Hero',
           dexterite: 10,
@@ -134,7 +134,7 @@ describe('CombatValidatorV3', () => {
         },
       });
 
-      const actions = CombatValidatorV3.getAvailableActions(state);
+      const actions = CombatValidator.getAvailableActions(state);
 
       expect(actions).toHaveLength(2);
       expect(actions.find((a) => a.action.type === CombatActionType.ATTACK)).toBeDefined();
@@ -142,18 +142,18 @@ describe('CombatValidatorV3', () => {
     });
 
     it('should return only ATTACK during player turn without weapon ability', () => {
-      const state = createMockState(CombatPhaseV3.WAITING_ATTACK_ROLL, 'player');
+      const state = createMockState(CombatPhase.WAITING_ATTACK_ROLL, 'player');
 
-      const actions = CombatValidatorV3.getAvailableActions(state);
+      const actions = CombatValidator.getAvailableActions(state);
 
       expect(actions).toHaveLength(1);
       expect(actions[0].action.type).toBe(CombatActionType.ATTACK);
     });
 
     it('should return empty actions during enemy turn (automatic)', () => {
-      const state = createMockState(CombatPhaseV3.WAITING_ATTACK_ROLL, 'enemy');
+      const state = createMockState(CombatPhase.WAITING_ATTACK_ROLL, 'enemy');
 
-      const actions = CombatValidatorV3.getAvailableActions(state);
+      const actions = CombatValidator.getAvailableActions(state);
 
       expect(actions).toHaveLength(0);
     });
@@ -161,9 +161,9 @@ describe('CombatValidatorV3', () => {
 
   describe('getAvailableActions - TURN_COMPLETE', () => {
     it('should return SKIP action', () => {
-      const state = createMockState(CombatPhaseV3.TURN_COMPLETE, 'player');
+      const state = createMockState(CombatPhase.TURN_COMPLETE, 'player');
 
-      const actions = CombatValidatorV3.getAvailableActions(state);
+      const actions = CombatValidator.getAvailableActions(state);
 
       expect(actions).toHaveLength(1);
       expect(actions[0].action.type).toBe(CombatActionType.SKIP);
@@ -173,7 +173,7 @@ describe('CombatValidatorV3', () => {
 
   describe('getAvailableActions - ENDED', () => {
     it('should return no actions when combat is ended', () => {
-      const state = createMockState(CombatPhaseV3.ENDED, 'player', {
+      const state = createMockState(CombatPhase.ENDED, 'player', {
         enemy: {
           name: 'Goblin',
           dexterite: 8,
@@ -185,7 +185,7 @@ describe('CombatValidatorV3', () => {
         },
       });
 
-      const actions = CombatValidatorV3.getAvailableActions(state);
+      const actions = CombatValidator.getAvailableActions(state);
 
       expect(actions).toHaveLength(0);
     });
@@ -193,7 +193,7 @@ describe('CombatValidatorV3', () => {
 
   describe('getAvailableActions - weapon abilities by trigger', () => {
     it('should show ON_MISS ability after a missed attack', () => {
-      const state = createMockState(CombatPhaseV3.TURN_COMPLETE, 'player', {
+      const state = createMockState(CombatPhase.TURN_COMPLETE, 'player', {
         player: {
           name: 'Hero',
           dexterite: 10,
@@ -224,7 +224,7 @@ describe('CombatValidatorV3', () => {
         },
       });
 
-      const actions = CombatValidatorV3.getAvailableActions(state);
+      const actions = CombatValidator.getAvailableActions(state);
 
       const weaponAbilityAction = actions.find(
         (a) => a.action.type === CombatActionType.WEAPON_ABILITY
@@ -234,7 +234,7 @@ describe('CombatValidatorV3', () => {
     });
 
     it('should NOT show ON_MISS ability when attack hit', () => {
-      const state = createMockState(CombatPhaseV3.TURN_COMPLETE, 'player', {
+      const state = createMockState(CombatPhase.TURN_COMPLETE, 'player', {
         player: {
           name: 'Hero',
           dexterite: 10,
@@ -265,7 +265,7 @@ describe('CombatValidatorV3', () => {
         },
       });
 
-      const actions = CombatValidatorV3.getAvailableActions(state);
+      const actions = CombatValidator.getAvailableActions(state);
 
       const weaponAbilityAction = actions.find(
         (a) => a.action.type === CombatActionType.WEAPON_ABILITY
@@ -274,7 +274,7 @@ describe('CombatValidatorV3', () => {
     });
 
     it('should NOT show auto-triggered abilities (ON_DOUBLE, ON_KILL, ON_SURPRISE)', () => {
-      const state = createMockState(CombatPhaseV3.WAITING_ATTACK_ROLL, 'player', {
+      const state = createMockState(CombatPhase.WAITING_ATTACK_ROLL, 'player', {
         player: {
           name: 'Hero',
           dexterite: 10,
@@ -298,7 +298,7 @@ describe('CombatValidatorV3', () => {
         },
       });
 
-      const actions = CombatValidatorV3.getAvailableActions(state);
+      const actions = CombatValidator.getAvailableActions(state);
 
       const weaponAbilityAction = actions.find(
         (a) => a.action.type === CombatActionType.WEAPON_ABILITY
@@ -309,7 +309,7 @@ describe('CombatValidatorV3', () => {
 
   describe('createCombatEndEvent', () => {
     it('should create victory event', () => {
-      const state = createMockState(CombatPhaseV3.ENDED, 'player', {
+      const state = createMockState(CombatPhase.ENDED, 'player', {
         enemy: {
           name: 'Goblin',
           dexterite: 8,
@@ -321,7 +321,7 @@ describe('CombatValidatorV3', () => {
         },
       });
 
-      const event = CombatValidatorV3.createCombatEndEvent(state, 'victory');
+      const event = CombatValidator.createCombatEndEvent(state, 'victory');
 
       expect(event.type).toBe(CombatEventType.COMBAT_END);
       expect(event.result).toBe('victory');
@@ -330,7 +330,7 @@ describe('CombatValidatorV3', () => {
     });
 
     it('should create defeat event', () => {
-      const state = createMockState(CombatPhaseV3.ENDED, 'enemy', {
+      const state = createMockState(CombatPhase.ENDED, 'enemy', {
         player: {
           name: 'Hero',
           dexterite: 10,
@@ -348,7 +348,7 @@ describe('CombatValidatorV3', () => {
         },
       });
 
-      const event = CombatValidatorV3.createCombatEndEvent(state, 'defeat');
+      const event = CombatValidator.createCombatEndEvent(state, 'defeat');
 
       expect(event.type).toBe(CombatEventType.COMBAT_END);
       expect(event.result).toBe('defeat');
@@ -358,7 +358,7 @@ describe('CombatValidatorV3', () => {
 
   describe('createRoundStartEvent', () => {
     it('should create round start event', () => {
-      const event = CombatValidatorV3.createRoundStartEvent(2);
+      const event = CombatValidator.createRoundStartEvent(2);
 
       expect(event.type).toBe(CombatEventType.ROUND_START);
       expect(event.round).toBe(2);
@@ -368,7 +368,7 @@ describe('CombatValidatorV3', () => {
 
   describe('createRoundEndEvent', () => {
     it('should create round end event', () => {
-      const event = CombatValidatorV3.createRoundEndEvent(1);
+      const event = CombatValidator.createRoundEndEvent(1);
 
       expect(event.type).toBe(CombatEventType.ROUND_END);
       expect(event.round).toBe(1);

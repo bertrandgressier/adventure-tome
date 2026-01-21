@@ -4,7 +4,7 @@ import type {
   PlayerConfig,
   CombatWeapon,
   CombatEvent,
-} from '@/src/domain/types/combat-v2';
+} from '@/src/domain/types';
 import type { CharacterService } from './CharacterService';
 import { CombatEventType } from '@/src/domain/types/CombatEventType';
 
@@ -157,11 +157,13 @@ export class CombatOrchestrator {
   }
 
   /**
-   * Détermine le résultat du combat (victoire, défaite)
+   * Détermine le résultat du combat selon l'état
+   * Note: En V3, on doit regarder les HP pour déterminer le résultat
    */
   private determineCombatResult(state: CombatState): 'victory' | 'defeat' {
-    if (state.phase === 'victory') return 'victory';
-    return 'defeat';
+    if (state.player.endurance <= 0) return 'defeat';
+    if (state.enemy.endurance <= 0) return 'victory';
+    return 'defeat'; // Fallback (ne devrait jamais arriver)
   }
 
   /**

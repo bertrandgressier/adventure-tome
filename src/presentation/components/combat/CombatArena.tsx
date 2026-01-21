@@ -10,7 +10,7 @@ import { DiceAnimation } from './DiceAnimation';
 import type { DiceRollResult } from './DiceAnimation';
 import { ActionPanel } from './ActionPanel';
 import { CombatLog } from './CombatLog';
-import type { DiceRoll } from '@/src/domain/types/combat-v2';
+import type { DiceRoll } from '@/src/domain/types/combatants';
 import {
   wouldBeLethal,
 } from './combatUIHelpers';
@@ -93,8 +93,8 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
     : undefined;
 
   // Déterminer si c'est le tour du joueur ou de l'ennemi pour l'UI
-  const isPlayerTurn = combat.phase === 'player_turn' || combat.phase === 'player_attack';
-  const isEnemyTurn = combat.phase === 'enemy_turn' || combat.phase === 'enemy_attack';
+  const isPlayerTurn = combat.currentTurn === 'player';
+  const isEnemyTurn = combat.currentTurn === 'enemy';
 
   return (
     <motion.div

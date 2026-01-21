@@ -1,6 +1,6 @@
 import type { CombatState, CombatEvent } from '../../types/combat-state';
 import type { AvailableAction } from '../../types/combat-state';
-import { CombatPhaseV3 } from '../../types/CombatPhaseV3';
+import { CombatPhase } from '../../types/CombatPhase';
 import { CombatActionType } from '../../types/CombatActionType';
 import { CombatEventType } from '../../types/CombatEventType';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
@@ -23,7 +23,7 @@ export class CombatValidator {
     const actions: AvailableAction[] = [];
 
     // WAITING_ATTACK_ROLL - selon qui joue
-    if (state.phase === CombatPhaseV3.WAITING_ATTACK_ROLL) {
+    if (state.phase === CombatPhase.WAITING_ATTACK_ROLL) {
       if (state.currentTurn === 'player') {
         actions.push({ action: { type: CombatActionType.ATTACK }, enabled: true });
 
@@ -52,14 +52,14 @@ export class CombatValidator {
     }
 
     // WAITING_DAMAGE_ROLL - automatique, passe à turn_complete via SKIP
-    if (state.phase === CombatPhaseV3.WAITING_DAMAGE_ROLL) {
+    if (state.phase === CombatPhase.WAITING_DAMAGE_ROLL) {
       // Les dégâts sont appliqués automatiquement
       // Le joueur peut simplement passer (via SKIP implicite)
       // Enemy damage roll est aussi automatique
     }
 
     // TURN_COMPLETE - skip to next turn or reroll if player missed and hasn't used reroll
-    if (state.phase === CombatPhaseV3.TURN_COMPLETE) {
+    if (state.phase === CombatPhase.TURN_COMPLETE) {
       // Allow reroll if: player's turn just ended, they missed, haven't used reroll yet
       if (
         state.currentTurn === 'player' &&
@@ -101,18 +101,18 @@ export class CombatValidator {
       case WeaponAbilityTrigger.ON_MISS:
         // Disponible après un raté (turn_complete après miss)
         return (
-          state.phase === CombatPhaseV3.TURN_COMPLETE &&
+          state.phase === CombatPhase.TURN_COMPLETE &&
           state.lastRoll !== undefined &&
           !state.lastRoll.success
         );
 
       case WeaponAbilityTrigger.ON_ENEMY_HIT:
         // Disponible quand l'ennemi attaque (waiting_damage_roll en enemy turn)
-        return state.phase === CombatPhaseV3.WAITING_DAMAGE_ROLL && state.currentTurn === 'enemy';
+        return state.phase === CombatPhase.WAITING_DAMAGE_ROLL && state.currentTurn === 'enemy';
 
       case WeaponAbilityTrigger.MANUAL:
         // Disponible pendant waiting_attack_roll (player turn)
-        return state.phase === CombatPhaseV3.WAITING_ATTACK_ROLL && state.currentTurn === 'player';
+        return state.phase === CombatPhase.WAITING_ATTACK_ROLL && state.currentTurn === 'player';
 
       case WeaponAbilityTrigger.ON_DOUBLE:
       case WeaponAbilityTrigger.ON_KILL:

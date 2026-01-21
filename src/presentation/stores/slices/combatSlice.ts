@@ -204,13 +204,13 @@ export const createCombatSlice = () => {
                 isAnimating: false,
               });
               
-              // Auto-resolve ENEMY_TURN (pas d'input utilisateur requis)
+              // Auto-resolve enemy turn (pas d'input utilisateur requis)
               const combatAfterResult = get().combat;
-              if (combatAfterResult && combatAfterResult.phase === 'enemy_turn') {
+              if (combatAfterResult && combatAfterResult.currentTurn === 'enemy') {
                 // Petit délai pour montrer la transition
                 setTimeout(() => {
                   const stillInEnemyTurn = get().combat;
-                  if (stillInEnemyTurn && stillInEnemyTurn.phase === 'enemy_turn') {
+                  if (stillInEnemyTurn && stillInEnemyTurn.currentTurn === 'enemy') {
                     // Lancer l'attaque ennemie automatiquement
                     const enemyAttackResult = CombatEngine.resolve(
                       stillInEnemyTurn,
