@@ -194,7 +194,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
       </div>
 
       {/* CombatLog positionné en fixed en bas de l'écran */}
-      <CombatLog events={combat.events} />
+      <CombatLog history={combat.history} />
     </motion.div>
   );
 }
