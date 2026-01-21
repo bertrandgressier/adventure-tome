@@ -2,7 +2,6 @@ import type { CombatState, CombatEvent } from '../../types/combat-state';
 import { Attacker } from '../../types/Attacker';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
-import { PhaseManager } from './PhaseManager';
 import { CombatEventType } from '../../types/CombatEventType';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';

@@ -38,5 +38,3 @@ export const createCharacterItemsSlice = (_service: CharacterService): StateCrea
     },
   });
 };
-
-type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;

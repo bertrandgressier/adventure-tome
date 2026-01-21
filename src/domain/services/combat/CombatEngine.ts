@@ -12,6 +12,7 @@ import type { DiceOverrides } from './DiceRoller';
 import type { AvailableAction } from '../../types/combat-state';
 import { ItemResolver, type CombatUsableItem } from './ItemResolver';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
+import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 import { PhaseManager } from './PhaseManager';
 import { CombatValidator } from './CombatValidator';
 import { HistoryManager } from './HistoryManager';
@@ -163,7 +164,7 @@ export class CombatEngine {
     if (isPlayerAttacking && newState.isFirstAttack) {
       const surpriseAbility = WeaponAbilityResolver.checkAutoTrigger(
         newState,
-        'on_surprise' as any,
+        WeaponAbilityTrigger.ON_SURPRISE,
         {}
       );
       if (surpriseAbility) {
@@ -226,7 +227,7 @@ export class CombatEngine {
       if (isPlayerAttacking && newState.lastRoll?.isDouble) {
         const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
           newState,
-          'on_double' as any,
+          WeaponAbilityTrigger.ON_DOUBLE,
           { roll: newState.lastRoll }
         );
         if (doubleAbility) {
@@ -243,7 +244,7 @@ export class CombatEngine {
       if (isPlayerAttacking && newState.enemy.endurance <= 0) {
         const killAbility = WeaponAbilityResolver.checkAutoTrigger(
           newState,
-          'on_kill' as any,
+          WeaponAbilityTrigger.ON_KILL,
           { killedEnemy: true }
         );
         if (killAbility) {
