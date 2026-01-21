@@ -14,11 +14,13 @@ export type CombatAnimationPhase = 'idle' | 'rolling' | 'result' | 'damage';
  * Stratégie simple :
  * 1. Observe les changements de lastActionTimestamp (nouvelle action)
  * 2. Anime la dernière action : rolling → result → damage → idle
- * 3. Respecte prefers-reduced-motion
+ * 3. Appelle onAnimationComplete quand l'animation se termine
+ * 4. Respecte prefers-reduced-motion
  */
 export function useCombatAnimations(
   combat: CombatState | null,
-  lastActionTimestamp: number
+  lastActionTimestamp: number,
+  onAnimationComplete?: () => void
 ) {
   const [animationPhase, setAnimationPhase] = useState<CombatAnimationPhase>('idle');
   const [isAnimating, setIsAnimating] = useState(false);
@@ -70,6 +72,9 @@ export function useCombatAnimations(
               // Phase 4: Idle (retour au calme)
               setAnimationPhase('idle');
               setIsAnimating(false);
+              
+              // Callback après animation complète
+              onAnimationComplete?.();
             }, DAMAGE_DURATION);
           }, RESULT_DURATION);
         } else {
@@ -77,11 +82,14 @@ export function useCombatAnimations(
           setTimeout(() => {
             setAnimationPhase('idle');
             setIsAnimating(false);
+            
+            // Callback après animation complète
+            onAnimationComplete?.();
           }, RESULT_DURATION);
         }
       }, ROLLING_DURATION);
     }
-  }, [lastActionTimestamp, combat, prefersReducedMotion]);
+  }, [lastActionTimestamp, combat, prefersReducedMotion, onAnimationComplete]);
 
   // Reset quand le combat se termine
   useEffect(() => {

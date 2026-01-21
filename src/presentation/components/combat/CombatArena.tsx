@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -76,15 +76,9 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const executeAction = useCharacterStore((state) => state.executeAction);
   const prefersReducedMotion = useReducedMotion() ?? false;
 
-  // Hook centralisé pour gérer les animations
-  const { animationPhase, isAnimating } = useCombatAnimations(combat, lastActionTimestamp);
-
-  // Auto-play ennemi : déclencher l'attaque ennemi APRÈS les animations (phase idle)
-  useEffect(() => {
+  // Callback appelée après chaque animation terminée
+  const handleAnimationComplete = useCallback(() => {
     if (!combat) return;
-    
-    // Attendre que les animations soient terminées (idle) et pas en cours
-    if (animationPhase !== 'idle' || isAnimating) return;
     
     // Vérifier si c'est le tour de l'ennemi et si on doit auto-play
     const shouldAutoPlayEnemy = CombatValidator.shouldAutoPlayEnemy(combat);
@@ -93,13 +87,18 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
       // Délai avant l'action ennemi (pour que le joueur voie "Tour de l'ennemi")
       const delay = prefersReducedMotion ? 200 : 600;
       
-      const timeoutId = setTimeout(() => {
+      setTimeout(() => {
         executeAction({ type: CombatActionType.ATTACK });
       }, delay);
-      
-      return () => clearTimeout(timeoutId);
     }
-  }, [combat, animationPhase, isAnimating, executeAction, prefersReducedMotion]);
+  }, [combat, executeAction, prefersReducedMotion]);
+
+  // Hook centralisé pour gérer les animations + auto-play ennemi
+  const { animationPhase, isAnimating } = useCombatAnimations(
+    combat, 
+    lastActionTimestamp, 
+    handleAnimationComplete
+  );
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
