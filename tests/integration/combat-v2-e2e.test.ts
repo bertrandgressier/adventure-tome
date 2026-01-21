@@ -327,8 +327,13 @@ describe('Combat V2 - End to End Integration Tests', () => {
 
       expect(currentState.combat?.player.endurance).toBe(5);
 
+      // Player attacks
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 1 });
 
+      // Skip to enemy turn
+      slice.executeAction({ type: CombatActionType.SKIP });
+
+      // Enemy attacks and kills player
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [3, 3], damageDice: 5 });
 
       // En V3, les dégâts sont appliqués immédiatement (pas de pendingDamage)
