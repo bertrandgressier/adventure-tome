@@ -1,3 +1,4 @@
+import { type StateCreator } from 'zustand';
 import type { Character } from '@/src/domain/entities/Character';
 import type { CharacterService } from '@/src/application/services/CharacterService';
 
@@ -13,11 +14,13 @@ export interface CharacterListSlice {
   getAllCharacters: () => Character[];
 }
 
-type SetState = (partial: Partial<CharacterListSlice> | ((state: CharacterListSlice) => Partial<CharacterListSlice>)) => void;
-type GetState = () => CharacterListSlice;
-
-export const createCharacterListSlice = (service: CharacterService) => {
-  return (set: SetState, get: GetState): CharacterListSlice => ({
+export const createCharacterListSlice = (service: CharacterService): StateCreator<
+  CharacterListSlice,
+  [['zustand/devtools', never]],
+  [],
+  CharacterListSlice
+> => {
+  return (set, get) => ({
     characters: {},
     isLoading: false,
     hasInitialLoad: false,

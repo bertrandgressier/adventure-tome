@@ -1,3 +1,4 @@
+import { type StateCreator } from 'zustand';
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { CharacterListSlice } from './characterListSlice';
 import type { ItemsCatalogSlice } from './itemsCatalogSlice';
@@ -29,11 +30,14 @@ export interface CharacterInventorySlice {
 }
 
 type StoreState = CharacterInventorySlice & CharacterListSlice & ItemsCatalogSlice;
-type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;
-type GetState = () => StoreState;
 
-export const createCharacterInventorySlice = (service: CharacterService) => {
-  return (set: SetState, get: GetState): CharacterInventorySlice => ({
+export const createCharacterInventorySlice = (service: CharacterService): StateCreator<
+  StoreState,
+  [['zustand/devtools', never]],
+  [],
+  CharacterInventorySlice
+> => {
+  return (set, get) => ({
     equipWeapon: async (
       id: string,
       weapon: { name: string; attackPoints: number } | null

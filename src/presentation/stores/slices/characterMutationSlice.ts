@@ -1,3 +1,4 @@
+import { type StateCreator } from 'zustand';
 import type { Character, GameMode } from '@/src/domain/entities/Character';
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { StatsData } from '@/src/domain/value-objects/Stats';
@@ -16,10 +17,14 @@ export interface CharacterMutationSlice {
 }
 
 type StoreState = CharacterMutationSlice & CharacterListSlice;
-type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;
 
-export const createCharacterMutationSlice = (service: CharacterService) => {
-  return (set: SetState): CharacterMutationSlice => ({
+export const createCharacterMutationSlice = (service: CharacterService): StateCreator<
+  StoreState,
+  [['zustand/devtools', never]],
+  [],
+  CharacterMutationSlice
+> => {
+  return (set) => ({
     createCharacter: async (data) => {
       set({ error: null }, false, 'character/createCharacter:start');
       try {

@@ -1,3 +1,4 @@
+import { type StateCreator } from 'zustand';
 import type {
   CombatState,
   CombatAction,
@@ -91,11 +92,14 @@ export interface CombatSlice {
 }
 
 type StoreState = CombatSlice & CharacterListSlice & CharacterStatsSlice & CharacterInventorySlice & ItemsCatalogSlice;
-type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;
-type GetState = () => StoreState;
 
-export const createCombatSlice = () => {
-  return (set: SetState, get: GetState): CombatSlice => ({
+export const createCombatSlice = (): StateCreator<
+  StoreState,
+  [['zustand/devtools', never]],
+  [],
+  CombatSlice
+> => {
+  return (set, get) => ({
     combat: null,
     availableActions: [],
     isAnimating: false,

@@ -35,15 +35,15 @@ export const createCharacterStore = () => {
 
   return createStore<CharacterStore>()(
     devtools(
-      (set, get) => ({
-        ...createCharacterListSlice(service)(set, get),
-        ...createCharacterMutationSlice(service)(set),
-        ...createCharacterStatsSlice(service)(set, get),
-        ...createCharacterInventorySlice(service)(set, get),
-        ...createCharacterMetadataSlice(service)(set, get),
-        ...createCharacterItemsSlice(service)(set, get),
-        ...createItemsCatalogSlice()(set, get),
-        ...createCombatSlice()(set, get),
+      (...args) => ({
+        ...createCharacterListSlice(service)(...args),
+        ...createCharacterMutationSlice(service)(...args),
+        ...createCharacterStatsSlice(service)(...args),
+        ...createCharacterInventorySlice(service)(...args),
+        ...createCharacterMetadataSlice(service)(...args),
+        ...createCharacterItemsSlice(service)(...args),
+        ...createItemsCatalogSlice()(...args),
+        ...createCombatSlice()(...args),
       }),
       { name: 'CharacterStore', enabled: typeof window !== 'undefined' }
     )

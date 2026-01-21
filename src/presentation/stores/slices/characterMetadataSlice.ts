@@ -1,3 +1,4 @@
+import { type StateCreator } from 'zustand';
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { CharacterListSlice } from './characterListSlice';
 import { handleSliceError } from './sliceHelpers';
@@ -13,11 +14,14 @@ export type CharacterMetadataSlice = {
 };
 
 type StoreState = CharacterMetadataSlice & CharacterListSlice;
-type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;
-type GetState = () => StoreState;
 
-export const createCharacterMetadataSlice = (service: CharacterService) => {
-  return (set: SetState, get: GetState): CharacterMetadataSlice => ({
+export const createCharacterMetadataSlice = (service: CharacterService): StateCreator<
+  StoreState,
+  [['zustand/devtools', never]],
+  [],
+  CharacterMetadataSlice
+> => {
+  return (set, get) => ({
     updateName: async (id: string, name: string) => {
       const character = get().characters[id];
       if (!character) return;

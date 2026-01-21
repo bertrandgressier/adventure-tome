@@ -1,3 +1,4 @@
+import { type StateCreator } from 'zustand';
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { StatsData } from '@/src/domain/value-objects/Stats';
 import type { CharacterListSlice } from './characterListSlice';
@@ -10,11 +11,14 @@ export interface CharacterStatsSlice {
 }
 
 type StoreState = CharacterStatsSlice & CharacterListSlice;
-type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;
-type GetState = () => StoreState;
 
-export const createCharacterStatsSlice = (service: CharacterService) => {
-  return (set: SetState, get: GetState): CharacterStatsSlice => ({
+export const createCharacterStatsSlice = (service: CharacterService): StateCreator<
+  StoreState,
+  [['zustand/devtools', never]],
+  [],
+  CharacterStatsSlice
+> => {
+  return (set, get) => ({
     updateStats: async (id: string, stats: Partial<StatsData>) => {
       const character = get().characters[id];
       if (!character) return;
