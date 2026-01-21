@@ -204,7 +204,7 @@ export class CombatEngine {
     if (hit) {
       // Calculate and apply damage (formule officielle: 1 + 1d6 + DOMMAGES ACTUELS)
       damageDice = diceOverrides?.damageDice ?? Math.floor(Math.random() * 6) + 1;
-      const totalDamageBonus = isPlayerAttacking ? state.player.totalDamageBonus : 0; // Enemy has no weapons
+      const totalDamageBonus = isPlayerAttacking ? newState.player.totalDamageBonus : 0; // Enemy has no weapons
       damageDealt = 1 + damageDice + totalDamageBonus; // Formule officielle
 
       events.push({
