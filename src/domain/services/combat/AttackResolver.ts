@@ -75,11 +75,11 @@ export class AttackResolver {
     let damageDealt = 0;
 
     if (hit) {
-      // Calculate and apply damage
+      // Calculate and apply damage (formule officielle: 1 + 1d6 + DOMMAGES ACTUELS)
       damageDiceRolled = DiceRoller.rollDamageDice(diceOverrides?.damageDice);
       const baseDamage = damageDiceRolled; // rollDamageDice returns a number
       const totalDamageBonus = isPlayerAttacking ? state.player.totalDamageBonus : 0; // Enemy has no weapons
-      const damage = baseDamage + totalDamageBonus;
+      const damage = 1 + baseDamage + totalDamageBonus; // Formule officielle
       damageDealt = Math.max(0, damage);
 
       events.push({
