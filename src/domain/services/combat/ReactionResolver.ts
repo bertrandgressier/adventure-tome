@@ -16,29 +16,15 @@ function isStateV3(state: CombatState | CombatState): state is CombatState {
 }
 
 export class ReactionResolver {
-  // Overload for V2 state
   static resolveReroll(
     state: CombatState,
     diceOverrides?: DiceOverrides
-  ): ActionResolutionResult;
-  
-  // Overload for V3 state
-  static resolveReroll(
-    state: CombatState,
-    diceOverrides?: DiceOverrides
-  ): ActionResolutionResult;
-  
-  // Implementation
-  static resolveReroll(
-    state: CombatState | CombatState,
-    diceOverrides?: DiceOverrides
-  ): ActionResolutionResult | ActionResolutionResult {
-    if (isStateV3(state)) {
-      return this.resolveRerollV3(state, diceOverrides);
-    }
-    return this.resolveRerollV2(state as CombatState, diceOverrides);
+  ): ActionResolutionResult {
+    // All states are V3 now - directly call resolveRerollV3
+    return this.resolveRerollV3(state, diceOverrides);
   }
 
+  /* V2 CODE - DEAD CODE - Commented out to fix TypeScript build
   private static resolveRerollV2(
     state: CombatState,
     diceOverrides?: DiceOverrides
@@ -92,6 +78,7 @@ export class ReactionResolver {
 
     return { state: newState, events };
   }
+  END OF V2 DEAD CODE */
 
   private static resolveRerollV3(
     state: CombatState,
@@ -137,30 +124,29 @@ export class ReactionResolver {
     const newState: CombatState = {
       ...state,
       pendingDamage: undefined,
-      phase: 'player_turn' as const,
     };
 
-    return { state: newState, events: [] };
+    // Advance phase after blocking
+    const phaseUpdate = PhaseManager.advancePhase(newState, {});
+    return { state: { ...newState, ...phaseUpdate }, events: [] };
   }
 
   static resolveSkip(state: CombatState): ActionResolutionResult {
     let newState: CombatState = { ...state };
 
-    if (state.phase === 'player_attack' as const) {
-      const phaseUpdate = PhaseManager.advancePhase(newState, {});
-      newState = { ...newState, ...phaseUpdate };
-    } else if (state.phase === 'enemy_attack' as const && state.pendingDamage) {
+    // Si on a des dégâts en attente, les appliquer
+    if (state.pendingDamage) {
       const newEndurance = Math.max(0, state.player.endurance - state.pendingDamage.amount);
 
       newState = {
         ...state,
         player: { ...state.player, endurance: newEndurance },
         pendingDamage: undefined,
-        phase: 'player_turn' as const,
-        roundNumber: state.roundNumber + 1,
       };
     }
 
-    return { state: newState, events: [] };
+    // Avancer la phase
+    const phaseUpdate = PhaseManager.advancePhase(newState, {});
+    return { state: { ...newState, ...phaseUpdate }, events: [] };
   }
 }

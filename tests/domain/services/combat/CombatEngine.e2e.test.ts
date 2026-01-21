@@ -12,7 +12,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
-import { CombatPhaseV3 } from '@/src/domain/types/CombatPhaseV3';
+import { CombatPhase } from '@/src/domain/types/CombatPhase';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
 import {
   createTestCombat,
@@ -45,7 +45,7 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
       const newState = simulateAttack(state, [2, 1], 4);
       assertEnemyHP(newState, 0); // 8 - 8 = 0
       assertVictory(newState);
-      assertPhase(newState, CombatPhaseV3.ENDED);
+      assertPhase(newState, CombatPhase.ENDED);
     });
   });
 
@@ -69,7 +69,7 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
       
       assertDefeat(newState);
       assertPlayerHP(newState, 0); // 5 - 7 = -2, capped at 0
-      assertPhase(newState, CombatPhaseV3.ENDED);
+      assertPhase(newState, CombatPhase.ENDED);
     });
   });
 
@@ -149,7 +149,7 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
       );
 
       assertCurrentTurn(state, 'enemy');
-      assertPhase(state, CombatPhaseV3.WAITING_ATTACK_ROLL);
+      assertPhase(state, CombatPhase.WAITING_ATTACK_ROLL);
 
       // Ennemi attaque en premier
       let newState = simulateAttack(state, [2, 3], 4); // Touche, 1 + 4 + 0 = 5 dégâts
@@ -369,16 +369,16 @@ describe('CombatEngine V3 - Tests E2E Complets', () => {
   describe('Combat flow integrity', () => {
     it('should maintain correct phase transitions', () => {
       const state = createTestCombat();
-      assertPhase(state, CombatPhaseV3.WAITING_ATTACK_ROLL);
+      assertPhase(state, CombatPhase.WAITING_ATTACK_ROLL);
 
       // Joueur touche
       let newState = simulateAttack(state, [3, 2], 4);
-      assertPhase(newState, CombatPhaseV3.TURN_COMPLETE);
+      assertPhase(newState, CombatPhase.TURN_COMPLETE);
 
       // Skip to enemy turn
       const skip = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
       newState = skip.state;
-      assertPhase(newState, CombatPhaseV3.WAITING_ATTACK_ROLL);
+      assertPhase(newState, CombatPhase.WAITING_ATTACK_ROLL);
       assertCurrentTurn(newState, 'enemy');
     });
 

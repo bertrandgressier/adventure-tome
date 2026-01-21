@@ -217,14 +217,20 @@ describe('combatSlice', () => {
       expect(initialCombat?.events).toHaveLength(1);
       expect(initialCombat?.events[0]?.type).toBe('combat_start');
 
-      // Execute first attack - should add ATTACK_ROLL event (and possibly DAMAGE_DEALT)
-      slice.executeAction({ type: CombatActionType.ATTACK });
+      // Execute first attack with guaranteed hit - should add ATTACK_ROLL event
+      slice.executeAction(
+        { type: CombatActionType.ATTACK },
+        { hitDice: [2, 2] } // Total 4, guaranteed hit for dexterite 12
+      );
       const combat1 = currentState.combat;
       const eventsAfterFirstAttack = combat1?.events.length ?? 0;
-      expect(eventsAfterFirstAttack).toBeGreaterThan(1); // At least combat_start + attack_roll
+      expect(eventsAfterFirstAttack).toBeGreaterThanOrEqual(2); // At least combat_start + attack_roll
 
       // Execute second attack - should accumulate more events
-      slice.executeAction({ type: CombatActionType.ATTACK });
+      slice.executeAction(
+        { type: CombatActionType.ATTACK },
+        { hitDice: [3, 3] } // Total 6, another hit
+      );
       const combat2 = currentState.combat;
       const eventsAfterSecondAttack = combat2?.events.length ?? 0;
       expect(eventsAfterSecondAttack).toBeGreaterThan(eventsAfterFirstAttack);

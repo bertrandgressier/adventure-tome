@@ -155,15 +155,12 @@ describe('combatUIHelpers', () => {
   });
 
   describe('isEnemy', () => {
-    it('should return true for enemy combatant with isBoss', () => {
+    it('should return true for enemy combatant', () => {
       const enemy = {
         name: 'Gobelin',
         dexterite: 6,
         endurance: 8,
         enduranceMax: 8,
-        chance: 0,
-        isBoss: false,
-        weapon: { id: 'dagger', name: 'Dague', bonus: 1 },
         weaponDamage: 0,
         passiveDamageBonus: 0,
         totalDamageBonus: 0,

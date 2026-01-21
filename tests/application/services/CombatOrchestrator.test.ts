@@ -302,9 +302,10 @@ describe('CombatOrchestrator', () => {
 
       const finalState: CombatState = {
         ...initialState,
-        phase: CombatPhase.VICTORY,
+        phase: CombatPhase.ENDED,
         roundNumber: 3,
         player: { ...initialState.player, endurance: 25, chance: 4 },
+        enemy: { ...initialState.enemy, endurance: 0 }, // Ennemi vaincu
         events: [...initialState.events, ...extraEvents]
       };
 
@@ -334,7 +335,8 @@ describe('CombatOrchestrator', () => {
 
       const finalState: CombatState = {
         ...initialState,
-        phase: CombatPhase.DEFEAT,
+        phase: CombatPhase.ENDED,
+        player: { ...initialState.player, endurance: 0 }, // Joueur mort
       };
 
       const summary = orchestrator.generateCombatSummary(initialState, finalState);
@@ -358,7 +360,8 @@ describe('CombatOrchestrator', () => {
 
       const finalState: CombatState = {
         ...initialState,
-        phase: CombatPhase.DEFEAT,
+        phase: CombatPhase.ENDED,
+        player: { ...initialState.player, endurance: 0 }, // Joueur mort
         events: [...initialState.events]
       };
 

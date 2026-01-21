@@ -31,7 +31,7 @@ function createMockCombatState(overrides?: Partial<CombatState>): CombatState {
       passiveDamageBonus: 0,
       totalDamageBonus: 1,
     },
-    phase: CombatPhase.PLAYER_TURN,
+    phase: CombatPhase.WAITING_ATTACK_ROLL,
     roundNumber: 1,
     currentAttacker: 'player',
     config: {

@@ -33,7 +33,7 @@ const createMockState = (playerEndurance: number, enemyEndurance: number): Comba
     passiveDamageBonus: 0,
     totalDamageBonus: 0,
   },
-  phase: CombatPhase.PLAYER_TURN,
+  phase: CombatPhase.WAITING_ATTACK_ROLL,
   roundNumber: 1,
   currentAttacker: Attacker.PLAYER,
   config: {

@@ -74,7 +74,13 @@ export class CombatEngine {
       usedReroll: false,
       isFirstAttack: true,
       config,
-      events: [],
+      events: [
+        {
+          type: CombatEventType.COMBAT_START,
+          timestamp: new Date().toISOString(),
+          round: 1,
+        },
+      ],
       usedItems: [],
       history: [],
     };

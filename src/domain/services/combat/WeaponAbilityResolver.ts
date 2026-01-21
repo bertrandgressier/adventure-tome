@@ -225,10 +225,12 @@ export class WeaponAbilityResolver {
         ...state.usedAbilities,
         [abilityId]: usageCount,
       },
-      // Advance to PLAYER_TURN after negating damage (same as resolveSkip)
-      phase: 'player_turn' as const,
       roundNumber: state.roundNumber + 1,
     };
+
+    // Advance phase using PhaseManager
+    const phaseUpdate = PhaseManager.advancePhase(newState, {});
+    const finalState = { ...newState, ...phaseUpdate };
 
     const event: CombatEvent = {
       type: CombatEventType.WEAPON_ABILITY,
@@ -237,6 +239,6 @@ export class WeaponAbilityResolver {
       abilityId,
     };
 
-    return { state: newState, events: [event], triggered: true };
+    return { state: finalState, events: [event], triggered: true };
   }
 }

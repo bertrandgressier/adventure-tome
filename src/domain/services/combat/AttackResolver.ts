@@ -14,35 +14,22 @@ export interface ActionResolutionResult {
   events: CombatEvent[];
 }
 
-// Type guard to check if state is V3
+// Type guard to check if state is V3 - NOTE: In V3, ALL states have currentTurn
+// So resolveV2 is never called (dead code)
 function isStateV3(state: CombatState | CombatState): state is CombatState {
   return 'currentTurn' in state && typeof state.currentTurn === 'string';
 }
 
 export class AttackResolver {
-  // Overload for V2 state
   static resolve(
     state: CombatState,
     diceOverrides?: DiceOverrides
-  ): ActionResolutionResult;
-  
-  // Overload for V3 state
-  static resolve(
-    state: CombatState,
-    diceOverrides?: DiceOverrides
-  ): ActionResolutionResult;
-  
-  // Implementation
-  static resolve(
-    state: CombatState | CombatState,
-    diceOverrides?: DiceOverrides
-  ): ActionResolutionResult | ActionResolutionResult {
-    if (isStateV3(state)) {
-      return this.resolveV3(state, diceOverrides);
-    }
-    return this.resolveV2(state as CombatState, diceOverrides);
+  ): ActionResolutionResult {
+    // All states are V3 now (have currentTurn), so directly call resolveV3
+    return this.resolveV3(state, diceOverrides);
   }
 
+  /* V2 CODE - DEAD CODE - Commented out to fix TypeScript build
   private static resolveV2(
     state: CombatState,
     diceOverrides?: DiceOverrides
@@ -196,6 +183,7 @@ export class AttackResolver {
 
     return { state: newState, events };
   }
+  END OF V2 DEAD CODE */
 
   private static resolveV3(
     state: CombatState,

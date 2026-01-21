@@ -12,7 +12,7 @@ import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
 import type { CombatState } from '@/src/domain/types/combat-state';
 import type { PlayerConfig, EnemyConfig, CombatConfig, CombatWeapon } from '@/src/domain/types/combatants';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
-import { CombatPhaseV3 } from '@/src/domain/types/CombatPhaseV3';
+import { CombatPhase } from '@/src/domain/types/CombatPhase';
 import type { DiceOverrides } from '@/src/domain/services/combat/DiceRoller';
 
 /**
@@ -180,7 +180,7 @@ export function simulateFullRound(
   }
   
   // Passer au tour ennemi si nécessaire
-  if (newState.phase === CombatPhaseV3.TURN_COMPLETE) {
+  if (newState.phase === CombatPhase.TURN_COMPLETE) {
     const skipResult = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
     newState = skipResult.state;
   }
@@ -189,7 +189,7 @@ export function simulateFullRound(
   newState = simulateAttack(newState, enemyDice.hit, enemyDice.damage);
   
   // Passer au round suivant si nécessaire
-  if (newState.phase === CombatPhaseV3.TURN_COMPLETE) {
+  if (newState.phase === CombatPhase.TURN_COMPLETE) {
     const skipResult = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
     newState = skipResult.state;
   }
@@ -260,7 +260,7 @@ export function assertEnemyHP(state: CombatState, expected: number): void {
   }
 }
 
-export function assertPhase(state: CombatState, expected: CombatPhaseV3): void {
+export function assertPhase(state: CombatState, expected: CombatPhase): void {
   if (state.phase !== expected) {
     throw new Error(`Expected phase to be ${expected} but got ${state.phase}`);
   }

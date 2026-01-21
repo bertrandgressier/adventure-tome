@@ -118,7 +118,7 @@ describe('Combat V2 - End to End Integration Tests', () => {
       slice.startCombat('test-char-id', mockEnemy, defaultConfig);
 
       expect(currentState.combat).not.toBeNull();
-      expect(currentState.combat?.phase).toBe(CombatPhase.PLAYER_TURN);
+      expect(currentState.combat?.phase).toBe(CombatPhase.WAITING_ATTACK_ROLL);
 
       const initialEnemyEndurance = currentState.combat?.enemy.endurance ?? 0;
       expect(initialEnemyEndurance).toBe(15);

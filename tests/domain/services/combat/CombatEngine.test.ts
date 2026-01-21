@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
-import { CombatPhaseV3 } from '@/src/domain/types/CombatPhaseV3';
+import { CombatPhase } from '@/src/domain/types/CombatPhase';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
 import type { PlayerConfig, EnemyConfig, CombatConfig, CombatWeapon } from '@/src/domain/types/combatants';
 
@@ -43,7 +43,7 @@ describe('CombatEngine', () => {
       expect(state.player.totalDamageBonus).toBe(3); // weapon bonus
       expect(state.enemy.name).toBe('Test Enemy');
       expect(state.enemy.totalDamageBonus).toBe(0); // enemies have no weapons
-      expect(state.phase).toBe(CombatPhaseV3.WAITING_ATTACK_ROLL);
+      expect(state.phase).toBe(CombatPhase.WAITING_ATTACK_ROLL);
       expect(state.currentTurn).toBe('player');
       expect(state.roundNumber).toBe(1);
       expect(state.usedReroll).toBe(false);
@@ -119,7 +119,7 @@ describe('CombatEngine', () => {
         mockCombatConfig
       );
 
-      const completeTurnState = { ...state, phase: CombatPhaseV3.TURN_COMPLETE };
+      const completeTurnState = { ...state, phase: CombatPhase.TURN_COMPLETE };
       const actions = CombatEngine.getAvailableActions(completeTurnState);
 
       expect(actions).toHaveLength(1);
@@ -157,7 +157,7 @@ describe('CombatEngine', () => {
         { hitDice: [1, 1] } // total 2, hits dexterite 12
       );
 
-      expect(result.state.phase).toBe(CombatPhaseV3.WAITING_DAMAGE_ROLL);
+      expect(result.state.phase).toBe(CombatPhase.WAITING_DAMAGE_ROLL);
       expect(result.state.currentTurn).toBe('player');
       expect(result.state.lastRoll).toBeDefined();
       expect(result.state.lastRoll?.success).toBe(true);
@@ -179,7 +179,7 @@ describe('CombatEngine', () => {
         { hitDice: [6, 6] } // total 12, misses dexterite 10
       );
 
-      expect(result.state.phase).toBe(CombatPhaseV3.TURN_COMPLETE);
+      expect(result.state.phase).toBe(CombatPhase.TURN_COMPLETE);
       expect(result.state.currentTurn).toBe('player');
       expect(result.state.lastRoll).toBeDefined();
       expect(result.state.lastRoll?.success).toBe(false);
@@ -194,7 +194,7 @@ describe('CombatEngine', () => {
         mockCombatConfig
       );
 
-      const wrongPhaseState = { ...state, phase: CombatPhaseV3.ENDED };
+      const wrongPhaseState = { ...state, phase: CombatPhase.ENDED };
       const result = CombatEngine.resolve(
         wrongPhaseState,
         { type: CombatActionType.ATTACK }
@@ -221,7 +221,7 @@ describe('CombatEngine', () => {
         }
       );
 
-      expect(result.state.phase).toBe(CombatPhaseV3.ENDED);
+      expect(result.state.phase).toBe(CombatPhase.ENDED);
       expect(result.state.enemy.endurance).toBeLessThanOrEqual(0);
       
       // Should have combat end event
@@ -241,7 +241,7 @@ describe('CombatEngine', () => {
 
       const turnCompleteState = { 
         ...state, 
-        phase: CombatPhaseV3.TURN_COMPLETE,
+        phase: CombatPhase.TURN_COMPLETE,
         currentTurn: 'player' as const
       };
       
@@ -250,7 +250,7 @@ describe('CombatEngine', () => {
         { type: CombatActionType.SKIP }
       );
 
-      expect(result.state.phase).toBe(CombatPhaseV3.WAITING_ATTACK_ROLL);
+      expect(result.state.phase).toBe(CombatPhase.WAITING_ATTACK_ROLL);
       expect(result.state.currentTurn).toBe('enemy');
       expect(result.state.roundNumber).toBe(1); // Same round
       expect(result.events).toHaveLength(0);
@@ -266,7 +266,7 @@ describe('CombatEngine', () => {
 
       const enemyTurnCompleteState = { 
         ...state, 
-        phase: CombatPhaseV3.TURN_COMPLETE,
+        phase: CombatPhase.TURN_COMPLETE,
         currentTurn: 'enemy' as const
       };
       
@@ -275,7 +275,7 @@ describe('CombatEngine', () => {
         { type: CombatActionType.SKIP }
       );
 
-      expect(result.state.phase).toBe(CombatPhaseV3.WAITING_ATTACK_ROLL);
+      expect(result.state.phase).toBe(CombatPhase.WAITING_ATTACK_ROLL);
       expect(result.state.currentTurn).toBe('player');
       expect(result.state.roundNumber).toBe(2); // New round
     });
@@ -364,7 +364,7 @@ describe('CombatEngine', () => {
       const endedState = {
         ...state,
         enemy: { ...state.enemy, endurance: 0 },
-        phase: CombatPhaseV3.ENDED,
+        phase: CombatPhase.ENDED,
       };
 
       const result = CombatEngine.resolve(
