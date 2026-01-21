@@ -90,4 +90,5 @@ export interface CombatConfig {
   damageFormula: string;
   firstAttacker?: Attacker;
   isSurprise?: boolean;
+  autoPlay?: boolean; // Default true - auto-skip + auto-play enemy
 }

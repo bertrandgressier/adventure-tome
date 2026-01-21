@@ -12,18 +12,13 @@ import type {
 } from '@/src/domain/types/combatants';
 import type { CatalogItem, WeaponAbilityDefinition } from '@/src/domain/types/items';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
+import { CombatAutoPlayService } from '@/src/domain/services/combat/CombatAutoPlayService';
 import type { DiceOverrides } from '@/src/domain/services/combat/DiceRoller';
 import type { CharacterListSlice } from './characterListSlice';
 import type { CharacterStatsSlice } from './characterStatsSlice';
 import type { CharacterInventorySlice } from './characterInventorySlice';
 import type { ItemsCatalogSlice } from './itemsCatalogSlice';
 import { handleSliceError } from './sliceHelpers';
-
-/**
- * Animation phases pour séquencer les animations de combat
- * idle → rolling → result → damage → idle
- */
-export type AnimationPhase = 'idle' | 'rolling' | 'result' | 'damage';
 
 /**
  * Combat Slice - Gère l'état du combat V3
@@ -37,12 +32,6 @@ export interface CombatSlice {
   
   /** Actions disponibles pour le joueur dans l'état actuel */
   availableActions: AvailableAction[];
-  
-  /** Indique si une animation est en cours */
-  isAnimating: boolean;
-  
-  /** Phase d'animation actuelle pour séquencer les visuels */
-  animationPhase: AnimationPhase;
   
   /** Erreur éventuelle lors des opérations de combat */
   error: string | null;
@@ -82,11 +71,6 @@ export interface CombatSlice {
    */
   cancelCombat: () => void;
 
-  /**
-   * Contrôle l'état d'animation pour l'UI
-   */
-  setAnimating: (animating: boolean) => void;
-
   /** @internal Valeur privée pour tracker la chance initiale */
   privateInitialChance: number;
 }
@@ -102,8 +86,6 @@ export const createCombatSlice = (): StateCreator<
   return (set, get) => ({
     combat: null,
     availableActions: [],
-    isAnimating: false,
-    animationPhase: 'idle',
     privateInitialChance: 0,
     error: null,
 
@@ -147,7 +129,6 @@ export const createCombatSlice = (): StateCreator<
         set({
           combat: stateWithReroll,
           availableActions,
-          isAnimating: false,
           privateInitialChance: stats.chanceInitiale,
           error: null,
         }, false, 'combat/startCombat');
@@ -164,115 +145,28 @@ export const createCombatSlice = (): StateCreator<
           throw new Error('No active combat');
         }
 
+        // 1. Résoudre l'action utilisateur
         const result = CombatEngine.resolve(combat, action, diceOverrides);
-        const availableActions = CombatEngine.getAvailableActions(result.state);
+        
+        // 2. Auto-skip + auto-play ennemi immédiatement
+        const finalState = CombatAutoPlayService.resolveAutoActions(result.state);
+        
+        const availableActions = CombatEngine.getAvailableActions(finalState);
 
-        // Append new events to existing events in state
+        // Update state avec le résultat final (toutes les actions auto sont déjà résolues)
         const updatedCombat = {
-          ...result.state,
-          events: [...result.state.events, ...result.events],
+          ...finalState,
+          events: [...finalState.events, ...result.events],
         };
 
-        // Phase 1: Start rolling animation
         set({
           combat: updatedCombat,
           availableActions,
           error: null,
-          isAnimating: true,
-          animationPhase: 'rolling',
         }, false, `combat/executeAction/${action.type}`);
-
-        // Phase 2: Show result after dice animation (800ms)
-        setTimeout(() => {
-          set({ animationPhase: 'result' }, false, 'combat/showResult');
-          
-          // Phase 3: Show damage indicator if there's pending damage (after 600ms)
-          const currentCombat = get().combat;
-          if (currentCombat?.pendingDamage) {
-            setTimeout(() => {
-              set({ animationPhase: 'damage' }, false, 'combat/showDamage');
-              
-              // Phase 4: Clear damage and return to idle (after 1500ms)
-              setTimeout(() => {
-                set({ 
-                  animationPhase: 'idle',
-                  isAnimating: false,
-                }, false, 'combat/clearDamage');
-              }, 1500);
-            }, 600);
-          } else {
-            // No damage, go to idle after showing result (400ms)
-            setTimeout(() => {
-              set({ 
-                animationPhase: 'idle',
-                isAnimating: false,
-              }, false, 'combat/idleNoDamage');
-              
-              // Auto-resolve enemy turn (pas d'input utilisateur requis)
-              const combatAfterResult = get().combat;
-              if (combatAfterResult && combatAfterResult.currentTurn === 'enemy') {
-                // Petit délai pour montrer la transition
-                setTimeout(() => {
-                  const stillInEnemyTurn = get().combat;
-                  if (stillInEnemyTurn && stillInEnemyTurn.currentTurn === 'enemy') {
-                    // Lancer l'attaque ennemie automatiquement
-                    const enemyAttackResult = CombatEngine.resolve(
-                      stillInEnemyTurn,
-                      { type: 'attack' }
-                    );
-                    
-                    const newAvailableActions = CombatEngine.getAvailableActions(enemyAttackResult.state);
-                    
-                    const finalCombat = {
-                      ...enemyAttackResult.state,
-                      events: [...enemyAttackResult.state.events, ...enemyAttackResult.events],
-                    };
-                    
-                    // Start enemy attack animation sequence
-                    set({
-                      combat: finalCombat,
-                      availableActions: newAvailableActions,
-                      isAnimating: true,
-                      animationPhase: 'rolling',
-                    }, false, 'combat/enemyAttack');
-                    
-                    // Enemy dice result
-                    setTimeout(() => {
-                      set({ animationPhase: 'result' }, false, 'combat/enemyResult');
-                      
-                      const enemyCombat = get().combat;
-                      if (enemyCombat?.pendingDamage) {
-                        // Show damage to player
-                        setTimeout(() => {
-                          set({ animationPhase: 'damage' }, false, 'combat/enemyDamage');
-                          
-                          // Clear and return to idle
-                          setTimeout(() => {
-                            set({ 
-                              animationPhase: 'idle',
-                              isAnimating: false,
-                            }, false, 'combat/enemyClearDamage');
-                          }, 1500);
-                        }, 600);
-                      } else {
-                        // No damage (enemy missed)
-                        setTimeout(() => {
-                          set({ 
-                            animationPhase: 'idle',
-                            isAnimating: false,
-                          }, false, 'combat/enemyIdleNoDamage');
-                        }, 400);
-                      }
-                    }, 800);
-                  }
-                }, 500); // Délai avant attaque ennemie
-              }
-            }, 400);
-          }
-        }, 800);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Erreur de mise à jour';
-        set({ error: errorMessage, isAnimating: false, animationPhase: 'idle' }, false, 'combat/error');
+        set({ error: errorMessage }, false, 'combat/error');
         throw error;
       }
     },
@@ -306,7 +200,6 @@ export const createCombatSlice = (): StateCreator<
         set({
           combat: null,
           availableActions: [],
-          isAnimating: false,
           privateInitialChance: 0,
           error: null,
         }, false, 'combat/endCombat');
@@ -320,16 +213,10 @@ export const createCombatSlice = (): StateCreator<
       set({
         combat: null,
         availableActions: [],
-        isAnimating: false,
-        animationPhase: 'idle',
         privateInitialChance: 0,
         error: null,
       }, false, 'combat/cancelCombat');
     },
-
-    setAnimating: (animating) => {
-      set({ isAnimating: animating }, false, 'combat/setAnimating');
-    }
   });
 };
 

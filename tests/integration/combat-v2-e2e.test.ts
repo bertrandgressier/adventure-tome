@@ -74,6 +74,7 @@ const mockEnemy: EnemyConfig = {
 const defaultConfig = {
   maxEnemies: 3,
   damageFormula: '2d6 + HABILETÉ + weapon',
+  autoPlay: false, // Désactiver auto-skip pour les tests
 };
 
 describe('Combat V2 - End to End Integration Tests', () => {
@@ -98,7 +99,6 @@ describe('Combat V2 - End to End Integration Tests', () => {
     currentState = {
       combat: null,
       availableActions: [],
-      isAnimating: false,
       privateInitialChance: 0,
       error: null,
       characters: {},

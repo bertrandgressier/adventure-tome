@@ -22,7 +22,6 @@ export interface ActionPanelProps {
 export function ActionPanel({ characterId }: ActionPanelProps) {
   const availableActions = useCharacterStore((state) => state.availableActions);
   const executeAction = useCharacterStore((state) => state.executeAction);
-  const isAnimating = useCharacterStore((state) => state.isAnimating);
   const combat = useCharacterStore((state) => state.combat);
   const characters = useCharacterStore((state) => state.characters);
   const getCharacter = (id: string) => characters[id];
@@ -50,7 +49,6 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
     ) ?? [];
 
   const handleAction = (actionType: CombatActionType) => {
-    if (isAnimating) return;
 
     if (actionType === 'use_item') {
       setIsItemPickerOpen(true);
@@ -93,11 +91,11 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
               >
                 <Button
                   variant="default"
-                  disabled={!action.enabled || isAnimating}
+                  disabled={!action.enabled}
                   onClick={() => handleAction(action.action.type as CombatActionType)}
                   className="btn-mobile min-h-[44px] relative group"
                   aria-label={actionInfo.label}
-                  aria-disabled={!action.enabled || isAnimating}
+                  aria-disabled={!action.enabled}
                 >
                   <motion.span
                     className="text-xl mr-2"

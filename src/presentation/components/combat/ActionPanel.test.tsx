@@ -242,7 +242,8 @@ describe('ActionPanel', () => {
       expect(chanceButton).toBeDisabled();
     });
 
-    it('should disable all buttons when animating', () => {
+    // TODO: Re-implémenter ce test si nécessaire après suppression de isAnimating
+    it.skip('should disable all buttons when animating', () => {
       mockUseCharacterStore.mockImplementation((selector) => {
         const state = {
           combat: mockCombat,

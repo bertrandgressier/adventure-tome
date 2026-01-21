@@ -12,7 +12,6 @@ const mockSet = vi.fn();
 let currentState: {
   combat: CombatSlice['combat'];
   availableActions: CombatSlice['availableActions'];
-  isAnimating: CombatSlice['isAnimating'];
   privateInitialChance: CombatSlice['privateInitialChance'];
   error: CombatSlice['error'];
   characters: Record<string, Character>;
@@ -116,7 +115,6 @@ describe('combatSlice', () => {
     currentState = {
       combat: null,
       availableActions: [],
-      isAnimating: false,
       privateInitialChance: 0,
       error: null,
       characters: {},
@@ -141,14 +139,7 @@ describe('combatSlice', () => {
       }
     });
 
-    it('should set isAnimating to false', () => {
-      slice.startCombat('hero-id', mockEnemy, defaultConfig);
 
-      const setCallArgs = mockSet.mock.calls[0]?.[0];
-      if (setCallArgs && typeof setCallArgs === 'object') {
-        expect(setCallArgs.isAnimating).toBe(false);
-      }
-    });
 
     it('should set usedReroll to true when character has no reroll item', () => {
       slice.startCombat('hero-id', mockEnemy, defaultConfig);
@@ -267,15 +258,6 @@ describe('combatSlice', () => {
       }
     });
 
-    it('should clear isAnimating', async () => {
-      await slice.endCombat();
-
-      const lastCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];
-      if (lastCallArgs && typeof lastCallArgs === 'object') {
-        expect(lastCallArgs.isAnimating).toBe(false);
-      }
-    });
-
     it('should return early when no active combat', async () => {
       currentState.combat = null;
 
@@ -305,28 +287,6 @@ describe('combatSlice', () => {
       }
     });
 
-    it('should clear isAnimating', () => {
-      slice.cancelCombat();
-
-      const lastCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];
-      if (lastCallArgs && typeof lastCallArgs === 'object') {
-        expect(lastCallArgs.isAnimating).toBe(false);
-      }
-    });
-  });
-
-  describe('setAnimating', () => {
-    it('should call set with animating true', () => {
-      slice.setAnimating(true);
-
-      expect(mockSet).toHaveBeenCalledWith({ isAnimating: true }, false, 'combat/setAnimating');
-    });
-
-     it('should call set with animating false', () => {
-      slice.setAnimating(false);
-
-      expect(mockSet).toHaveBeenCalledWith({ isAnimating: false }, false, 'combat/setAnimating');
-    });
   });
 
   describe('error handling', () => {
@@ -345,12 +305,11 @@ describe('combatSlice', () => {
 
       expect(() => slice.executeAction({ type: CombatActionType.ATTACK })).toThrow();
 
-      // executeAction fait 2 appels en cas d'erreur : isAnimating=true puis error + isAnimating=false
+      // executeAction ne fait plus qu'un appel set() avec error
       const setCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];
       if (setCallArgs && typeof setCallArgs === 'object') {
         expect(setCallArgs.error).toBeDefined();
         expect(typeof setCallArgs.error).toBe('string');
-        expect(setCallArgs.isAnimating).toBe(false); // Animation arrêtée en cas d'erreur
       }
     });
 
@@ -369,8 +328,7 @@ describe('combatSlice', () => {
       
       slice.executeAction({ type: CombatActionType.ATTACK });
 
-      // executeAction fait 2 appels : isAnimating=true puis combat update
-      // Vérifier le deuxième appel qui contient error: null
+      // Vérifier le dernier appel qui contient error: null
       const setCallArgs = mockSet.mock.calls[1]?.[0];
       if (setCallArgs && typeof setCallArgs === 'object') {
         expect(setCallArgs.error).toBeNull();

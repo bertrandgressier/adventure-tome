@@ -74,6 +74,8 @@ export class CombatValidator {
       ) {
         actions.push({ action: { type: CombatActionType.REROLL }, enabled: true });
       }
+      
+      // Toujours proposer SKIP (sera auto-skip si pas d'autres actions)
       actions.push({ action: { type: CombatActionType.SKIP }, enabled: true });
     }
 
@@ -138,6 +140,38 @@ export class CombatValidator {
       attacker: state.currentTurn === 'player' ? 'player' : 'enemy',
       result,
     };
+  }
+
+  /**
+   * Vérifie si l'état actuel nécessite un auto-skip
+   * (phase TURN_COMPLETE sans actions manuelles disponibles)
+   */
+  static shouldAutoSkip(state: CombatState): boolean {
+    if (state.phase !== CombatPhase.TURN_COMPLETE) {
+      return false;
+    }
+
+    // Si le combat est terminé, pas d'auto-skip
+    if (this.checkCombatEnd(state) !== 'ongoing') {
+      return false;
+    }
+
+    // Vérifier s'il y a des actions manuelles disponibles (REROLL, weapon abilities)
+    const actions = this.getAvailableActions(state);
+    const hasManualActions = actions.some(a => a.action.type !== CombatActionType.SKIP);
+
+    return !hasManualActions;
+  }
+
+  /**
+   * Vérifie si le tour de l'ennemi doit être déclenché automatiquement
+   */
+  static shouldAutoPlayEnemy(state: CombatState): boolean {
+    return (
+      state.currentTurn === 'enemy' &&
+      state.phase === CombatPhase.WAITING_ATTACK_ROLL &&
+      this.checkCombatEnd(state) === 'ongoing'
+    );
   }
 
   static createRoundStartEvent(roundNumber: number): CombatEvent {

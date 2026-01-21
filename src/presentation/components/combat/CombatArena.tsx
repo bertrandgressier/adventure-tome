@@ -49,9 +49,10 @@ function convertToDiceRollResult(
 
 export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const combat = useCharacterStore((state) => state.combat);
-  const isAnimating = useCharacterStore((state) => state.isAnimating);
-  const animationPhase = useCharacterStore((state) => state.animationPhase);
   const prefersReducedMotion = useReducedMotion() ?? false;
+
+  // Les animations de dés/dégâts sont désactivées après suppression de animationPhase
+  // TODO: Implémenter des animations basées uniquement sur combat.phase si nécessaire
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -121,7 +122,6 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
         isPlayerTurn={isPlayerTurn} 
         isEnemyTurn={isEnemyTurn}
         enemyName={activeEnemy?.name ?? 'Ennemi'}
-        isAnimating={isAnimating}
       />
 
       <div className="flex-1 flex flex-col p-4 pb-20">
@@ -147,38 +147,12 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
             isActive={isPlayerTurn}
           />
 
-          {/* DiceAnimation en position absolue, centré entre les deux combattants */}
-          <AnimatePresence>
-            {(animationPhase === 'rolling' || animationPhase === 'result') && (
-              <motion.div 
-                className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="pointer-events-auto">
-                  <DiceAnimation
-                    diceResult={diceResult}
-                    isRolling={animationPhase === 'rolling'}
-                    outcome={outcome}
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* DiceAnimation désactivé temporairement */}
+          {/* AnimatePresence + DiceAnimation removed after isAnimating cleanup */}
         </div>
 
-        {/* Damage Indicator - only show during 'damage' phase */}
-        <AnimatePresence>
-          {animationPhase === 'damage' && combat.pendingDamage && (
-            <DamageIndicator
-              damage={combat.pendingDamage.amount}
-              playerHealth={combat.player.endurance}
-              playerMaxHealth={combat.player.enduranceMax}
-            />
-          )}
-        </AnimatePresence>
+        {/* DamageIndicator désactivé temporairement */}
+        {/* AnimatePresence + DamageIndicator removed after animationPhase cleanup */}
 
         <div className="mt-4">
           {CombatValidator.checkCombatEnd(combat) === 'victory' && (
@@ -206,12 +180,10 @@ function TurnIndicator({
   isPlayerTurn,
   isEnemyTurn,
   enemyName,
-  isAnimating,
 }: {
   isPlayerTurn: boolean;
   isEnemyTurn: boolean;
   enemyName: string;
-  isAnimating: boolean;
 }) {
   const prefersReducedMotion = useReducedMotion() ?? false;
 
@@ -235,25 +207,14 @@ function TurnIndicator({
       animate={{ 
         opacity: 1, 
         y: 0,
-        scale: isAnimating && !prefersReducedMotion ? [1, 1.02, 1] : 1,
       }}
       transition={{ 
         duration: 0.3,
-        scale: { duration: 0.5, repeat: isAnimating ? Infinity : 0 }
       }}
     >
       <span className={`font-cinzel font-bold ${textClass}`}>
         {turnText}
       </span>
-      {isAnimating && (
-        <motion.span 
-          className="ml-2 inline-block"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        >
-          🎲
-        </motion.span>
-      )}
     </motion.div>
   );
 }

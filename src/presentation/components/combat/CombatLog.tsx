@@ -10,7 +10,7 @@ import { CombatActionType } from '@/src/domain/types/CombatActionType';
 import { Attacker } from '@/src/domain/types/Attacker';
 
 export interface CombatLogProps {
-  history: readonly CombatHistoryEntry[];
+  history?: readonly CombatHistoryEntry[];
 }
 
 const logContentVariants = {
@@ -45,7 +45,7 @@ const eventVariants = {
   },
 };
 
-export function CombatLog({ history }: CombatLogProps) {
+export function CombatLog({ history = [] }: CombatLogProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion() ?? false;
