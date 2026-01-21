@@ -26,7 +26,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
         const updated = await service.updateCharacterName(id, name);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'metadata/updateName');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -41,7 +41,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
         const updated = await service.updateBook(id, book);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'metadata/updateBook');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -56,7 +56,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
         const updated = await service.updateNotes(id, notes);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'metadata/updateNotes');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -71,7 +71,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
         const updated = await service.goToParagraph(id, paragraph);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'metadata/goToParagraph');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -86,7 +86,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
         const updated = await service.updateDaysElapsed(id, days);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'metadata/updateDaysElapsed');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -101,7 +101,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
         const updated = await service.updateNextWakeUpParagraph(id, paragraph);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'metadata/updateNextWakeUpParagraph');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -116,7 +116,7 @@ export const createCharacterMetadataSlice = (service: CharacterService) => {
         const updated = await service.updateSecondTalent(id, secondTalent);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'metadata/updateSecondTalent');
       } catch (error) {
         handleSliceError(set, error);
         throw error;

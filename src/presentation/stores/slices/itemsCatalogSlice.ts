@@ -62,7 +62,7 @@ export const createItemsCatalogSlice = () => {
 
         set(() => ({
           catalog: buildCatalog([...useCustomItemsStore.getState().customItems, newItem]),
-        }));
+        }), false, 'catalog/createCustomItem');
 
         return newItem;
       },
@@ -74,7 +74,7 @@ export const createItemsCatalogSlice = () => {
 
         set(() => ({
           catalog: buildCatalog(useCustomItemsStore.getState().customItems),
-        }));
+        }), false, 'catalog/removeCustomItem');
       },
     };
   };

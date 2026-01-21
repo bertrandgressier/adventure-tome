@@ -23,7 +23,7 @@ export const createCharacterStatsSlice = (service: CharacterService) => {
         const updated = await service.updateCharacterStats(id, stats);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'character/updateStats');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -38,7 +38,7 @@ export const createCharacterStatsSlice = (service: CharacterService) => {
         const updated = await service.applyDamage(id, amount);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'character/applyDamage');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -53,7 +53,7 @@ export const createCharacterStatsSlice = (service: CharacterService) => {
         const updated = await service.healCharacter(id, amount);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'character/heal');
       } catch (error) {
         handleSliceError(set, error);
         throw error;

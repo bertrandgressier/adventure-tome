@@ -24,24 +24,24 @@ export const createCharacterListSlice = (service: CharacterService) => {
     error: null,
 
     loadAll: async () => {
-      set({ isLoading: true, error: null });
+      set({ isLoading: true, error: null }, false, 'character/loadAll:start');
       try {
         const characters = await service.getAllCharacters();
         const characterRecord = characters.reduce(
           (acc, char) => ({ ...acc, [char.id]: char }),
           {} as Record<string, Character>
         );
-        set({ characters: characterRecord, isLoading: false, hasInitialLoad: true });
+        set({ characters: characterRecord, isLoading: false, hasInitialLoad: true }, false, 'character/loadAll:success');
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'Erreur de chargement',
           isLoading: false,
-        });
+        }, false, 'character/loadAll:error');
       }
     },
 
     loadOne: async (id: string) => {
-      set({ isLoading: true, error: null });
+      set({ isLoading: true, error: null }, false, 'character/loadOne:start');
       try {
         const character = await service.getCharacter(id);
         if (character) {
@@ -49,15 +49,15 @@ export const createCharacterListSlice = (service: CharacterService) => {
             characters: { ...state.characters, [id]: character },
             isLoading: false,
             hasInitialLoad: true,
-          }));
+          }), false, 'character/loadOne:success');
         } else {
-          set({ error: 'Personnage non trouvé', isLoading: false });
+          set({ error: 'Personnage non trouvé', isLoading: false }, false, 'character/loadOne:notFound');
         }
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'Erreur de chargement',
           isLoading: false,
-        });
+        }, false, 'character/loadOne:error');
       }
     },
 

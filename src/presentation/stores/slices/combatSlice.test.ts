@@ -319,13 +319,13 @@ describe('combatSlice', () => {
     it('should call set with animating true', () => {
       slice.setAnimating(true);
 
-      expect(mockSet).toHaveBeenCalledWith({ isAnimating: true });
+      expect(mockSet).toHaveBeenCalledWith({ isAnimating: true }, false, 'combat/setAnimating');
     });
 
      it('should call set with animating false', () => {
       slice.setAnimating(false);
 
-      expect(mockSet).toHaveBeenCalledWith({ isAnimating: false });
+      expect(mockSet).toHaveBeenCalledWith({ isAnimating: false }, false, 'combat/setAnimating');
     });
   });
 
