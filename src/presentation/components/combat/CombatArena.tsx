@@ -79,9 +79,12 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   // Hook centralisé pour gérer les animations
   const { animationPhase, isAnimating } = useCombatAnimations(combat, lastActionTimestamp);
 
-  // Auto-play ennemi : déclencher l'attaque ennemi après les animations
+  // Auto-play ennemi : déclencher l'attaque ennemi APRÈS les animations (phase idle)
   useEffect(() => {
-    if (!combat || isAnimating) return;
+    if (!combat) return;
+    
+    // Attendre que les animations soient terminées (idle) et pas en cours
+    if (animationPhase !== 'idle' || isAnimating) return;
     
     // Vérifier si c'est le tour de l'ennemi et si on doit auto-play
     const shouldAutoPlayEnemy = CombatValidator.shouldAutoPlayEnemy(combat);
@@ -96,7 +99,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
       
       return () => clearTimeout(timeoutId);
     }
-  }, [combat, isAnimating, executeAction, prefersReducedMotion]);
+  }, [combat, animationPhase, isAnimating, executeAction, prefersReducedMotion]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
