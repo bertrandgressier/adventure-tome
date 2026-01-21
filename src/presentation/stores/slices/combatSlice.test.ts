@@ -220,16 +220,19 @@ describe('combatSlice', () => {
       // Execute first attack with guaranteed hit - should add ATTACK_ROLL event
       slice.executeAction(
         { type: CombatActionType.ATTACK },
-        { hitDice: [2, 2] } // Total 4, guaranteed hit for dexterite 12
+        { hitDice: [2, 2], damageDice: 4 } // Total 4, guaranteed hit for dexterite 12
       );
       const combat1 = currentState.combat;
       const eventsAfterFirstAttack = combat1?.events.length ?? 0;
       expect(eventsAfterFirstAttack).toBeGreaterThanOrEqual(2); // At least combat_start + attack_roll
 
+      // Skip to complete first turn
+      slice.executeAction({ type: CombatActionType.SKIP });
+
       // Execute second attack - should accumulate more events
       slice.executeAction(
         { type: CombatActionType.ATTACK },
-        { hitDice: [3, 3] } // Total 6, another hit
+        { hitDice: [3, 3], damageDice: 5 } // Total 6, another hit
       );
       const combat2 = currentState.combat;
       const eventsAfterSecondAttack = combat2?.events.length ?? 0;
