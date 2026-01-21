@@ -245,7 +245,7 @@ export class AttackResolver {
       const damageDealt = Math.max(0, damage);
 
       events.push({
-        type: CombatEventType.DAMAGE_ROLL,
+        type: CombatEventType.DAMAGE_DEALT,
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
         attacker: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
@@ -271,6 +271,7 @@ export class AttackResolver {
           newState.player = doubleResult.state.player;
           newState.enemy = doubleResult.state.enemy;
           newState.usedAbilities = doubleResult.state.usedAbilities;
+          newState.pendingExtraAttack = doubleResult.state.pendingExtraAttack; // Propagate pendingExtraAttack
           events.push(...doubleResult.events);
         }
       }

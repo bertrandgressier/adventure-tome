@@ -159,6 +159,22 @@ export class CombatEngine {
     const newState = { ...state };
     const events: CombatEvent[] = [];
 
+    // Check for ON_SURPRISE ability BEFORE attack (first attack only)
+    if (isPlayerAttacking && newState.isFirstAttack) {
+      const surpriseAbility = WeaponAbilityResolver.checkAutoTrigger(
+        newState,
+        'on_surprise' as any,
+        {}
+      );
+      if (surpriseAbility) {
+        const surpriseResult = WeaponAbilityResolver.resolveAbility(newState, surpriseAbility.id);
+        newState.player = surpriseResult.state.player;
+        newState.enemy = surpriseResult.state.enemy;
+        newState.usedAbilities = surpriseResult.state.usedAbilities;
+        events.push(...surpriseResult.events);
+      }
+    }
+
     // Mark first attack as done
     if (newState.isFirstAttack) {
       newState.isFirstAttack = false;
@@ -204,6 +220,39 @@ export class CombatEngine {
         newState.enemy.endurance = Math.max(0, newState.enemy.endurance - damageDealt);
       } else {
         newState.player.endurance = Math.max(0, newState.player.endurance - damageDealt);
+      }
+
+      // Check for weapon abilities on successful attack
+      if (isPlayerAttacking && newState.lastRoll?.isDouble) {
+        const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          'on_double' as any,
+          { roll: newState.lastRoll }
+        );
+        if (doubleAbility) {
+          const doubleResult = WeaponAbilityResolver.resolveAbility(newState, doubleAbility.id);
+          newState.player = doubleResult.state.player;
+          newState.enemy = doubleResult.state.enemy;
+          newState.usedAbilities = doubleResult.state.usedAbilities;
+          newState.pendingExtraAttack = doubleResult.state.pendingExtraAttack;
+          events.push(...doubleResult.events);
+        }
+      }
+
+      // Check for ON_KILL ability if enemy was defeated
+      if (isPlayerAttacking && newState.enemy.endurance <= 0) {
+        const killAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          'on_kill' as any,
+          {}
+        );
+        if (killAbility) {
+          const killResult = WeaponAbilityResolver.resolveAbility(newState, killAbility.id);
+          newState.player = killResult.state.player;
+          newState.enemy = killResult.state.enemy;
+          newState.usedAbilities = killResult.state.usedAbilities;
+          events.push(...killResult.events);
+        }
       }
     }
 
