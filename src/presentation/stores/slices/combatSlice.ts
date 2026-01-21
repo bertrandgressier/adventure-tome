@@ -21,10 +21,27 @@ import type { ItemsCatalogSlice } from './itemsCatalogSlice';
 import { handleSliceError } from './sliceHelpers';
 
 /**
+ * Phase d'affichage du combat (pour orchestrer les animations)
+ * Séparée de la logique métier pour permettre un séquençage visuel
+ */
+export type CombatDisplayPhase = 
+  | 'idle'                    // En attente d'action utilisateur
+  | 'player_attacking'        // Animation attaque joueur en cours
+  | 'player_attack_complete'  // Attaque joueur terminée, prêt pour tour ennemi
+  | 'enemy_turn_start'        // Affichage "Tour de l'ennemi"
+  | 'enemy_attacking'         // Animation attaque ennemi en cours
+  | 'enemy_attack_complete';  // Attaque ennemi terminée, retour au joueur
+
+/**
  * Combat Slice - Gère l'état du combat V3
  * 
  * Centralise l'état du combat et délègue la logique métier au CombatEngine.
  * Suit le pattern des autres slices avec gestion d'erreur cohérente.
+ * 
+ * Architecture :
+ * - executeAction : Calcule les dégâts SANS changer currentTurn (pour animations)
+ * - confirmTurnEnd : Change currentTurn après animations
+ * - displayPhase : Permet à l'UI de savoir quelle animation jouer
  */
 export interface CombatSlice {
   /** État actuel du combat (null si pas de combat actif) */
@@ -32,6 +49,9 @@ export interface CombatSlice {
   
   /** Actions disponibles pour le joueur dans l'état actuel */
   availableActions: AvailableAction[];
+  
+  /** Phase d'affichage (pour orchestrer les animations) */
+  displayPhase: CombatDisplayPhase;
   
   /** Timestamp de la dernière action (pour déclencher animations React) */
   lastActionTimestamp: number;
@@ -41,10 +61,6 @@ export interface CombatSlice {
 
   /**
    * Démarre un nouveau combat
-   * @param characterId ID du personnage
-   * @param enemy Configuration de l'ennemi
-   * @param config Configuration du combat
-   * @throws Error si le personnage n'est pas trouvé
    */
   startCombat: (
     characterId: string,
@@ -53,10 +69,10 @@ export interface CombatSlice {
   ) => void;
 
   /**
-   * Exécute une action de combat
+   * Exécute une action de combat (joueur uniquement)
+   * Met à jour history/events mais NE change PAS currentTurn immédiatement
    * @param action Action à exécuter
    * @param diceOverrides Overrides pour les dés (tests)
-   * @throws Error si pas de combat actif
    */
   executeAction: (
     action: CombatAction,
@@ -64,8 +80,25 @@ export interface CombatSlice {
   ) => void;
 
   /**
+   * Confirme la fin du tour joueur et passe à l'ennemi
+   * Appelé par l'orchestrateur après les animations
+   */
+  confirmPlayerTurnEnd: () => void;
+
+  /**
+   * Exécute l'attaque de l'ennemi
+   * Met à jour history/events et remet currentTurn = 'player'
+   */
+  executeEnemyAttack: (diceOverrides?: DiceOverrides) => void;
+
+  /**
+   * Met à jour la phase d'affichage
+   * Appelé par l'orchestrateur pour séquencer les animations
+   */
+  setDisplayPhase: (phase: CombatDisplayPhase) => void;
+
+  /**
    * Termine le combat et persiste les changements au personnage
-   * (dégâts, chance utilisée, items consommés)
    */
   endCombat: () => Promise<void>;
 
@@ -89,6 +122,7 @@ export const createCombatSlice = (): StateCreator<
   return (set, get) => ({
     combat: null,
     availableActions: [],
+    displayPhase: 'idle' as CombatDisplayPhase,
     lastActionTimestamp: 0,
     privateInitialChance: 0,
     error: null,
@@ -132,6 +166,7 @@ export const createCombatSlice = (): StateCreator<
 
         set({
           combat: stateWithReroll,
+          displayPhase: 'idle',
           lastActionTimestamp: Date.now(),
           availableActions,
           privateInitialChance: stats.chanceInitiale,
@@ -150,22 +185,26 @@ export const createCombatSlice = (): StateCreator<
           throw new Error('No active combat');
         }
 
-        // 1. Résoudre l'action utilisateur
+        // 1. Résoudre l'action utilisateur (sans auto-play ennemi)
         const result = CombatEngine.resolve(combat, action, diceOverrides);
         
-        // 2. Auto-skip + auto-play ennemi immédiatement
-        const finalState = CombatAutoPlayService.resolveAutoActions(result.state);
+        // 2. Auto-skip uniquement (transitions de phase)
+        const stateAfterSkip = CombatAutoPlayService.resolveAutoActions(result.state);
         
-        const availableActions = CombatEngine.getAvailableActions(finalState);
+        // 3. Déterminer la phase d'affichage
+        const isAttack = action.type === 'attack' || action.type === 'reroll';
+        const displayPhase: CombatDisplayPhase = isAttack ? 'player_attacking' : 'idle';
+        
+        const availableActions = CombatEngine.getAvailableActions(stateAfterSkip);
 
-        // Update state avec le résultat final (toutes les actions auto sont déjà résolues)
         const updatedCombat = {
-          ...finalState,
-          events: [...finalState.events, ...result.events],
+          ...stateAfterSkip,
+          events: [...stateAfterSkip.events, ...result.events],
         };
 
         set({
           combat: updatedCombat,
+          displayPhase,
           lastActionTimestamp: Date.now(),
           availableActions,
           error: null,
@@ -175,6 +214,62 @@ export const createCombatSlice = (): StateCreator<
         set({ error: errorMessage }, false, 'combat/error');
         throw error;
       }
+    },
+
+    confirmPlayerTurnEnd: () => {
+      const { combat } = get();
+      if (!combat) return;
+
+      // Passer à la phase "début tour ennemi"
+      set({
+        displayPhase: 'enemy_turn_start',
+        lastActionTimestamp: Date.now(),
+      }, false, 'combat/confirmPlayerTurnEnd');
+    },
+
+    executeEnemyAttack: (diceOverrides) => {
+      try {
+        const { combat } = get();
+        if (!combat) {
+          throw new Error('No active combat');
+        }
+
+        // Passer à la phase d'attaque ennemi
+        set({ displayPhase: 'enemy_attacking' }, false, 'combat/enemyAttacking');
+
+        // Résoudre l'attaque ennemi
+        const attackAction: CombatAction = { type: 'attack' };
+        const result = CombatEngine.resolve(combat, attackAction, diceOverrides);
+        
+        // Auto-skip après l'attaque ennemi (transitions de phase)
+        const stateAfterSkip = CombatAutoPlayService.resolveAutoActions(result.state);
+        
+        const availableActions = CombatEngine.getAvailableActions(stateAfterSkip);
+
+        const updatedCombat = {
+          ...stateAfterSkip,
+          events: [...stateAfterSkip.events, ...result.events],
+        };
+
+        set({
+          combat: updatedCombat,
+          displayPhase: 'enemy_attack_complete',
+          lastActionTimestamp: Date.now(),
+          availableActions,
+          error: null,
+        }, false, 'combat/executeEnemyAttack');
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erreur attaque ennemi';
+        set({ error: errorMessage }, false, 'combat/error');
+        throw error;
+      }
+    },
+
+    setDisplayPhase: (phase) => {
+      set({ 
+        displayPhase: phase,
+        lastActionTimestamp: Date.now(),
+      }, false, `combat/setDisplayPhase/${phase}`);
     },
 
     endCombat: async () => {
@@ -205,6 +300,7 @@ export const createCombatSlice = (): StateCreator<
 
         set({
           combat: null,
+          displayPhase: 'idle',
           lastActionTimestamp: 0,
           availableActions: [],
           privateInitialChance: 0,
@@ -219,6 +315,7 @@ export const createCombatSlice = (): StateCreator<
     cancelCombat: () => {
       set({
         combat: null,
+        displayPhase: 'idle',
         lastActionTimestamp: 0,
         availableActions: [],
         privateInitialChance: 0,

@@ -138,6 +138,11 @@ describe('CombatArena', () => {
           characters: {
             'test-id': mockCharacter,
           },
+          // Nouveaux champs pour l'orchestration du combat
+          displayPhase: 'idle' as const,
+          confirmPlayerTurnEnd: vi.fn(),
+          executeEnemyAttack: vi.fn(),
+          setDisplayPhase: vi.fn(),
         };
 
         return selector(state as any);
@@ -226,6 +231,11 @@ describe('CombatArena', () => {
           endCombat: vi.fn(),
           characters: { 'test-id': createMockCharacter() },
           getItem: () => undefined,
+          // Nouveaux champs pour l'orchestration du combat
+          displayPhase: 'idle' as const,
+          confirmPlayerTurnEnd: vi.fn(),
+          executeEnemyAttack: vi.fn(),
+          setDisplayPhase: vi.fn(),
         };
          
          
@@ -410,6 +420,11 @@ describe('CombatArena', () => {
             endCombat: vi.fn(),
             characters: { 'test-id': createMockCharacter() },
             getItem: () => undefined,
+            // Nouveaux champs pour l'orchestration du combat
+            displayPhase: 'idle' as const,
+            confirmPlayerTurnEnd: vi.fn(),
+            executeEnemyAttack: vi.fn(),
+            setDisplayPhase: vi.fn(),
           };
            
          
@@ -442,6 +457,11 @@ describe('CombatArena', () => {
             endCombat: vi.fn(),
             characters: { 'test-id': createMockCharacter() },
             getItem: () => undefined,
+            // Nouveaux champs pour l'orchestration du combat
+            displayPhase: 'idle' as const,
+            confirmPlayerTurnEnd: vi.fn(),
+            executeEnemyAttack: vi.fn(),
+            setDisplayPhase: vi.fn(),
           };
            
          

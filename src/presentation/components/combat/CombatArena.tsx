@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
-import { useCombatAnimations } from '@/src/presentation/hooks/useCombatAnimations';
+import { useCombatOrchestrator } from '@/src/presentation/hooks/useCombatOrchestrator';
 import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
-import { CombatActionType } from '@/src/domain/types/CombatActionType';
 import { CombatantCard } from './CombatantCard';
 import { DiceAnimation } from './DiceAnimation';
 import type { DiceRollResult } from './DiceAnimation';
@@ -72,33 +71,10 @@ function convertHistoryHitRollToDiceRollResult(
 
 export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const combat = useCharacterStore((state) => state.combat);
-  const lastActionTimestamp = useCharacterStore((state) => state.lastActionTimestamp);
-  const executeAction = useCharacterStore((state) => state.executeAction);
-  const prefersReducedMotion = useReducedMotion() ?? false;
+  const displayPhase = useCharacterStore((state) => state.displayPhase);
 
-  // Callback appelée après chaque animation terminée
-  const handleAnimationComplete = useCallback(() => {
-    if (!combat) return;
-    
-    // Vérifier si c'est le tour de l'ennemi et si on doit auto-play
-    const shouldAutoPlayEnemy = CombatValidator.shouldAutoPlayEnemy(combat);
-    
-    if (shouldAutoPlayEnemy) {
-      // Délai avant l'action ennemi (pour que le joueur voie "Tour de l'ennemi")
-      const delay = prefersReducedMotion ? 200 : 600;
-      
-      setTimeout(() => {
-        executeAction({ type: CombatActionType.ATTACK });
-      }, delay);
-    }
-  }, [combat, executeAction, prefersReducedMotion]);
-
-  // Hook centralisé pour gérer les animations + auto-play ennemi
-  const { animationPhase, isAnimating } = useCombatAnimations(
-    combat, 
-    lastActionTimestamp, 
-    handleAnimationComplete
-  );
+  // Hook orchestrateur : gère le séquençage des animations et actions
+  const { animationPhase, isAnimating, prefersReducedMotion } = useCombatOrchestrator();
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -145,8 +121,10 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
     : undefined;
 
   // Déterminer si c'est le tour du joueur ou de l'ennemi pour l'UI
-  const isPlayerTurn = combat.currentTurn === 'player';
-  const isEnemyTurn = combat.currentTurn === 'enemy';
+  // On utilise displayPhase pour que le TurnIndicator reflète la phase d'animation
+  const isEnemyPhase = displayPhase === 'enemy_turn_start' || displayPhase === 'enemy_attacking' || displayPhase === 'enemy_attack_complete';
+  const isPlayerTurn = !isEnemyPhase && combat.currentTurn === 'player';
+  const isEnemyTurn = isEnemyPhase || combat.currentTurn === 'enemy';
 
   return (
     <motion.div
