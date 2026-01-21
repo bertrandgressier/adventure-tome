@@ -1,4 +1,4 @@
-import type { CombatPhaseV3, CurrentTurn } from '../../types/CombatPhaseV3';
+import type { CombatPhase, CurrentTurn } from './CombatPhase';
 import type { CombatActionType } from './CombatActionType';
 import type { Attacker } from './Attacker';
 import type { PlayerState, EnemyState, DiceRoll, PendingDamage, CombatConfig } from './combatants';
@@ -21,7 +21,7 @@ export interface CombatState {
   characterId: string;
   player: PlayerState;
   enemy: EnemyState;
-  phase: CombatPhaseV3;
+  phase: CombatPhase;
   currentTurn: CurrentTurn;
   roundNumber: number;
   lastRoll?: DiceRoll;

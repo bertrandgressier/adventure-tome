@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import type { PlayerState, EnemyState } from '@/src/domain/types/combat-v2';
+import type { PlayerState, EnemyState } from '@/src/domain/types/combatants';
 import { getCombatantHealthInfo } from './combatUIHelpers';
 import { cn } from '@/lib/utils';
 import { combatantCardVariants } from './motion';

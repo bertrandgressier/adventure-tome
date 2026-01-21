@@ -2,8 +2,8 @@
 export type { Enemy, CombatRound, CombatMode } from './combat';
 export type { CombatState as CombatStateV1 } from './combat';
 
-// V3 Combat types (main system)
-export { CombatPhaseV3, type CurrentTurn } from './CombatPhaseV3';
+// Combat types (main system)
+export { CombatPhase, type CurrentTurn } from './CombatPhase';
 export type { 
   CombatState, 
   CombatEvent, 
@@ -23,7 +23,6 @@ export type {
 // Combat constants
 export { CombatActionType } from './CombatActionType';
 export { CombatEventType } from './CombatEventType';
-export { CombatPhase } from './CombatPhase';
 export { WeaponAbilityTrigger } from './WeaponAbilityTrigger';
 export { WeaponEffectType } from './WeaponEffectType';
 export { Attacker } from './Attacker';

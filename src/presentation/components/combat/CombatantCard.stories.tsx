@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { CombatantCard } from './CombatantCard';
-import type { PlayerState, EnemyState } from '@/src/domain/types/combat-v2';
+import type { PlayerState, EnemyState } from '@/src/domain/types/combatants';
 
 const meta = {
   title: 'Combat V2/CombatantCard',

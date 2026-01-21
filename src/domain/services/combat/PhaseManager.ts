@@ -1,12 +1,12 @@
 import type { CombatState } from '../../types/combat-state';
-import { CombatPhaseV3, type CurrentTurn } from '../../types/CombatPhaseV3';
+import { CombatPhase, type CurrentTurn } from '../../types/CombatPhase';
 
 export class PhaseManager {
   /**
    * Détermine la phase initiale du combat selon le premier attaquant
    */
-  static getInitialPhase(): CombatPhaseV3 {
-    return CombatPhaseV3.WAITING_ATTACK_ROLL;
+  static getInitialPhase(): CombatPhase {
+    return CombatPhase.WAITING_ATTACK_ROLL;
   }
 
   /**
@@ -25,52 +25,52 @@ export class PhaseManager {
       hit?: boolean;
       combatEnded?: boolean;
     }
-  ): { phase: CombatPhaseV3; currentTurn: CurrentTurn; roundNumber: number } {
+  ): { phase: CombatPhase; currentTurn: CurrentTurn; roundNumber: number } {
     if (context.combatEnded) {
       return {
-        phase: CombatPhaseV3.ENDED,
+        phase: CombatPhase.ENDED,
         currentTurn: state.currentTurn,
         roundNumber: state.roundNumber,
       };
     }
 
     switch (state.phase) {
-      case CombatPhaseV3.WAITING_ATTACK_ROLL:
+      case CombatPhase.WAITING_ATTACK_ROLL:
         if (context.hit) {
           return {
-            phase: CombatPhaseV3.WAITING_DAMAGE_ROLL,
+            phase: CombatPhase.WAITING_DAMAGE_ROLL,
             currentTurn: state.currentTurn,
             roundNumber: state.roundNumber,
           };
         } else {
           return {
-            phase: CombatPhaseV3.TURN_COMPLETE,
+            phase: CombatPhase.TURN_COMPLETE,
             currentTurn: state.currentTurn,
             roundNumber: state.roundNumber,
           };
         }
 
-      case CombatPhaseV3.WAITING_DAMAGE_ROLL:
+      case CombatPhase.WAITING_DAMAGE_ROLL:
         return {
-          phase: CombatPhaseV3.TURN_COMPLETE,
+          phase: CombatPhase.TURN_COMPLETE,
           currentTurn: state.currentTurn,
           roundNumber: state.roundNumber,
         };
 
-      case CombatPhaseV3.TURN_COMPLETE: {
+      case CombatPhase.TURN_COMPLETE: {
         const nextTurn: CurrentTurn = state.currentTurn === 'player' ? 'enemy' : 'player';
         const shouldIncrementRound = state.currentTurn === 'enemy';
 
         return {
-          phase: CombatPhaseV3.WAITING_ATTACK_ROLL,
+          phase: CombatPhase.WAITING_ATTACK_ROLL,
           currentTurn: nextTurn,
           roundNumber: shouldIncrementRound ? state.roundNumber + 1 : state.roundNumber,
         };
       }
 
-      case CombatPhaseV3.ENDED:
+      case CombatPhase.ENDED:
         return {
-          phase: CombatPhaseV3.ENDED,
+          phase: CombatPhase.ENDED,
           currentTurn: state.currentTurn,
           roundNumber: state.roundNumber,
         };
@@ -88,11 +88,11 @@ export class PhaseManager {
    * Passe au tour suivant (action SKIP sur turn_complete)
    */
   static skipToNextTurn(state: CombatState): {
-    phase: CombatPhaseV3;
+    phase: CombatPhase;
     currentTurn: CurrentTurn;
     roundNumber: number;
   } {
-    if (state.phase !== CombatPhaseV3.TURN_COMPLETE) {
+    if (state.phase !== CombatPhase.TURN_COMPLETE) {
       return {
         phase: state.phase,
         currentTurn: state.currentTurn,

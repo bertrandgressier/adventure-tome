@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
 import type { PlayerConfig, EnemyConfig } from '@/src/domain/types/combatants';
-import { CombatPhase } from '@/src/domain/types/CombatPhase';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
 
 /**
@@ -144,7 +143,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
 
       expect(missedAttack.state.lastRoll?.total).toBe(9);
       expect(missedAttack.state.lastRoll?.success).toBe(false);
-      expect(missedAttack.state.phase).toBe(CombatPhase.PLAYER_ATTACK);
+      expect(missedAttack.state.phase).toBe('turn_complete');
 
       // Dépenser 2 points de CHANCE pour modifier le jet (9 + (-2) = 7 ≤ 7)
       // Note: Pour un jet raté, on devrait pouvoir dépenser CHANCE pour réussir

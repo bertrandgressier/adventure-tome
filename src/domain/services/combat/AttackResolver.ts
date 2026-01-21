@@ -1,6 +1,4 @@
-import type { CombatState, CombatEvent } from '../../types/combat-v2';
-import type { CombatStateV3 } from '../../types/combat-state';
-import { CombatPhase } from '../../types/CombatPhase';
+import type { CombatState, CombatEvent } from '../../types/combat-state';
 import { Attacker } from '../../types/Attacker';
 import type { DiceOverrides } from './DiceRoller';
 import { DiceRoller } from './DiceRoller';
@@ -16,13 +14,8 @@ export interface ActionResolutionResult {
   events: CombatEvent[];
 }
 
-export interface ActionResolutionResultV3 {
-  state: CombatStateV3;
-  events: CombatEvent[];
-}
-
 // Type guard to check if state is V3
-function isStateV3(state: CombatState | CombatStateV3): state is CombatStateV3 {
+function isStateV3(state: CombatState | CombatState): state is CombatState {
   return 'currentTurn' in state && typeof state.currentTurn === 'string';
 }
 
@@ -35,15 +28,15 @@ export class AttackResolver {
   
   // Overload for V3 state
   static resolve(
-    state: CombatStateV3,
+    state: CombatState,
     diceOverrides?: DiceOverrides
-  ): ActionResolutionResultV3;
+  ): ActionResolutionResult;
   
   // Implementation
   static resolve(
-    state: CombatState | CombatStateV3,
+    state: CombatState | CombatState,
     diceOverrides?: DiceOverrides
-  ): ActionResolutionResult | ActionResolutionResultV3 {
+  ): ActionResolutionResult | ActionResolutionResult {
     if (isStateV3(state)) {
       return this.resolveV3(state, diceOverrides);
     }
@@ -54,7 +47,7 @@ export class AttackResolver {
     state: CombatState,
     diceOverrides?: DiceOverrides
   ): ActionResolutionResult {
-    const isPlayerAttacking = state.phase === CombatPhase.PLAYER_TURN;
+    const isPlayerAttacking = state.phase === 'player_turn' as const;
     const attacker = isPlayerAttacking ? state.player : state.enemy;
     const dexterite = attacker.dexterite;
 
@@ -99,9 +92,9 @@ export class AttackResolver {
     };
 
     if (isPlayerAttacking) {
-      newState.phase = CombatPhase.PLAYER_ATTACK;
+      newState.phase = 'player_attack' as const;
     } else {
-      newState.phase = CombatPhase.ENEMY_ATTACK;
+      newState.phase = 'enemy_attack' as const;
     }
 
     let damageDealt = 0;
@@ -152,7 +145,8 @@ export class AttackResolver {
         }
 
         // Advance phase AFTER abilities are resolved
-        newState = { ...newState, phase: PhaseManager.advancePhase(newState) };
+        const phaseUpdate = PhaseManager.advancePhase(newState, {});
+        newState = { ...newState, ...phaseUpdate };
       } else {
         const pendingDamage: typeof state.pendingDamage = {
           amount: damage,
@@ -163,7 +157,7 @@ export class AttackResolver {
       }
     } else {
       if (!isPlayerAttacking) {
-        newState = { ...newState, phase: CombatPhase.PLAYER_TURN };
+        newState = { ...newState, phase: 'player_turn' as const };
       }
       // Note: ON_MISS abilities (like Arc des Vents) are NOT auto-resolved.
       // They are detected by CombatValidator and made available as manual actions.
@@ -204,9 +198,9 @@ export class AttackResolver {
   }
 
   private static resolveV3(
-    state: CombatStateV3,
+    state: CombatState,
     diceOverrides?: DiceOverrides
-  ): ActionResolutionResultV3 {
+  ): ActionResolutionResult {
     const isPlayerAttacking = state.currentTurn === 'player';
     const attacker = isPlayerAttacking ? state.player : state.enemy;
     const dexterite = attacker.dexterite;
@@ -257,7 +251,7 @@ export class AttackResolver {
     if (hit) {
       // Calculate and apply damage
       const damageDiceRolled = DiceRoller.rollDamageDice(diceOverrides?.damageDice);
-      const baseDamage = damageDiceRolled.total;
+      const baseDamage = damageDiceRolled; // rollDamageDice returns a number
       const totalDamageBonus = isPlayerAttacking ? state.player.totalDamageBonus : 0; // Enemy has no weapons
       const damage = baseDamage + totalDamageBonus;
       const damageDealt = Math.max(0, damage);

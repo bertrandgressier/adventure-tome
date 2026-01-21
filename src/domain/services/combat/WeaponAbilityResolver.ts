@@ -1,15 +1,13 @@
-import type { CombatState, CombatEvent } from '../../types/combat-v2';
-import type { CombatStateV3 } from '../../types/combat-state';
+import type { CombatState, CombatEvent } from '../../types/combat-state';
 import type { WeaponAbility, DiceRoll, PendingDamage } from '../../types/combatants';
 import { CombatEventType } from '../../types/CombatEventType';
-import { CombatPhase } from '../../types/CombatPhase';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 import { COMBAT_MESSAGES } from './constants';
 
 /**
  * Type union des états de combat compatibles avec WeaponAbilityResolver
  */
-export type CompatibleCombatState = CombatState | CombatStateV3;
+export type CompatibleCombatState = CombatState;
 
 /**
  * Interface commune minimale pour les vérifications d'armes légendaires
@@ -228,7 +226,7 @@ export class WeaponAbilityResolver {
         [abilityId]: usageCount,
       },
       // Advance to PLAYER_TURN after negating damage (same as resolveSkip)
-      phase: CombatPhase.PLAYER_TURN,
+      phase: 'player_turn' as const,
       roundNumber: state.roundNumber + 1,
     };
 

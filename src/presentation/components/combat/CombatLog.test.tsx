@@ -2,7 +2,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { CombatLog } from './CombatLog';
-import type { CombatEvent } from '@/src/domain/types/combat-v2';
+import type { CombatEvent } from '@/src/domain/types';
 import { CombatEventType } from '@/src/domain/types/CombatEventType';
 
 vi.mock('framer-motion', async (importOriginal) => {
