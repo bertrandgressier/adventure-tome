@@ -48,6 +48,27 @@ function convertToDiceRollResult(
   };
 }
 
+/**
+ * Adapter: Convertit HitRollDetails (CombatHistoryEntry) vers DiceRollResult (DiceAnimation)
+ */
+function convertHistoryHitRollToDiceRollResult(
+  hitRoll: import('@/src/domain/types/combat-history').HitRollDetails,
+  dexterite: number,
+  weaponBonus: number
+): DiceRollResult {
+  return {
+    dice: hitRoll.dice,
+    total: hitRoll.total,
+    modifiers: {
+      habilete: dexterite,
+      weaponBonus: weaponBonus,
+    },
+    finalScore: hitRoll.total, // HitRollDetails n'a pas de modifiedTotal
+    isDouble: hitRoll.dice[0] === hitRoll.dice[1],
+    success: hitRoll.success,
+  };
+}
+
 export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const combat = useCharacterStore((state) => state.combat);
   const lastActionTimestamp = useCharacterStore((state) => state.lastActionTimestamp);
@@ -81,17 +102,22 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const activeEnemy = combat.enemy;
 
   // Adapter le lastRoll pour DiceAnimation
-  const diceResult = combat.lastRoll
-    ? convertToDiceRollResult(
-        combat.lastRoll,
-        combat.currentTurn === 'player' ? combat.player.dexterite : (activeEnemy?.dexterite ?? 0),
-        combat.currentTurn === 'player' ? combat.player.weapon.bonus : 0 // Enemies have no weapon bonus
+  // Utiliser le dernier historique pour déterminer quel tour afficher
+  const lastHistoryEntry = combat.history.length > 0 
+    ? combat.history[combat.history.length - 1] 
+    : undefined;
+    
+  const diceResult = lastHistoryEntry?.hitRoll
+    ? convertHistoryHitRollToDiceRollResult(
+        lastHistoryEntry.hitRoll,
+        lastHistoryEntry.turn === 'player' ? combat.player.dexterite : (activeEnemy?.dexterite ?? 0),
+        lastHistoryEntry.turn === 'player' ? combat.player.weapon.bonus : 0 // Enemies have no weapon bonus
       )
     : null;
 
-  // Déterminer l'outcome basé sur le dernier roll
-  const outcome = combat.lastRoll?.success !== undefined
-    ? combat.lastRoll.success
+  // Déterminer l'outcome basé sur le dernier roll dans l'historique
+  const outcome = lastHistoryEntry?.hitRoll?.success !== undefined
+    ? lastHistoryEntry.hitRoll.success
       ? ('win' as const)
       : ('lose' as const)
     : undefined;

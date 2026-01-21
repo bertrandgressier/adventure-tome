@@ -84,13 +84,12 @@ export function CombatantCard({
         <div className="h-2 bg-input/50 rounded-full overflow-hidden">
           <motion.div
             className={cn('h-full', healthInfo.barColorClass)}
-            style={{ width: `${healthInfo.healthPercent}%` }}
+            initial={{ width: `${healthInfo.healthPercent}%` }}
             animate={{ width: `${healthInfo.healthPercent}%` }}
             transition={{
-              type: prefersReducedMotion ? 'tween' : 'spring',
-              stiffness: prefersReducedMotion ? 0 : 100,
-              damping: prefersReducedMotion ? 0 : 15,
-              duration: prefersReducedMotion ? 0 : 0.5,
+              type: 'tween',
+              duration: prefersReducedMotion ? 0.1 : 0.8,
+              ease: 'easeOut',
             }}
             role="progressbar"
             aria-valuenow={combatant.endurance}

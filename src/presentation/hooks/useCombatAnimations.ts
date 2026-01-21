@@ -47,9 +47,9 @@ export function useCombatAnimations(
       }
 
       // Durées d'animation (ms)
-      const ROLLING_DURATION = prefersReducedMotion ? 100 : 800;
-      const RESULT_DURATION = prefersReducedMotion ? 100 : 600;
-      const DAMAGE_DURATION = prefersReducedMotion ? 200 : 1500;
+      const ROLLING_DURATION = prefersReducedMotion ? 100 : 1000;
+      const RESULT_DURATION = prefersReducedMotion ? 100 : 1800;
+      const DAMAGE_DURATION = prefersReducedMotion ? 200 : 2000;
 
       // Séquence d'animation
       setIsAnimating(true);

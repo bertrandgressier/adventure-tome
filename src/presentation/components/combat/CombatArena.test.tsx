@@ -95,6 +95,7 @@ describe('CombatArena', () => {
       },
       phase: 'player_turn' as const,
       roundNumber: 1,
+      currentTurn: 'player' as const,
       currentAttacker: 'player' as const,
       usedAbilities: {},
       usedReroll: false,
@@ -105,6 +106,7 @@ describe('CombatArena', () => {
       },
       events: [],
       usedItems: [],
+      history: [], // Historique des actions de combat (V3)
     };
 
     const mockAvailableActions = [
@@ -569,6 +571,7 @@ describe('CombatArena', () => {
             },
             phase: 'player_turn' as const,
             roundNumber: 1,
+            currentTurn: 'player' as const,
             currentAttacker: 'player' as const,
             usedAbilities: {},
             usedReroll: false,
@@ -579,6 +582,7 @@ describe('CombatArena', () => {
             },
             events: [],
             usedItems: [],
+            history: [], // Historique des actions de combat (V3)
           },
           availableActions: [],
           lastActionTimestamp: 0,
