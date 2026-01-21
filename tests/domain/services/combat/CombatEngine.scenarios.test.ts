@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
+import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
 import type { PlayerConfig, EnemyConfig } from '@/src/domain/types/combatants';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
 
@@ -82,9 +83,15 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       expect(round1.state.lastRoll?.success).toBe(true);
       expect(round1.state.enemy.endurance).toBe(5); // 15 - 10 = 5
 
+      // Skip pour passer au tour de l'ennemi
+      const afterRound1Skip = CombatEngine.resolve(
+        round1.state,
+        { type: CombatActionType.SKIP }
+      );
+
       // Round 2 - Gobelin attaque et rate (2d6 = 4+4 = 8 > 6)
       const round2 = CombatEngine.resolve(
-        round1.state,
+        afterRound1Skip.state,
         { type: CombatActionType.ATTACK },
         { hitDice: [4, 4] }
       );
@@ -111,7 +118,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       expect(round3.state.enemy.endurance).toBe(0); // 5 - 8 = -3 (mort)
 
       // Vérifier la victoire
-      expect(CombatEngine.checkCombatEnd(round3.state)).toBe('victory');
+      expect(CombatValidator.checkCombatEnd(round3.state)).toBe('victory');
     });
   });
 
@@ -324,15 +331,14 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
         { hitDice: [2, 1], damageDice: 3 } // 1 + 3 + 0 (no weapon) = 4 dégâts
       );
 
-      expect(enemyHit.state.pendingDamage?.amount).toBe(4);
+      // En V3, les dégâts sont appliqués immédiatement
+      expect(enemyHit.state.player.endurance).toBe(1); // 5 - 4 = 1
 
-      // Accepter les dégâts
+      // Skip pour finir le tour
       const afterDamage = CombatEngine.resolve(
         enemyHit.state,
         { type: CombatActionType.SKIP }
       );
-
-      expect(afterDamage.state.player.endurance).toBe(1); // 5 - 4 = 1
       
       // Second enemy attack to finish the player
       const afterSkip2 = CombatEngine.resolve(
@@ -358,7 +364,7 @@ describe('CombatEngine - Scénarios complets (règles officielles)', () => {
       );
       
       expect(finalDamage.state.player.endurance).toBe(0); // 1 - 4 = -3 → 0
-      expect(CombatEngine.checkCombatEnd(finalDamage.state)).toBe('defeat');
+      expect(CombatValidator.checkCombatEnd(finalDamage.state)).toBe('defeat');
     });
   });
 });

@@ -161,7 +161,11 @@ describe('ActionPanel', () => {
     it('should not render', () => {
       mockUseCharacterStore.mockImplementation((selector) => {
         const state = {
-          combat: { ...mockCombat, phase: 'victory' as const },
+          combat: { 
+            ...mockCombat, 
+            phase: 'ENDED' as const,
+            enemies: [{ name: 'Gobelin', dexterite: 6, endurance: 0, enduranceMax: 8 }], // Victory: all enemies dead
+          },
           availableActions: [],
           isAnimating: false,
           characters: { 'test-id': mockCharacter },
@@ -181,7 +185,11 @@ describe('ActionPanel', () => {
     it('should not render', () => {
       mockUseCharacterStore.mockImplementation((selector) => {
         const state = {
-          combat: { ...mockCombat, phase: 'defeat' as const },
+          combat: { 
+            ...mockCombat, 
+            phase: 'ENDED' as const,
+            player: { ...mockCombat.player, endurance: 0 }, // Defeat: player dead
+          },
           availableActions: [],
           isAnimating: false,
           characters: { 'test-id': mockCharacter },

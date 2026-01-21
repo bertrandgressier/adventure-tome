@@ -144,8 +144,8 @@ describe('Combat History Integration', () => {
         // busy wait
       }
 
-      // Second player attack (after advancing phase back to PLAYER_TURN)
-      state.phase = CombatPhase.PLAYER_TURN;
+      // Second player attack (after advancing phase back to WAITING_ATTACK_ROLL)
+      state.phase = CombatPhase.WAITING_ATTACK_ROLL;
       state.roundNumber = 2;
       result = CombatEngine.resolve(
         state,
@@ -224,7 +224,7 @@ describe('Combat History Integration', () => {
 
       // Advance to round 2
       state.roundNumber = 2;
-      state.phase = CombatPhase.PLAYER_TURN;
+      state.phase = CombatPhase.WAITING_ATTACK_ROLL;
       
       result = CombatEngine.resolve(
         state,

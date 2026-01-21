@@ -12,6 +12,7 @@ import type { DiceOverrides } from './DiceRoller';
 import type { AvailableAction } from '../../types/combat-state';
 import { ItemResolver, type CombatUsableItem } from './ItemResolver';
 import { WeaponAbilityResolver } from './WeaponAbilityResolver';
+import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 import { PhaseManager } from './PhaseManager';
 import { CombatValidator } from './CombatValidator';
 import { HistoryManager } from './HistoryManager';
@@ -74,7 +75,13 @@ export class CombatEngine {
       usedReroll: false,
       isFirstAttack: true,
       config,
-      events: [],
+      events: [
+        {
+          type: CombatEventType.COMBAT_START,
+          timestamp: new Date().toISOString(),
+          round: 1,
+        },
+      ],
       usedItems: [],
       history: [],
     };
@@ -118,7 +125,7 @@ export class CombatEngine {
         return this.resolveSkip(newState);
 
       case CombatActionType.USE_ITEM:
-        return this.resolveUseItem(newState, action.payload as CombatUsableItem, diceOverrides);
+        return this.resolveUseItem(newState, action.payload as CombatUsableItem);
 
       case CombatActionType.WEAPON_ABILITY:
         return this.resolveWeaponAbility(newState, action.payload as { abilityId: string });
@@ -153,6 +160,22 @@ export class CombatEngine {
     const newState = { ...state };
     const events: CombatEvent[] = [];
 
+    // Check for ON_SURPRISE ability BEFORE attack (first attack only)
+    if (isPlayerAttacking && newState.isFirstAttack) {
+      const surpriseAbility = WeaponAbilityResolver.checkAutoTrigger(
+        newState,
+        WeaponAbilityTrigger.ON_SURPRISE,
+        {}
+      );
+      if (surpriseAbility) {
+        const surpriseResult = WeaponAbilityResolver.resolveAbility(newState, surpriseAbility.id);
+        newState.player = surpriseResult.state.player;
+        newState.enemy = surpriseResult.state.enemy;
+        newState.usedAbilities = surpriseResult.state.usedAbilities;
+        events.push(...surpriseResult.events);
+      }
+    }
+
     // Mark first attack as done
     if (newState.isFirstAttack) {
       newState.isFirstAttack = false;
@@ -182,7 +205,7 @@ export class CombatEngine {
     if (hit) {
       // Calculate and apply damage (formule officielle: 1 + 1d6 + DOMMAGES ACTUELS)
       damageDice = diceOverrides?.damageDice ?? Math.floor(Math.random() * 6) + 1;
-      const totalDamageBonus = isPlayerAttacking ? state.player.totalDamageBonus : 0; // Enemy has no weapons
+      const totalDamageBonus = isPlayerAttacking ? newState.player.totalDamageBonus : 0; // Enemy has no weapons
       damageDealt = 1 + damageDice + totalDamageBonus; // Formule officielle
 
       events.push({
@@ -190,7 +213,7 @@ export class CombatEngine {
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
         attacker: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
-        roll: { dice1: damageDice, total: damageDice },
+        roll: { dice1: damageDice, dice2: 0, total: damageDice },
         damage: damageDealt,
       });
 
@@ -198,6 +221,39 @@ export class CombatEngine {
         newState.enemy.endurance = Math.max(0, newState.enemy.endurance - damageDealt);
       } else {
         newState.player.endurance = Math.max(0, newState.player.endurance - damageDealt);
+      }
+
+      // Check for weapon abilities on successful attack
+      if (isPlayerAttacking && newState.lastRoll?.isDouble) {
+        const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          WeaponAbilityTrigger.ON_DOUBLE,
+          { roll: newState.lastRoll }
+        );
+        if (doubleAbility) {
+          const doubleResult = WeaponAbilityResolver.resolveAbility(newState, doubleAbility.id);
+          newState.player = doubleResult.state.player;
+          newState.enemy = doubleResult.state.enemy;
+          newState.usedAbilities = doubleResult.state.usedAbilities;
+          newState.pendingExtraAttack = doubleResult.state.pendingExtraAttack;
+          events.push(...doubleResult.events);
+        }
+      }
+
+      // Check for ON_KILL ability if enemy was defeated
+      if (isPlayerAttacking && newState.enemy.endurance <= 0) {
+        const killAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          WeaponAbilityTrigger.ON_KILL,
+          { killedEnemy: true }
+        );
+        if (killAbility) {
+          const killResult = WeaponAbilityResolver.resolveAbility(newState, killAbility.id);
+          newState.player = killResult.state.player;
+          newState.enemy = killResult.state.enemy;
+          newState.usedAbilities = killResult.state.usedAbilities;
+          events.push(...killResult.events);
+        }
       }
     }
 
@@ -208,17 +264,19 @@ export class CombatEngine {
     const combatEnded = CombatValidator.checkCombatEnd(newState) !== 'ongoing';
     
     // Avancer la phase selon le résultat
+    // En V3, le flow est : WAITING_ATTACK_ROLL → WAITING_DAMAGE_ROLL → TURN_COMPLETE
+    // Mais ici on applique les dégâts immédiatement, donc on avance directement à TURN_COMPLETE
     let phaseUpdate = PhaseManager.advancePhase(newState, { hit, combatEnded });
     
-    // Si on a touché, on est à WAITING_DAMAGE_ROLL, mais les dégâts sont déjà appliqués
-    // Il faut avancer une fois de plus à TURN_COMPLETE
-    if (hit && !combatEnded && phaseUpdate.phase === CombatPhase.WAITING_DAMAGE_ROLL) {
+    // Si on a touché, on est à WAITING_DAMAGE_ROLL mais dégâts déjà appliqués
+    // → avancer automatiquement à TURN_COMPLETE
+    if (hit && phaseUpdate.phase === CombatPhase.WAITING_DAMAGE_ROLL && !combatEnded) {
       phaseUpdate = PhaseManager.advancePhase(
-        { ...newState, phase: phaseUpdate.phase, currentTurn: phaseUpdate.currentTurn, roundNumber: phaseUpdate.roundNumber }, 
+        { ...newState, ...phaseUpdate }, 
         { combatEnded }
       );
     }
-
+    
     // Add history entry
     const historyEntry = {
       round: state.roundNumber,
@@ -364,12 +422,9 @@ export class CombatEngine {
     state: CombatState,
     item: CombatUsableItem
   ): CombatResult {
-    // Pour la compatibilité, on peut adapter temporairement
-    const adaptedStateV2 = this.adaptStateV3ToV2(state);
-    const result = ItemResolver.resolve(adaptedStateV2, item);
-    const newStateV3 = this.adaptStateV2ToV3(result.state, state);
-
-    return { state: newStateV3, events: result.events };
+    // ItemResolver fonctionne directement avec V3
+    const result = ItemResolver.resolve(state, item);
+    return { state: result.state, events: result.events };
   }
 
   /**
@@ -379,68 +434,10 @@ export class CombatEngine {
     state: CombatState,
     payload: { abilityId: string }
   ): CombatResult {
-    // Pour la compatibilité, on peut adapter temporairement
-    const adaptedStateV2 = this.adaptStateV3ToV2(state);
-    const result = WeaponAbilityResolver.resolveAbility(adaptedStateV2, payload.abilityId);
-    const newStateV3 = this.adaptStateV2ToV3(result.state, state);
-
-    return { state: newStateV3, events: result.events };
+    // WeaponAbilityResolver fonctionne directement avec V3
+    const result = WeaponAbilityResolver.resolveAbility(state, payload.abilityId);
+    return { state: result.state, events: result.events };
   }
 
-  /**
-   * Adapte un état V3 vers V2 pour compatibilité avec les resolvers existants
-   */
-  private static adaptStateV3ToV2(stateV3: CombatState): Record<string, unknown> {
-    // Mapping des phases V3 vers V2 (approximatif, pour compatibilité)
-    let phaseV2: string;
-    let currentAttacker: string;
 
-    switch (stateV3.phase) {
-      case CombatPhase.WAITING_ATTACK_ROLL:
-        phaseV2 = stateV3.currentTurn === 'player' ? 'player_turn' : 'enemy_turn';
-        currentAttacker = stateV3.currentTurn;
-        break;
-      case CombatPhase.WAITING_DAMAGE_ROLL:
-        phaseV2 = stateV3.currentTurn === 'player' ? 'enemy_reaction' : 'player_reaction';
-        currentAttacker = stateV3.currentTurn;
-        break;
-      case CombatPhase.TURN_COMPLETE:
-        phaseV2 = 'turn_end';
-        currentAttacker = stateV3.currentTurn;
-        break;
-      case CombatPhase.ENDED:
-        phaseV2 = 'ended';
-        currentAttacker = stateV3.currentTurn;
-        break;
-      default:
-        phaseV2 = 'player_turn';
-        currentAttacker = 'player';
-    }
-
-    return {
-      ...stateV3,
-      phase: phaseV2,
-      currentAttacker,
-    };
-  }
-
-  /**
-   * Adapte un état V2 vers V3 après résolution
-   */
-  private static adaptStateV2ToV3(stateV2: Record<string, unknown>, originalV3: CombatState): CombatState {
-    return {
-      ...originalV3,
-      player: stateV2.player as CombatState['player'],
-      enemy: stateV2.enemy as CombatState['enemy'],
-      lastRoll: stateV2.lastRoll as CombatState['lastRoll'],
-      pendingDamage: stateV2.pendingDamage as CombatState['pendingDamage'],
-      usedAbilities: stateV2.usedAbilities as Record<string, number>,
-      usedReroll: stateV2.usedReroll as boolean,
-      isFirstAttack: stateV2.isFirstAttack as boolean,
-      pendingExtraAttack: stateV2.pendingExtraAttack as boolean | undefined,
-      events: stateV2.events as CombatEvent[],
-      usedItems: stateV2.usedItems as CombatState['usedItems'],
-      history: stateV2.history as CombatState['history'],
-    };
-  }
 }

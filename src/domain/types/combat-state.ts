@@ -20,7 +20,8 @@ export interface CombatState {
   id: string;
   characterId: string;
   player: PlayerState;
-  enemy: EnemyState;
+  enemy: EnemyState; // V2 single enemy (backward compatibility)
+  enemies?: EnemyState[]; // V3 multi-enemy support
   phase: CombatPhase;
   currentTurn: CurrentTurn;
   roundNumber: number;

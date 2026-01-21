@@ -1,3 +1,4 @@
+import { type StateCreator } from 'zustand';
 import type {
   CombatState,
   CombatAction,
@@ -91,11 +92,14 @@ export interface CombatSlice {
 }
 
 type StoreState = CombatSlice & CharacterListSlice & CharacterStatsSlice & CharacterInventorySlice & ItemsCatalogSlice;
-type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;
-type GetState = () => StoreState;
 
-export const createCombatSlice = () => {
-  return (set: SetState, get: GetState): CombatSlice => ({
+export const createCombatSlice = (): StateCreator<
+  StoreState,
+  [['zustand/devtools', never]],
+  [],
+  CombatSlice
+> => {
+  return (set, get) => ({
     combat: null,
     availableActions: [],
     isAnimating: false,
@@ -146,7 +150,7 @@ export const createCombatSlice = () => {
           isAnimating: false,
           privateInitialChance: stats.chanceInitiale,
           error: null,
-        });
+        }, false, 'combat/startCombat');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -176,24 +180,24 @@ export const createCombatSlice = () => {
           error: null,
           isAnimating: true,
           animationPhase: 'rolling',
-        });
+        }, false, `combat/executeAction/${action.type}`);
 
         // Phase 2: Show result after dice animation (800ms)
         setTimeout(() => {
-          set({ animationPhase: 'result' });
+          set({ animationPhase: 'result' }, false, 'combat/showResult');
           
           // Phase 3: Show damage indicator if there's pending damage (after 600ms)
           const currentCombat = get().combat;
           if (currentCombat?.pendingDamage) {
             setTimeout(() => {
-              set({ animationPhase: 'damage' });
+              set({ animationPhase: 'damage' }, false, 'combat/showDamage');
               
               // Phase 4: Clear damage and return to idle (after 1500ms)
               setTimeout(() => {
                 set({ 
                   animationPhase: 'idle',
                   isAnimating: false,
-                });
+                }, false, 'combat/clearDamage');
               }, 1500);
             }, 600);
           } else {
@@ -202,7 +206,7 @@ export const createCombatSlice = () => {
               set({ 
                 animationPhase: 'idle',
                 isAnimating: false,
-              });
+              }, false, 'combat/idleNoDamage');
               
               // Auto-resolve enemy turn (pas d'input utilisateur requis)
               const combatAfterResult = get().combat;
@@ -230,24 +234,24 @@ export const createCombatSlice = () => {
                       availableActions: newAvailableActions,
                       isAnimating: true,
                       animationPhase: 'rolling',
-                    });
+                    }, false, 'combat/enemyAttack');
                     
                     // Enemy dice result
                     setTimeout(() => {
-                      set({ animationPhase: 'result' });
+                      set({ animationPhase: 'result' }, false, 'combat/enemyResult');
                       
                       const enemyCombat = get().combat;
                       if (enemyCombat?.pendingDamage) {
                         // Show damage to player
                         setTimeout(() => {
-                          set({ animationPhase: 'damage' });
+                          set({ animationPhase: 'damage' }, false, 'combat/enemyDamage');
                           
                           // Clear and return to idle
                           setTimeout(() => {
                             set({ 
                               animationPhase: 'idle',
                               isAnimating: false,
-                            });
+                            }, false, 'combat/enemyClearDamage');
                           }, 1500);
                         }, 600);
                       } else {
@@ -256,7 +260,7 @@ export const createCombatSlice = () => {
                           set({ 
                             animationPhase: 'idle',
                             isAnimating: false,
-                          });
+                          }, false, 'combat/enemyIdleNoDamage');
                         }, 400);
                       }
                     }, 800);
@@ -268,7 +272,7 @@ export const createCombatSlice = () => {
         }, 800);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Erreur de mise à jour';
-        set({ error: errorMessage, isAnimating: false, animationPhase: 'idle' });
+        set({ error: errorMessage, isAnimating: false, animationPhase: 'idle' }, false, 'combat/error');
         throw error;
       }
     },
@@ -305,7 +309,7 @@ export const createCombatSlice = () => {
           isAnimating: false,
           privateInitialChance: 0,
           error: null,
-        });
+        }, false, 'combat/endCombat');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -320,11 +324,11 @@ export const createCombatSlice = () => {
         animationPhase: 'idle',
         privateInitialChance: 0,
         error: null,
-      });
+      }, false, 'combat/cancelCombat');
     },
 
     setAnimating: (animating) => {
-      set({ isAnimating: animating });
+      set({ isAnimating: animating }, false, 'combat/setAnimating');
     }
   });
 };

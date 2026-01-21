@@ -1,3 +1,4 @@
+import { type StateCreator } from 'zustand';
 import { CatalogItem } from '@/src/domain/types/items';
 import { ITEMS_CATALOG } from '@/src/data/items-catalog';
 import { useCustomItemsStore } from '../customItemsStore';
@@ -30,11 +31,13 @@ export interface ItemsCatalogSlice {
   removeCustomItem: (itemId: string) => void;
 }
 
-type SetState = (partial: Partial<ItemsCatalogSlice> | ((state: ItemsCatalogSlice) => Partial<ItemsCatalogSlice>)) => void;
-type GetState = () => ItemsCatalogSlice;
-
-export const createItemsCatalogSlice = () => {
-  return (set: SetState, get: GetState): ItemsCatalogSlice => {
+export const createItemsCatalogSlice = (): StateCreator<
+  ItemsCatalogSlice,
+  [['zustand/devtools', never]],
+  [],
+  ItemsCatalogSlice
+> => {
+  return (set, get) => {
     const customItems = useCustomItemsStore.getState().customItems;
 
     return {
@@ -62,7 +65,7 @@ export const createItemsCatalogSlice = () => {
 
         set(() => ({
           catalog: buildCatalog([...useCustomItemsStore.getState().customItems, newItem]),
-        }));
+        }), false, 'catalog/createCustomItem');
 
         return newItem;
       },
@@ -74,7 +77,7 @@ export const createItemsCatalogSlice = () => {
 
         set(() => ({
           catalog: buildCatalog(useCustomItemsStore.getState().customItems),
-        }));
+        }), false, 'catalog/removeCustomItem');
       },
     };
   };
