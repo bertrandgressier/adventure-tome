@@ -48,7 +48,6 @@ export class AttackResolver {
       );
       if (surpriseAbility) {
         const surpriseResult = WeaponAbilityResolver.resolveAbility(newState as CombatState, surpriseAbility.id);
-        // Copy back changed fields from V2 result
         newState.player = surpriseResult.state.player;
         newState.enemy = surpriseResult.state.enemy;
         newState.usedAbilities = surpriseResult.state.usedAbilities;
