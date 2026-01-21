@@ -9,13 +9,12 @@ import type { CombatState } from '@/src/domain/types/combat-state';
 export type CombatAnimationPhase = 'idle' | 'rolling' | 'result' | 'damage';
 
 /**
- * Hook pour gérer les animations de combat de manière séquentielle
+ * Hook pour gérer les animations de combat
  * 
- * Stratégie :
+ * Stratégie simple :
  * 1. Observe les changements de lastActionTimestamp (nouvelle action)
- * 2. Regarde le dernier élément de history pour déterminer quoi animer
- * 3. Séquence les phases : rolling → result → damage → idle
- * 4. Respecte prefers-reduced-motion
+ * 2. Anime la dernière action : rolling → result → damage → idle
+ * 3. Respecte prefers-reduced-motion
  */
 export function useCombatAnimations(
   combat: CombatState | null,
@@ -31,9 +30,9 @@ export function useCombatAnimations(
     if (lastActionTimestamp !== lastTimestampRef.current && lastActionTimestamp > 0) {
       lastTimestampRef.current = lastActionTimestamp;
 
-      if (!combat) return;
+      if (!combat || combat.history.length === 0) return;
 
-      // Déterminer si on doit animer (si la dernière action a des jets de dés ou dégâts)
+      // Animer la dernière action
       const lastHistoryEntry = combat.history[combat.history.length - 1];
       const shouldAnimate = lastHistoryEntry && (
         lastHistoryEntry.hitRoll !== undefined || 
@@ -51,7 +50,7 @@ export function useCombatAnimations(
       const RESULT_DURATION = prefersReducedMotion ? 100 : 1800;
       const DAMAGE_DURATION = prefersReducedMotion ? 200 : 2000;
 
-      // Séquence d'animation
+      // Séquence d'animation pour cette action
       setIsAnimating(true);
 
       // Phase 1: Rolling (dés qui roulent)

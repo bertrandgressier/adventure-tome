@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { useCombatAnimations } from '@/src/presentation/hooks/useCombatAnimations';
 import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
+import { CombatActionType } from '@/src/domain/types/CombatActionType';
 import { CombatantCard } from './CombatantCard';
 import { DiceAnimation } from './DiceAnimation';
 import type { DiceRollResult } from './DiceAnimation';
@@ -72,10 +73,30 @@ function convertHistoryHitRollToDiceRollResult(
 export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const combat = useCharacterStore((state) => state.combat);
   const lastActionTimestamp = useCharacterStore((state) => state.lastActionTimestamp);
+  const executeAction = useCharacterStore((state) => state.executeAction);
   const prefersReducedMotion = useReducedMotion() ?? false;
 
   // Hook centralisé pour gérer les animations
   const { animationPhase, isAnimating } = useCombatAnimations(combat, lastActionTimestamp);
+
+  // Auto-play ennemi : déclencher l'attaque ennemi après les animations
+  useEffect(() => {
+    if (!combat || isAnimating) return;
+    
+    // Vérifier si c'est le tour de l'ennemi et si on doit auto-play
+    const shouldAutoPlayEnemy = CombatValidator.shouldAutoPlayEnemy(combat);
+    
+    if (shouldAutoPlayEnemy) {
+      // Délai avant l'action ennemi (pour que le joueur voie "Tour de l'ennemi")
+      const delay = prefersReducedMotion ? 200 : 600;
+      
+      const timeoutId = setTimeout(() => {
+        executeAction({ type: CombatActionType.ATTACK });
+      }, delay);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [combat, isAnimating, executeAction, prefersReducedMotion]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -101,8 +122,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
 
   const activeEnemy = combat.enemy;
 
-  // Adapter le lastRoll pour DiceAnimation
-  // Utiliser le dernier historique pour déterminer quel tour afficher
+  // Adapter le lastRoll pour DiceAnimation : afficher la dernière action
   const lastHistoryEntry = combat.history.length > 0 
     ? combat.history[combat.history.length - 1] 
     : undefined;
@@ -115,7 +135,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
       )
     : null;
 
-  // Déterminer l'outcome basé sur le dernier roll dans l'historique
+  // Déterminer l'outcome basé sur la dernière action
   const outcome = lastHistoryEntry?.hitRoll?.success !== undefined
     ? lastHistoryEntry.hitRoll.success
       ? ('win' as const)
@@ -200,10 +220,9 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
 
         {/* Damage Indicator - Réactivé */}
         <AnimatePresence>
-          {animationPhase === 'damage' && combat.history.length > 0 && (() => {
-            const lastEntry = combat.history[combat.history.length - 1];
-            const damage = lastEntry?.damageRoll?.total;
-            if (damage && lastEntry.turn === 'enemy') {
+          {animationPhase === 'damage' && lastHistoryEntry && (() => {
+            const damage = lastHistoryEntry.damageRoll?.total;
+            if (damage && lastHistoryEntry.turn === 'enemy') {
               // Dégâts subis par le joueur
               return (
                 <DamageIndicator

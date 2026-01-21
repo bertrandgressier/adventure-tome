@@ -22,7 +22,7 @@ Action utilisateur → CombatEngine (sync) → State update → React détecte c
 
 ### 1. Domain/Application Layer (combatSlice.ts)
 
-**Responsabilité** : Gérer le state pur, pas les animations
+**Responsabilité** : Gérer le state pur, auto-skip uniquement
 
 ```typescript
 export interface CombatSlice {
@@ -38,10 +38,39 @@ export interface CombatSlice {
 **Mécanisme** :
 - `executeAction()` :
   1. Résout l'action (CombatEngine)
-  2. Auto-skip + auto-play ennemi (CombatAutoPlayService)
+  2. Auto-skip uniquement (CombatAutoPlayService) - PAS l'ennemi
   3. Update state + `lastActionTimestamp: Date.now()`
 - Pas de setTimeout, tout est synchrone
-- Le state est immédiatement cohérent
+- Le state reste sur `currentTurn: 'enemy'` → permet l'affichage "Tour de l'ennemi"
+
+### 2. Presentation Layer - CombatArena (auto-play ennemi)
+
+**Responsabilité** : Déclencher l'attaque ennemi après délai d'animation
+
+```typescript
+// Auto-play ennemi : déclencher l'attaque ennemi après les animations
+useEffect(() => {
+  if (!combat || isAnimating) return;
+  
+  const shouldAutoPlayEnemy = CombatValidator.shouldAutoPlayEnemy(combat);
+  
+  if (shouldAutoPlayEnemy) {
+    const delay = prefersReducedMotion ? 200 : 600;
+    
+    const timeoutId = setTimeout(() => {
+      executeAction({ type: CombatActionType.ATTACK });
+    }, delay);
+    
+    return () => clearTimeout(timeoutId);
+  }
+}, [combat, isAnimating, executeAction, prefersReducedMotion]);
+```
+
+**Avantages** :
+- Le state reflète la réalité : `currentTurn: 'enemy'` pendant le délai
+- L'UI affiche "Tour de l'ennemi" correctement
+- Le délai est géré dans la présentation (où il doit être)
+- Simplicité : un seul endroit pour le setTimeout de l'ennemi
 
 ### 2. Presentation Layer - Hook (useCombatAnimations.ts)
 
@@ -187,8 +216,8 @@ interface DiceAnimationProps {
 
 2. **combatSlice** (synchrone) :
    ```
-   - CombatEngine.resolve() → jet dés, dégâts
-   - CombatAutoPlayService → auto-skip + ennemi attaque
+   - CombatEngine.resolve() → jet dés, dégâts, currentTurn = 'enemy'
+   - CombatAutoPlayService → auto-skip uniquement (pas l'ennemi)
    - set({ combat, lastActionTimestamp: Date.now() })
    ```
 
@@ -196,24 +225,30 @@ interface DiceAnimationProps {
    ```
    - Détecte lastActionTimestamp changé
    - setAnimationPhase('rolling')
-   - setTimeout 800ms → setAnimationPhase('result')
-   - setTimeout 600ms → setAnimationPhase('damage')
-   - setTimeout 1500ms → setAnimationPhase('idle')
+   - setTimeout 1000ms → setAnimationPhase('result')
+   - setTimeout 1800ms → setAnimationPhase('damage')
+   - setTimeout 2000ms → setAnimationPhase('idle'), isAnimating = false
    ```
 
-4. **CombatArena** (render à chaque phase) :
+4. **CombatArena useEffect** (après animations) :
    ```
-   - Phase rolling : <DiceAnimation isRolling />
-   - Phase result : <DiceAnimation isRolling={false} outcome="win" />
-   - Phase damage : <DamageIndicator damage={7} />
-   - Phase idle : Rien (retour normal)
+   - isAnimating = false ET currentTurn = 'enemy'
+   - shouldAutoPlayEnemy() = true
+   - setTimeout 600ms → executeAction({ type: ATTACK }) ← Ennemi attaque
    ```
 
-5. **Pendant les animations** :
-   - Le state `combat` est déjà à jour (ennemi a perdu 7 PV)
-   - La barre de vie anime vers le nouveau %
-   - L'historique affiche déjà "Vous touchez l'ennemi"
-   - Les boutons d'action sont calculés sur le state final
+5. **Nouvelle action ennemi** :
+   ```
+   - CombatEngine.resolve() → ennemi lance dés, fait dégâts
+   - currentTurn = 'player' (retour au joueur)
+   - lastActionTimestamp mis à jour → animations ennemi
+   ```
+
+6. **Pendant les animations** :
+   - Le state `combat` reflète toujours la phase actuelle
+   - L'historique affiche "Tour de l'ennemi" → "L'ennemi vous touche"
+   - Le TurnIndicator affiche correctement le tour actif
+   - Les boutons d'action sont calculés sur le state réel
 
 ---
 
