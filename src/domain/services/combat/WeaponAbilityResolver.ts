@@ -3,6 +3,7 @@ import type { WeaponAbility, DiceRoll, PendingDamage } from '../../types/combata
 import { CombatEventType } from '../../types/CombatEventType';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 import { COMBAT_MESSAGES } from './constants';
+import { PhaseManager } from './PhaseManager';
 
 /**
  * Type union des états de combat compatibles avec WeaponAbilityResolver

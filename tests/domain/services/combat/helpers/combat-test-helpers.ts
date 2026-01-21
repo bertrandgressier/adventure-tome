@@ -174,9 +174,15 @@ export function simulateFullRound(
   let newState = simulateAttack(state, playerDice.hit, playerDice.damage);
   
   // Vérifier si le combat est terminé
-  const combatStatus = CombatValidator.checkCombatEnd(newState);
+  let combatStatus = CombatValidator.checkCombatEnd(newState);
   if (combatStatus !== 'ongoing') {
     return newState;
+  }
+  
+  // Avancer après l'attaque (WAITING_DAMAGE_ROLL → TURN_COMPLETE)
+  if (newState.phase === CombatPhase.WAITING_DAMAGE_ROLL) {
+    const skipResult = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
+    newState = skipResult.state;
   }
   
   // Passer au tour ennemi si nécessaire
@@ -185,8 +191,26 @@ export function simulateFullRound(
     newState = skipResult.state;
   }
   
+  // Vérifier à nouveau si le combat est terminé
+  combatStatus = CombatValidator.checkCombatEnd(newState);
+  if (combatStatus !== 'ongoing') {
+    return newState;
+  }
+  
   // Tour de l'ennemi
   newState = simulateAttack(newState, enemyDice.hit, enemyDice.damage);
+  
+  // Vérifier si le combat est terminé
+  combatStatus = CombatValidator.checkCombatEnd(newState);
+  if (combatStatus !== 'ongoing') {
+    return newState;
+  }
+  
+  // Avancer après l'attaque (WAITING_DAMAGE_ROLL → TURN_COMPLETE)
+  if (newState.phase === CombatPhase.WAITING_DAMAGE_ROLL) {
+    const skipResult = CombatEngine.resolve(newState, { type: CombatActionType.SKIP });
+    newState = skipResult.state;
+  }
   
   // Passer au round suivant si nécessaire
   if (newState.phase === CombatPhase.TURN_COMPLETE) {
