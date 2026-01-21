@@ -244,7 +244,7 @@ export class CombatEngine {
         const killAbility = WeaponAbilityResolver.checkAutoTrigger(
           newState,
           'on_kill' as any,
-          {}
+          { killedEnemy: true }
         );
         if (killAbility) {
           const killResult = WeaponAbilityResolver.resolveAbility(newState, killAbility.id);

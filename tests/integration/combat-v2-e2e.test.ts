@@ -331,8 +331,10 @@ describe('Combat V2 - End to End Integration Tests', () => {
 
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [3, 3], damageDice: 5 });
 
-      expect(currentState.combat?.pendingDamage).toBeDefined();
-      expect(currentState.combat?.pendingDamage?.amount).toBeGreaterThan(5);
+      // En V3, les dégâts sont appliqués immédiatement (pas de pendingDamage)
+      const hpAfterEnemyAttack = currentState.combat?.player.endurance ?? 5;
+      expect(hpAfterEnemyAttack).toBeLessThan(5);
+      expect(hpAfterEnemyAttack).toBeLessThanOrEqual(0);
 
       slice.executeAction({ type: CombatActionType.SKIP });
 
@@ -352,11 +354,12 @@ describe('Combat V2 - End to End Integration Tests', () => {
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
 
       slice.executeAction({ type: CombatActionType.SKIP });
+      const hpBeforeEnemyAttack = currentState.combat?.player.endurance ?? initialPv;
       slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [3, 2], damageDice: 6 });
 
-      expect(currentState.combat?.pendingDamage).toBeDefined();
-      const damageAmount = currentState.combat?.pendingDamage?.amount ?? 0;
-      expect(damageAmount).toBeGreaterThan(0);
+      // En V3, dégâts appliqués immédiatement - vérifions que HP a baissé
+      const hpAfterEnemyAttack = currentState.combat?.player.endurance ?? initialPv;
+      expect(hpAfterEnemyAttack).toBeLessThan(hpBeforeEnemyAttack);
 
       slice.executeAction({ type: CombatActionType.SKIP });
 
