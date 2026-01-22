@@ -2,19 +2,15 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
-import { ScrollText, ChevronUp, ChevronDown, Swords, Heart, Sparkles, Wand2, Dices, Zap } from 'lucide-react';
+import { ScrollText, ChevronUp, ChevronDown, Swords, Sparkles, Wand2, Dices } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { CombatEvent } from '@/src/domain/types/combat-state';
-import { CombatEventType } from '@/src/domain/types/CombatEventType';
-import {
-  getIconColorClass,
-  getEventColorClass,
-  formatEventDescription,
-} from './combatLogHelpers';
+import type { CombatHistoryEntry } from '@/src/domain/types/combat-history';
+import { CombatActionType } from '@/src/domain/types/CombatActionType';
+import { Attacker } from '@/src/domain/types/Attacker';
 
 export interface CombatLogProps {
-  events: readonly CombatEvent[];
+  history?: readonly CombatHistoryEntry[];
 }
 
 const logContentVariants = {
@@ -49,15 +45,15 @@ const eventVariants = {
   },
 };
 
-export function CombatLog({ events }: CombatLogProps) {
+export function CombatLog({ history = [] }: CombatLogProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion() ?? false;
-  const prevEventsLengthRef = useRef(events.length);
+  const prevHistoryLengthRef = useRef(history.length);
   const [canScrollDown, setCanScrollDown] = useState(false);
 
-  const eventsByRound = groupEventsByRound(events);
-  const totalEvents = events.length;
+  const historyByRound = groupHistoryByRound(history);
+  const totalEntries = history.length;
 
   // Vérifier si on peut scroller vers le bas
   const checkScroll = () => {
@@ -67,10 +63,9 @@ export function CombatLog({ events }: CombatLogProps) {
     }
   };
 
-  // Auto-scroll vers le bas quand de nouveaux événements arrivent
+  // Auto-scroll vers le bas quand de nouvelles entrées arrivent
   useEffect(() => {
-    if (scrollRef.current && events.length > prevEventsLengthRef.current) {
-      // Scroll smooth vers le bas après un court délai pour l'animation
+    if (scrollRef.current && history.length > prevHistoryLengthRef.current) {
       setTimeout(() => {
         scrollRef.current?.scrollTo({
           top: scrollRef.current.scrollHeight,
@@ -78,8 +73,8 @@ export function CombatLog({ events }: CombatLogProps) {
         });
       }, 100);
     }
-    prevEventsLengthRef.current = events.length;
-  }, [events.length, prefersReducedMotion]);
+    prevHistoryLengthRef.current = history.length;
+  }, [history.length, prefersReducedMotion]);
 
   // Scroll initial quand on ouvre le log
   useEffect(() => {
@@ -93,8 +88,8 @@ export function CombatLog({ events }: CombatLogProps) {
     }
   }, [isExpanded, prefersReducedMotion]);
 
-  const lastEventIndex = totalEvents - 1;
-  const lastEvent = events[lastEventIndex];
+  const lastEntryIndex = totalEntries - 1;
+  const lastEntry = history[lastEntryIndex];
 
   return (
     <motion.div 
@@ -116,7 +111,7 @@ export function CombatLog({ events }: CombatLogProps) {
         >
           <span className="flex items-center gap-2">
             <ScrollText className="size-4" />
-            Historique ({totalEvents})
+            Historique ({totalEntries})
           </span>
           {isExpanded ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
         </Button>
@@ -137,7 +132,7 @@ export function CombatLog({ events }: CombatLogProps) {
                 onScroll={checkScroll}
               >
                 <div className="p-3 space-y-3">
-                  {eventsByRound.map(({ roundNumber, events: roundEvents }) => (
+                  {historyByRound.map(({ roundNumber, entries }) => (
                     <motion.div
                       key={roundNumber}
                       variants={prefersReducedMotion ? {} : eventVariants}
@@ -148,16 +143,20 @@ export function CombatLog({ events }: CombatLogProps) {
                       </div>
 
                       <div className="space-y-1.5 pl-2">
-                        {roundEvents.map((event, idx) => (
-                          <CombatLogEntry key={`${event.type}-${event.timestamp}-${idx}`} event={event} isLast={event.type === lastEvent?.type && event.timestamp === lastEvent?.timestamp} />
+                        {entries.map((entry) => (
+                          <CombatHistoryEntryDisplay 
+                            key={entry.id} 
+                            entry={entry} 
+                            isLast={entry.id === lastEntry?.id} 
+                          />
                         ))}
                       </div>
                     </motion.div>
                   ))}
 
-                  {totalEvents === 0 && (
+                  {totalEntries === 0 && (
                     <div className="text-center text-sm text-muted-foreground py-4">
-                      Aucun événement pour le moment
+                      Aucune action pour le moment
                     </div>
                   )}
                 </div>
@@ -179,9 +178,9 @@ export function CombatLog({ events }: CombatLogProps) {
                 )}
               </AnimatePresence>
 
-              {lastEvent && (
+              {lastEntry && (
                 <div className="sr-only" aria-live="polite" aria-atomic="true">
-                  {formatEventDescription(lastEvent)}
+                  {lastEntry.description}
                 </div>
               )}
             </motion.div>
@@ -192,16 +191,14 @@ export function CombatLog({ events }: CombatLogProps) {
   );
 }
 
-interface CombatLogEntryProps {
-  event: CombatEvent;
+interface CombatHistoryEntryDisplayProps {
+  entry: CombatHistoryEntry;
   isLast: boolean;
 }
 
-function CombatLogEntry({ event, isLast }: CombatLogEntryProps) {
-  const description = formatEventDescription(event);
-  const colorClass = getEventColorClass(event.type);
-  const iconColorClass = getIconColorClass(event.type);
-  const icon = getEventIcon(event.type);
+function CombatHistoryEntryDisplay({ entry, isLast }: CombatHistoryEntryDisplayProps) {
+  const icon = getActionIcon(entry.action, entry.turn);
+  const colorClass = getActionColorClass(entry.action);
 
   return (
     <motion.div
@@ -213,62 +210,80 @@ function CombatLogEntry({ event, isLast }: CombatLogEntryProps) {
       animate={isLast ? { scale: [1, 1.02, 1] } : {}}
       transition={{ duration: 0.3 }}
     >
-      <div className={cn('flex-shrink-0 mt-0.5', iconColorClass)}>
+      <div className="flex-shrink-0 mt-0.5">
         {icon}
       </div>
-      <span className="flex-1 leading-relaxed">{description}</span>
+      <div className="flex-1 leading-relaxed space-y-1">
+        <div>{entry.description}</div>
+        {entry.hitRoll && (
+          <div className="text-xs text-muted-foreground">
+            🎲 [{entry.hitRoll.dice[0]}+{entry.hitRoll.dice[1]}] = {entry.hitRoll.total} 
+            {entry.hitRoll.success ? ' → Touché !' : ' → Raté !'}
+          </div>
+        )}
+        {entry.damageRoll && (
+          <div className="text-xs text-orange-500">
+            ⚔️ 1+{entry.damageRoll.dice}+{entry.damageRoll.bonus} = {entry.damageRoll.total} dégâts
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }
 
 /**
- * Groupe les événements de combat par numéro de round
- * Cette fonction est purement utilitaire et ne contient pas de logique métier
+ * Groupe les entrées d'historique par numéro de round
  */
-function groupEventsByRound(events: readonly CombatEvent[]): Array<{ roundNumber: number; events: CombatEvent[] }> {
-  const grouped = new Map<number, CombatEvent[]>();
+function groupHistoryByRound(history: readonly CombatHistoryEntry[]): Array<{ roundNumber: number; entries: CombatHistoryEntry[] }> {
+  const grouped = new Map<number, CombatHistoryEntry[]>();
 
-  for (const event of events) {
-    const round = event.round ?? 0;
+  for (const entry of history) {
+    const round = entry.round;
     if (!grouped.has(round)) {
       grouped.set(round, []);
     }
-    grouped.get(round)!.push(event);
+    grouped.get(round)!.push(entry);
   }
 
   return Array.from(grouped.entries())
-    .map(([roundNumber, events]) => ({ roundNumber, events }))
+    .map(([roundNumber, entries]) => ({ roundNumber, entries }))
     .sort((a, b) => a.roundNumber - b.roundNumber);
 }
 
 /**
- * Retourne l'icône JSX pour un type d'événement
+ * Retourne l'icône pour un type d'action
  */
-function getEventIcon(type: string): React.ReactNode {
-  switch (type) {
-    case CombatEventType.COMBAT_START:
-      return <Swords className="size-4" />;
-    case CombatEventType.COMBAT_END:
-      return <Sparkles className="size-4" />;
-    case CombatEventType.ROUND_START:
-    case CombatEventType.ROUND_END:
-      return <Dices className="size-4" />;
-    case CombatEventType.ATTACK_ROLL:
-      return <Swords className="size-4" />;
-    case CombatEventType.DAMAGE_DEALT:
-      return <Heart className="size-4" />;
-    case CombatEventType.HEAL:
-      return <Sparkles className="size-4" />;
-    case CombatEventType.ABILITY_USED:
-    case CombatEventType.WEAPON_ABILITY:
-      return <Wand2 className="size-4" />;
-    case CombatEventType.LUCK_TEST:
-      return <Sparkles className="size-4" />;
-    case CombatEventType.CHANCE_SPENT:
-      return <Zap className="size-4" />;
-    case CombatEventType.ITEM_USED:
-      return <Wand2 className="size-4" />;
+function getActionIcon(action: CombatActionType, attacker: Attacker): React.ReactNode {
+  const isPlayer = attacker === Attacker.PLAYER;
+  
+  switch (action) {
+    case CombatActionType.ATTACK:
+      return isPlayer ? <Swords className="size-4 text-primary" /> : <Swords className="size-4 text-red-500" />;
+    case CombatActionType.REROLL:
+      return <Dices className="size-4 text-blue-500" />;
+    case CombatActionType.USE_ITEM:
+      return <Sparkles className="size-4 text-green-500" />;
+    case CombatActionType.WEAPON_ABILITY:
+      return <Wand2 className="size-4 text-purple-500" />;
     default:
       return <Dices className="size-4" />;
+  }
+}
+
+/**
+ * Retourne la classe de couleur pour un type d'action
+ */
+function getActionColorClass(action: CombatActionType): string {
+  switch (action) {
+    case CombatActionType.ATTACK:
+      return 'text-foreground';
+    case CombatActionType.REROLL:
+      return 'text-blue-400';
+    case CombatActionType.USE_ITEM:
+      return 'text-green-400';
+    case CombatActionType.WEAPON_ABILITY:
+      return 'text-purple-400';
+    default:
+      return 'text-muted-foreground';
   }
 }

@@ -52,7 +52,7 @@ describe('CombatArena', () => {
         return selector({
           combat: null,
           availableActions: [],
-          isAnimating: false,
+          lastActionTimestamp: 0,
           executeAction: vi.fn(),
           endCombat: vi.fn(),
         } as any);
@@ -95,6 +95,7 @@ describe('CombatArena', () => {
       },
       phase: 'player_turn' as const,
       roundNumber: 1,
+      currentTurn: 'player' as const,
       currentAttacker: 'player' as const,
       usedAbilities: {},
       usedReroll: false,
@@ -105,6 +106,7 @@ describe('CombatArena', () => {
       },
       events: [],
       usedItems: [],
+      history: [], // Historique des actions de combat (V3)
     };
 
     const mockAvailableActions = [
@@ -129,13 +131,18 @@ describe('CombatArena', () => {
         const state = {
           combat: mockCombat,
           availableActions: mockAvailableActions,
-          isAnimating: false,
+          lastActionTimestamp: 0,
           executeAction: vi.fn(),
           endCombat: vi.fn(),
           getItem: () => undefined,
           characters: {
             'test-id': mockCharacter,
           },
+          // Nouvelles actions pour l'orchestration du combat
+          turnPhase: 'PLAYER_TURN_START' as const,
+          endPlayerTurn: vi.fn(),
+          executeEnemyAttack: vi.fn(),
+          endEnemyTurn: vi.fn(),
         };
 
         return selector(state as any);
@@ -219,11 +226,16 @@ describe('CombatArena', () => {
             enemies: [{ name: 'Gobelin', dexterite: 6, endurance: 0, enduranceMax: 8 }], // Victory
           },
           availableActions: [],
-          isAnimating: false,
+          lastActionTimestamp: 0,
           executeAction: vi.fn(),
           endCombat: vi.fn(),
           characters: { 'test-id': createMockCharacter() },
           getItem: () => undefined,
+          // Nouvelles actions pour l'orchestration du combat
+          turnPhase: 'COMBAT_ENDED' as const,
+          endPlayerTurn: vi.fn(),
+          executeEnemyAttack: vi.fn(),
+          endEnemyTurn: vi.fn(),
         };
          
          
@@ -298,7 +310,7 @@ describe('CombatArena', () => {
           const state = createMockState({
             combat: noRollCombat,
             availableActions: mockAvailableActions,
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
           });
@@ -333,7 +345,7 @@ describe('CombatArena', () => {
             const state = createMockState({
               combat: withRollCombat,
               availableActions: mockAvailableActions,
-              isAnimating: false,
+              lastActionTimestamp: 0,
               executeAction: vi.fn(),
               endCombat: vi.fn(),
             });
@@ -373,7 +385,7 @@ describe('CombatArena', () => {
           const state = createMockState({
             combat: doubleRollCombat,
             availableActions: mockAvailableActions,
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
           });
@@ -403,11 +415,16 @@ describe('CombatArena', () => {
           const state = {
             combat: victoryCombat,
             availableActions: [],
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
             characters: { 'test-id': createMockCharacter() },
             getItem: () => undefined,
+            // Nouvelles actions pour l'orchestration du combat
+            turnPhase: 'COMBAT_ENDED' as const,
+            endPlayerTurn: vi.fn(),
+            executeEnemyAttack: vi.fn(),
+            endEnemyTurn: vi.fn(),
           };
            
          
@@ -435,11 +452,16 @@ describe('CombatArena', () => {
           const state = {
             combat: defeatCombat,
             availableActions: [],
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
             characters: { 'test-id': createMockCharacter() },
             getItem: () => undefined,
+            // Nouvelles actions pour l'orchestration du combat
+            turnPhase: 'COMBAT_ENDED' as const,
+            endPlayerTurn: vi.fn(),
+            executeEnemyAttack: vi.fn(),
+            endEnemyTurn: vi.fn(),
           };
            
          
@@ -466,7 +488,7 @@ describe('CombatArena', () => {
           const state = createMockState({
             combat: noDamageCombat,
             availableActions: mockAvailableActions,
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
           });
@@ -495,7 +517,7 @@ describe('CombatArena', () => {
           const state = createMockState({
             combat: damageCombat,
             availableActions: mockAvailableActions,
-            isAnimating: false,
+            lastActionTimestamp: 0,
             executeAction: vi.fn(),
             endCombat: vi.fn(),
           });
@@ -569,6 +591,7 @@ describe('CombatArena', () => {
             },
             phase: 'player_turn' as const,
             roundNumber: 1,
+            currentTurn: 'player' as const,
             currentAttacker: 'player' as const,
             usedAbilities: {},
             usedReroll: false,
@@ -579,9 +602,10 @@ describe('CombatArena', () => {
             },
             events: [],
             usedItems: [],
+            history: [], // Historique des actions de combat (V3)
           },
           availableActions: [],
-          isAnimating: false,
+          lastActionTimestamp: 0,
           executeAction: vi.fn(),
           endCombat: vi.fn(),
           characters: {

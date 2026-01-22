@@ -5,13 +5,13 @@ import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
+import { useCombatOrchestrator } from '@/src/presentation/hooks/useCombatOrchestrator';
 import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
 import { CombatantCard } from './CombatantCard';
 import { DiceAnimation } from './DiceAnimation';
 import type { DiceRollResult } from './DiceAnimation';
 import { ActionPanel } from './ActionPanel';
 import { CombatLog } from './CombatLog';
-import type { DiceRoll } from '@/src/domain/types/combatants';
 import {
   wouldBeLethal,
 } from './combatUIHelpers';
@@ -27,31 +27,32 @@ export interface CombatArenaProps {
 }
 
 /**
- * Adapter: Convertit DiceRoll (Combat V2) vers DiceRollResult (DiceAnimation)
+ * Adapter: Convertit HitRollDetails (CombatHistoryEntry) vers DiceRollResult (DiceAnimation)
  */
-function convertToDiceRollResult(
-  roll: DiceRoll,
-  playerDexterite: number,
+function convertHistoryHitRollToDiceRollResult(
+  hitRoll: import('@/src/domain/types/combat-history').HitRollDetails,
+  dexterite: number,
   weaponBonus: number
 ): DiceRollResult {
   return {
-    dice: [roll.dice1, roll.dice2],
-    total: roll.total,
+    dice: hitRoll.dice,
+    total: hitRoll.total,
     modifiers: {
-      habilete: playerDexterite,
+      habilete: dexterite,
       weaponBonus: weaponBonus,
     },
-    finalScore: roll.modifiedTotal ?? roll.total,
-    isDouble: roll.isDouble,
-    success: roll.success,
+    finalScore: hitRoll.total, // HitRollDetails n'a pas de modifiedTotal
+    isDouble: hitRoll.dice[0] === hitRoll.dice[1],
+    success: hitRoll.success,
   };
 }
 
 export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const combat = useCharacterStore((state) => state.combat);
-  const isAnimating = useCharacterStore((state) => state.isAnimating);
-  const animationPhase = useCharacterStore((state) => state.animationPhase);
-  const prefersReducedMotion = useReducedMotion() ?? false;
+  const turnPhase = useCharacterStore((state) => state.turnPhase);
+
+  // Hook orchestrateur : gère le séquençage des animations et actions
+  const { animationPhase, isAnimating, prefersReducedMotion } = useCombatOrchestrator();
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -77,25 +78,31 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
 
   const activeEnemy = combat.enemy;
 
-  // Adapter le lastRoll pour DiceAnimation
-  const diceResult = combat.lastRoll
-    ? convertToDiceRollResult(
-        combat.lastRoll,
-        combat.currentTurn === 'player' ? combat.player.dexterite : (activeEnemy?.dexterite ?? 0),
-        combat.currentTurn === 'player' ? combat.player.weapon.bonus : 0 // Enemies have no weapon bonus
+  // Adapter le lastRoll pour DiceAnimation : afficher la dernière action
+  const lastHistoryEntry = combat.history.length > 0 
+    ? combat.history[combat.history.length - 1] 
+    : undefined;
+    
+  const diceResult = lastHistoryEntry?.hitRoll
+    ? convertHistoryHitRollToDiceRollResult(
+        lastHistoryEntry.hitRoll,
+        lastHistoryEntry.turn === 'player' ? combat.player.dexterite : (activeEnemy?.dexterite ?? 0),
+        lastHistoryEntry.turn === 'player' ? combat.player.weapon.bonus : 0 // Enemies have no weapon bonus
       )
     : null;
 
-  // Déterminer l'outcome basé sur le dernier roll
-  const outcome = combat.lastRoll?.success !== undefined
-    ? combat.lastRoll.success
+  // Déterminer l'outcome basé sur la dernière action
+  const outcome = lastHistoryEntry?.hitRoll?.success !== undefined
+    ? lastHistoryEntry.hitRoll.success
       ? ('win' as const)
       : ('lose' as const)
     : undefined;
 
   // Déterminer si c'est le tour du joueur ou de l'ennemi pour l'UI
-  const isPlayerTurn = combat.currentTurn === 'player';
-  const isEnemyTurn = combat.currentTurn === 'enemy';
+  // turnPhase reflète la RÉALITÉ du combat
+  const isEnemyPhase = turnPhase === 'ENEMY_TURN_START' || turnPhase === 'ENEMY_ATTACKING';
+  const isPlayerTurn = !isEnemyPhase && turnPhase !== 'COMBAT_ENDED';
+  const isEnemyTurn = isEnemyPhase;
 
   return (
     <motion.div
@@ -120,8 +127,8 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
       <TurnIndicator 
         isPlayerTurn={isPlayerTurn} 
         isEnemyTurn={isEnemyTurn}
-        enemyName={activeEnemy?.name ?? 'Ennemi'}
         isAnimating={isAnimating}
+        enemyName={activeEnemy?.name ?? 'Ennemi'}
       />
 
       <div className="flex-1 flex flex-col p-4 pb-20">
@@ -147,9 +154,9 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
             isActive={isPlayerTurn}
           />
 
-          {/* DiceAnimation en position absolue, centré entre les deux combattants */}
+          {/* DiceAnimation - Réactivé avec animations basées sur useCombatAnimations */}
           <AnimatePresence>
-            {(animationPhase === 'rolling' || animationPhase === 'result') && (
+            {(animationPhase === 'rolling' || animationPhase === 'result') && diceResult && (
               <motion.div 
                 className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 px-4"
                 initial={{ opacity: 0 }}
@@ -169,15 +176,22 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
           </AnimatePresence>
         </div>
 
-        {/* Damage Indicator - only show during 'damage' phase */}
+        {/* Damage Indicator - Réactivé */}
         <AnimatePresence>
-          {animationPhase === 'damage' && combat.pendingDamage && (
-            <DamageIndicator
-              damage={combat.pendingDamage.amount}
-              playerHealth={combat.player.endurance}
-              playerMaxHealth={combat.player.enduranceMax}
-            />
-          )}
+          {animationPhase === 'damage' && lastHistoryEntry && (() => {
+            const damage = lastHistoryEntry.damageRoll?.total;
+            if (damage && lastHistoryEntry.turn === 'enemy') {
+              // Dégâts subis par le joueur
+              return (
+                <DamageIndicator
+                  damage={damage}
+                  playerHealth={combat.player.endurance}
+                  playerMaxHealth={combat.player.enduranceMax}
+                />
+              );
+            }
+            return null;
+          })()}
         </AnimatePresence>
 
         <div className="mt-4">
@@ -188,13 +202,13 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
             <DefeatScreen characterId={characterId} />
           )}
           {CombatValidator.checkCombatEnd(combat) === 'ongoing' && (
-            <ActionPanel characterId={characterId} />
+            <ActionPanel characterId={characterId} isAnimating={isAnimating} />
           )}
         </div>
       </div>
 
       {/* CombatLog positionné en fixed en bas de l'écran */}
-      <CombatLog events={combat.events} />
+      <CombatLog history={combat.history} />
     </motion.div>
   );
 }

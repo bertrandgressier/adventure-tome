@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
 import { ItemPicker } from './ItemPicker';
-import type { CombatActionType } from '@/src/domain/types/CombatActionType';
+import { CombatActionType } from '@/src/domain/types/CombatActionType';
 import type { CatalogItem } from '@/src/domain/types/items';
 import { getActionMetadata } from './combatUIHelpers';
 import {
@@ -17,12 +17,13 @@ import {
 
 export interface ActionPanelProps {
   characterId: string;
+  /** Si true, masque le bouton SKIP (Continuer) pendant les animations */
+  isAnimating?: boolean;
 }
 
-export function ActionPanel({ characterId }: ActionPanelProps) {
+export function ActionPanel({ characterId, isAnimating = false }: ActionPanelProps) {
   const availableActions = useCharacterStore((state) => state.availableActions);
   const executeAction = useCharacterStore((state) => state.executeAction);
-  const isAnimating = useCharacterStore((state) => state.isAnimating);
   const combat = useCharacterStore((state) => state.combat);
   const characters = useCharacterStore((state) => state.characters);
   const getCharacter = (id: string) => characters[id];
@@ -35,6 +36,11 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
   if (!combat || CombatValidator.checkCombatEnd(combat) !== 'ongoing') {
     return null;
   }
+
+  // Filtrer SKIP pendant les animations pour éviter les clics accidentels
+  const filteredActions = isAnimating
+    ? availableActions.filter(a => a.action.type !== CombatActionType.SKIP)
+    : availableActions;
 
   const character = getCharacter(characterId);
   const inventory = character?.getInventory();
@@ -50,7 +56,6 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
     ) ?? [];
 
   const handleAction = (actionType: CombatActionType) => {
-    if (isAnimating) return;
 
     if (actionType === 'use_item') {
       setIsItemPickerOpen(true);
@@ -75,7 +80,7 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
         custom={prefersReducedMotion}
       >
         <AnimatePresence mode="popLayout">
-          {availableActions.map((action, index) => {
+          {filteredActions.map((action, index) => {
             const actionInfo = getActionMetadata(action.action.type);
             const isWeaponAbility = action.action.type === 'weapon_ability';
 
@@ -93,11 +98,11 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
               >
                 <Button
                   variant="default"
-                  disabled={!action.enabled || isAnimating}
+                  disabled={!action.enabled}
                   onClick={() => handleAction(action.action.type as CombatActionType)}
                   className="btn-mobile min-h-[44px] relative group"
                   aria-label={actionInfo.label}
-                  aria-disabled={!action.enabled || isAnimating}
+                  aria-disabled={!action.enabled}
                 >
                   <motion.span
                     className="text-xl mr-2"

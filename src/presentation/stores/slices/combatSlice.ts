@@ -12,6 +12,7 @@ import type {
 } from '@/src/domain/types/combatants';
 import type { CatalogItem, WeaponAbilityDefinition } from '@/src/domain/types/items';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
+import { PhaseManager } from '@/src/domain/services/combat/PhaseManager';
 import type { DiceOverrides } from '@/src/domain/services/combat/DiceRoller';
 import type { CharacterListSlice } from './characterListSlice';
 import type { CharacterStatsSlice } from './characterStatsSlice';
@@ -20,16 +21,24 @@ import type { ItemsCatalogSlice } from './itemsCatalogSlice';
 import { handleSliceError } from './sliceHelpers';
 
 /**
- * Animation phases pour séquencer les animations de combat
- * idle → rolling → result → damage → idle
+ * Phase de tour du combat
+ * Reflète la RÉALITÉ de ce qui se passe dans le combat
+ * Pas de simulation - chaque phase correspond à un état réel
  */
-export type AnimationPhase = 'idle' | 'rolling' | 'result' | 'damage';
+export type CombatTurnPhase = 
+  | 'PLAYER_TURN_START'    // Début du tour joueur - attend action
+  | 'PLAYER_ATTACKING'     // Joueur a attaqué - résultat calculé, animation en cours
+  | 'ENEMY_TURN_START'     // Début du tour ennemi - affiche "Tour de l'ennemi"
+  | 'ENEMY_ATTACKING'      // Ennemi attaque - résultat calculé, animation en cours
+  | 'COMBAT_ENDED';        // Combat terminé (victoire ou défaite)
 
 /**
  * Combat Slice - Gère l'état du combat V3
  * 
- * Centralise l'état du combat et délègue la logique métier au CombatEngine.
- * Suit le pattern des autres slices avec gestion d'erreur cohérente.
+ * Architecture simplifiée :
+ * - turnPhase : Phase réelle du combat (pas de simulation)
+ * - Les animations réagissent aux changements de phase
+ * - L'orchestrateur fait avancer les phases après les animations
  */
 export interface CombatSlice {
   /** État actuel du combat (null si pas de combat actif) */
@@ -38,21 +47,17 @@ export interface CombatSlice {
   /** Actions disponibles pour le joueur dans l'état actuel */
   availableActions: AvailableAction[];
   
-  /** Indique si une animation est en cours */
-  isAnimating: boolean;
+  /** Phase actuelle du tour (reflète la réalité du combat) */
+  turnPhase: CombatTurnPhase;
   
-  /** Phase d'animation actuelle pour séquencer les visuels */
-  animationPhase: AnimationPhase;
+  /** Timestamp de la dernière action (pour déclencher animations React) */
+  lastActionTimestamp: number;
   
   /** Erreur éventuelle lors des opérations de combat */
   error: string | null;
 
   /**
    * Démarre un nouveau combat
-   * @param characterId ID du personnage
-   * @param enemy Configuration de l'ennemi
-   * @param config Configuration du combat
-   * @throws Error si le personnage n'est pas trouvé
    */
   startCombat: (
     characterId: string,
@@ -61,10 +66,8 @@ export interface CombatSlice {
   ) => void;
 
   /**
-   * Exécute une action de combat
-   * @param action Action à exécuter
-   * @param diceOverrides Overrides pour les dés (tests)
-   * @throws Error si pas de combat actif
+   * Exécute une action de combat du joueur
+   * Phase passe à PLAYER_ATTACKING
    */
   executeAction: (
     action: CombatAction,
@@ -72,8 +75,25 @@ export interface CombatSlice {
   ) => void;
 
   /**
+   * Termine le tour du joueur, passe au tour ennemi
+   * Phase passe à ENEMY_TURN_START
+   */
+  endPlayerTurn: () => void;
+
+  /**
+   * Exécute l'attaque de l'ennemi
+   * Phase passe à ENEMY_ATTACKING
+   */
+  executeEnemyAttack: (diceOverrides?: DiceOverrides) => void;
+
+  /**
+   * Termine le tour ennemi, retour au joueur
+   * Phase passe à PLAYER_TURN_START
+   */
+  endEnemyTurn: () => void;
+
+  /**
    * Termine le combat et persiste les changements au personnage
-   * (dégâts, chance utilisée, items consommés)
    */
   endCombat: () => Promise<void>;
 
@@ -81,11 +101,6 @@ export interface CombatSlice {
    * Annule le combat sans persister les changements
    */
   cancelCombat: () => void;
-
-  /**
-   * Contrôle l'état d'animation pour l'UI
-   */
-  setAnimating: (animating: boolean) => void;
 
   /** @internal Valeur privée pour tracker la chance initiale */
   privateInitialChance: number;
@@ -102,8 +117,8 @@ export const createCombatSlice = (): StateCreator<
   return (set, get) => ({
     combat: null,
     availableActions: [],
-    isAnimating: false,
-    animationPhase: 'idle',
+    turnPhase: 'PLAYER_TURN_START' as CombatTurnPhase,
+    lastActionTimestamp: 0,
     privateInitialChance: 0,
     error: null,
 
@@ -146,8 +161,9 @@ export const createCombatSlice = (): StateCreator<
 
         set({
           combat: stateWithReroll,
+          turnPhase: 'PLAYER_TURN_START',
+          lastActionTimestamp: Date.now(),
           availableActions,
-          isAnimating: false,
           privateInitialChance: stats.chanceInitiale,
           error: null,
         }, false, 'combat/startCombat');
@@ -164,117 +180,148 @@ export const createCombatSlice = (): StateCreator<
           throw new Error('No active combat');
         }
 
+        // Résoudre l'action utilisateur
         const result = CombatEngine.resolve(combat, action, diceOverrides);
+        
         const availableActions = CombatEngine.getAvailableActions(result.state);
 
-        // Append new events to existing events in state
         const updatedCombat = {
           ...result.state,
           events: [...result.state.events, ...result.events],
         };
 
-        // Phase 1: Start rolling animation
+        // Déterminer la nouvelle phase
+        const isAttack = action.type === 'attack' || action.type === 'reroll';
+        const isEnded = updatedCombat.player.endurance <= 0 || updatedCombat.enemy.endurance <= 0;
+        
+        const turnPhase: CombatTurnPhase = isEnded 
+          ? 'COMBAT_ENDED' 
+          : isAttack 
+            ? 'PLAYER_ATTACKING' 
+            : 'PLAYER_TURN_START';
+
         set({
           combat: updatedCombat,
+          turnPhase,
+          lastActionTimestamp: Date.now(),
           availableActions,
           error: null,
-          isAnimating: true,
-          animationPhase: 'rolling',
         }, false, `combat/executeAction/${action.type}`);
-
-        // Phase 2: Show result after dice animation (800ms)
-        setTimeout(() => {
-          set({ animationPhase: 'result' }, false, 'combat/showResult');
-          
-          // Phase 3: Show damage indicator if there's pending damage (after 600ms)
-          const currentCombat = get().combat;
-          if (currentCombat?.pendingDamage) {
-            setTimeout(() => {
-              set({ animationPhase: 'damage' }, false, 'combat/showDamage');
-              
-              // Phase 4: Clear damage and return to idle (after 1500ms)
-              setTimeout(() => {
-                set({ 
-                  animationPhase: 'idle',
-                  isAnimating: false,
-                }, false, 'combat/clearDamage');
-              }, 1500);
-            }, 600);
-          } else {
-            // No damage, go to idle after showing result (400ms)
-            setTimeout(() => {
-              set({ 
-                animationPhase: 'idle',
-                isAnimating: false,
-              }, false, 'combat/idleNoDamage');
-              
-              // Auto-resolve enemy turn (pas d'input utilisateur requis)
-              const combatAfterResult = get().combat;
-              if (combatAfterResult && combatAfterResult.currentTurn === 'enemy') {
-                // Petit délai pour montrer la transition
-                setTimeout(() => {
-                  const stillInEnemyTurn = get().combat;
-                  if (stillInEnemyTurn && stillInEnemyTurn.currentTurn === 'enemy') {
-                    // Lancer l'attaque ennemie automatiquement
-                    const enemyAttackResult = CombatEngine.resolve(
-                      stillInEnemyTurn,
-                      { type: 'attack' }
-                    );
-                    
-                    const newAvailableActions = CombatEngine.getAvailableActions(enemyAttackResult.state);
-                    
-                    const finalCombat = {
-                      ...enemyAttackResult.state,
-                      events: [...enemyAttackResult.state.events, ...enemyAttackResult.events],
-                    };
-                    
-                    // Start enemy attack animation sequence
-                    set({
-                      combat: finalCombat,
-                      availableActions: newAvailableActions,
-                      isAnimating: true,
-                      animationPhase: 'rolling',
-                    }, false, 'combat/enemyAttack');
-                    
-                    // Enemy dice result
-                    setTimeout(() => {
-                      set({ animationPhase: 'result' }, false, 'combat/enemyResult');
-                      
-                      const enemyCombat = get().combat;
-                      if (enemyCombat?.pendingDamage) {
-                        // Show damage to player
-                        setTimeout(() => {
-                          set({ animationPhase: 'damage' }, false, 'combat/enemyDamage');
-                          
-                          // Clear and return to idle
-                          setTimeout(() => {
-                            set({ 
-                              animationPhase: 'idle',
-                              isAnimating: false,
-                            }, false, 'combat/enemyClearDamage');
-                          }, 1500);
-                        }, 600);
-                      } else {
-                        // No damage (enemy missed)
-                        setTimeout(() => {
-                          set({ 
-                            animationPhase: 'idle',
-                            isAnimating: false,
-                          }, false, 'combat/enemyIdleNoDamage');
-                        }, 400);
-                      }
-                    }, 800);
-                  }
-                }, 500); // Délai avant attaque ennemie
-              }
-            }, 400);
-          }
-        }, 800);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Erreur de mise à jour';
-        set({ error: errorMessage, isAnimating: false, animationPhase: 'idle' }, false, 'combat/error');
+        set({ error: errorMessage }, false, 'combat/error');
         throw error;
       }
+    },
+
+    endPlayerTurn: () => {
+      const { combat } = get();
+      if (!combat) return;
+
+      // Vérifier si le combat est terminé
+      const isEnded = combat.player.endurance <= 0 || combat.enemy.endurance <= 0;
+      
+      if (isEnded) {
+        set({
+          turnPhase: 'COMBAT_ENDED',
+          lastActionTimestamp: Date.now(),
+          availableActions: [],
+        }, false, 'combat/endPlayerTurn');
+        return;
+      }
+
+      // Avancer vers le tour de l'ennemi dans le CombatState
+      const nextTurnState = PhaseManager.skipToNextTurn(combat);
+      const updatedCombat: CombatState = {
+        ...combat,
+        phase: nextTurnState.phase,
+        currentTurn: nextTurnState.currentTurn,
+        roundNumber: nextTurnState.roundNumber,
+        // Réinitialiser lastRoll pour le nouveau tour
+        // NE PAS réinitialiser usedReroll - le reroll est limité à une fois par COMBAT
+        lastRoll: undefined,
+      };
+      
+      // Tour ennemi = pas d'actions manuelles disponibles
+      set({
+        combat: updatedCombat,
+        turnPhase: 'ENEMY_TURN_START',
+        lastActionTimestamp: Date.now(),
+        availableActions: [], // Aucune action pendant le tour ennemi
+      }, false, 'combat/endPlayerTurn');
+    },
+
+    executeEnemyAttack: (diceOverrides) => {
+      try {
+        const { combat } = get();
+        if (!combat) {
+          throw new Error('No active combat');
+        }
+
+        // Résoudre l'attaque ennemi
+        const attackAction: CombatAction = { type: 'attack' };
+        const result = CombatEngine.resolve(combat, attackAction, diceOverrides);
+
+        const updatedCombat = {
+          ...result.state,
+          events: [...result.state.events, ...result.events],
+        };
+
+        // Vérifier si le combat est terminé après l'attaque ennemi
+        const isEnded = updatedCombat.player.endurance <= 0 || updatedCombat.enemy.endurance <= 0;
+
+        // Pendant le tour ennemi, aucune action disponible pour le joueur
+        set({
+          combat: updatedCombat,
+          turnPhase: isEnded ? 'COMBAT_ENDED' : 'ENEMY_ATTACKING',
+          lastActionTimestamp: Date.now(),
+          availableActions: [], // Pas d'actions pendant le tour ennemi
+          error: null,
+        }, false, 'combat/executeEnemyAttack');
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erreur attaque ennemi';
+        set({ error: errorMessage }, false, 'combat/error');
+        throw error;
+      }
+    },
+
+    endEnemyTurn: () => {
+      const { combat } = get();
+      if (!combat) return;
+
+      // Vérifier si le combat est terminé
+      const isEnded = combat.player.endurance <= 0 || combat.enemy.endurance <= 0;
+      
+      if (isEnded) {
+        set({
+          turnPhase: 'COMBAT_ENDED',
+          lastActionTimestamp: Date.now(),
+          availableActions: [],
+        }, false, 'combat/endEnemyTurn');
+        return;
+      }
+
+      // Avancer vers le tour du joueur dans le CombatState
+      const nextTurnState = PhaseManager.skipToNextTurn(combat);
+      const updatedCombat: CombatState = {
+        ...combat,
+        phase: nextTurnState.phase,
+        currentTurn: nextTurnState.currentTurn,
+        roundNumber: nextTurnState.roundNumber,
+        // Réinitialiser lastRoll pour le nouveau tour
+        // NE PAS réinitialiser usedReroll - le reroll est limité à une fois par COMBAT
+        lastRoll: undefined,
+      };
+      
+      // Recalculer les actions disponibles pour le nouveau tour
+      const availableActions = CombatEngine.getAvailableActions(updatedCombat);
+      
+      set({
+        combat: updatedCombat,
+        turnPhase: 'PLAYER_TURN_START',
+        lastActionTimestamp: Date.now(),
+        availableActions,
+      }, false, 'combat/endEnemyTurn');
     },
 
     endCombat: async () => {
@@ -305,8 +352,9 @@ export const createCombatSlice = (): StateCreator<
 
         set({
           combat: null,
+          turnPhase: 'PLAYER_TURN_START',
+          lastActionTimestamp: 0,
           availableActions: [],
-          isAnimating: false,
           privateInitialChance: 0,
           error: null,
         }, false, 'combat/endCombat');
@@ -319,17 +367,13 @@ export const createCombatSlice = (): StateCreator<
     cancelCombat: () => {
       set({
         combat: null,
+        turnPhase: 'PLAYER_TURN_START',
+        lastActionTimestamp: 0,
         availableActions: [],
-        isAnimating: false,
-        animationPhase: 'idle',
         privateInitialChance: 0,
         error: null,
       }, false, 'combat/cancelCombat');
     },
-
-    setAnimating: (animating) => {
-      set({ isAnimating: animating }, false, 'combat/setAnimating');
-    }
   });
 };
 
