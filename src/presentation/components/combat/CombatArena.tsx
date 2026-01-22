@@ -71,7 +71,7 @@ function convertHistoryHitRollToDiceRollResult(
 
 export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const combat = useCharacterStore((state) => state.combat);
-  const displayPhase = useCharacterStore((state) => state.displayPhase);
+  const turnPhase = useCharacterStore((state) => state.turnPhase);
 
   // Hook orchestrateur : gère le séquençage des animations et actions
   const { animationPhase, isAnimating, prefersReducedMotion } = useCombatOrchestrator();
@@ -121,10 +121,10 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
     : undefined;
 
   // Déterminer si c'est le tour du joueur ou de l'ennemi pour l'UI
-  // On utilise displayPhase pour que le TurnIndicator reflète la phase d'animation
-  const isEnemyPhase = displayPhase === 'enemy_turn_start' || displayPhase === 'enemy_attacking' || displayPhase === 'enemy_attack_complete';
-  const isPlayerTurn = !isEnemyPhase && combat.currentTurn === 'player';
-  const isEnemyTurn = isEnemyPhase || combat.currentTurn === 'enemy';
+  // turnPhase reflète la RÉALITÉ du combat
+  const isEnemyPhase = turnPhase === 'ENEMY_TURN_START' || turnPhase === 'ENEMY_ATTACKING';
+  const isPlayerTurn = !isEnemyPhase && turnPhase !== 'COMBAT_ENDED';
+  const isEnemyTurn = isEnemyPhase;
 
   return (
     <motion.div

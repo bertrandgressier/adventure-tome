@@ -138,11 +138,11 @@ describe('CombatArena', () => {
           characters: {
             'test-id': mockCharacter,
           },
-          // Nouveaux champs pour l'orchestration du combat
-          displayPhase: 'idle' as const,
-          confirmPlayerTurnEnd: vi.fn(),
+          // Nouvelles actions pour l'orchestration du combat
+          turnPhase: 'PLAYER_TURN_START' as const,
+          endPlayerTurn: vi.fn(),
           executeEnemyAttack: vi.fn(),
-          setDisplayPhase: vi.fn(),
+          endEnemyTurn: vi.fn(),
         };
 
         return selector(state as any);
@@ -231,11 +231,11 @@ describe('CombatArena', () => {
           endCombat: vi.fn(),
           characters: { 'test-id': createMockCharacter() },
           getItem: () => undefined,
-          // Nouveaux champs pour l'orchestration du combat
-          displayPhase: 'idle' as const,
-          confirmPlayerTurnEnd: vi.fn(),
+          // Nouvelles actions pour l'orchestration du combat
+          turnPhase: 'COMBAT_ENDED' as const,
+          endPlayerTurn: vi.fn(),
           executeEnemyAttack: vi.fn(),
-          setDisplayPhase: vi.fn(),
+          endEnemyTurn: vi.fn(),
         };
          
          
@@ -420,11 +420,11 @@ describe('CombatArena', () => {
             endCombat: vi.fn(),
             characters: { 'test-id': createMockCharacter() },
             getItem: () => undefined,
-            // Nouveaux champs pour l'orchestration du combat
-            displayPhase: 'idle' as const,
-            confirmPlayerTurnEnd: vi.fn(),
+            // Nouvelles actions pour l'orchestration du combat
+            turnPhase: 'COMBAT_ENDED' as const,
+            endPlayerTurn: vi.fn(),
             executeEnemyAttack: vi.fn(),
-            setDisplayPhase: vi.fn(),
+            endEnemyTurn: vi.fn(),
           };
            
          
@@ -457,11 +457,11 @@ describe('CombatArena', () => {
             endCombat: vi.fn(),
             characters: { 'test-id': createMockCharacter() },
             getItem: () => undefined,
-            // Nouveaux champs pour l'orchestration du combat
-            displayPhase: 'idle' as const,
-            confirmPlayerTurnEnd: vi.fn(),
+            // Nouvelles actions pour l'orchestration du combat
+            turnPhase: 'COMBAT_ENDED' as const,
+            endPlayerTurn: vi.fn(),
             executeEnemyAttack: vi.fn(),
-            setDisplayPhase: vi.fn(),
+            endEnemyTurn: vi.fn(),
           };
            
          
