@@ -8,9 +8,16 @@ const meta = {
   title: 'Combat/CombatLog',
   component: CombatLog,
   tags: ['autodocs'],
+  args: {
+    history: [],
+  },
 } satisfies Meta<typeof CombatLog>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Disabled: Story = {};
+export const Disabled: Story = {
+  args: {
+    history: [],
+  },
+};

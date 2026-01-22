@@ -8,9 +8,18 @@ const meta = {
   title: 'Combat/CombatArena',
   component: CombatArena,
   tags: ['autodocs'],
+  args: {
+    characterId: 'test-character',
+    onExit: () => {},
+  },
 } satisfies Meta<typeof CombatArena>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Disabled: Story = {};
+export const Disabled: Story = {
+  args: {
+    characterId: 'disabled-character',
+    onExit: () => {},
+  },
+};

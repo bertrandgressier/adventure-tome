@@ -8,9 +8,16 @@ const meta = {
   title: 'Combat/ActionPanel',
   component: ActionPanel,
   tags: ['autodocs'],
+  args: {
+    characterId: 'test-character',
+  },
 } satisfies Meta<typeof ActionPanel>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Disabled: Story = {};
+export const Disabled: Story = {
+  args: {
+    characterId: 'disabled-character',
+  },
+};

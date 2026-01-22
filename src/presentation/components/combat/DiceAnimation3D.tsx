@@ -175,85 +175,6 @@ function Die3D({ value, isRolling, prefersReducedMotion, delay = 0 }: Die3DProps
           <DiceDots value={6} />
         </div>
       </motion.div>
-
-      <style jsx>{`
-        .perspective-container {
-          perspective: 1000px;
-        }
-
-        .dice-3d {
-          transform-style: preserve-3d;
-        }
-
-        .dice-face {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.8) 100%);
-          border: 2px solid hsl(var(--border));
-          border-radius: 12px;
-          backface-visibility: hidden;
-          box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .dice-face-active {
-          border-color: hsl(var(--primary) / 0.8);
-          background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--primary) / 0.1) 100%);
-        }
-
-        .dice-face-front {
-          transform: translateZ(40px);
-        }
-
-        .dice-face-back {
-          transform: rotateY(180deg) translateZ(40px);
-        }
-
-        .dice-face-right {
-          transform: rotateY(90deg) translateZ(40px);
-        }
-
-        .dice-face-left {
-          transform: rotateY(-90deg) translateZ(40px);
-        }
-
-        .dice-face-top {
-          transform: rotateX(90deg) translateZ(40px);
-        }
-
-        .dice-face-bottom {
-          transform: rotateX(-90deg) translateZ(40px);
-        }
-
-        @media (max-width: 640px) {
-          .dice-face-front {
-            transform: translateZ(32px);
-          }
-
-          .dice-face-back {
-            transform: rotateY(180deg) translateZ(32px);
-          }
-
-          .dice-face-right {
-            transform: rotateY(90deg) translateZ(32px);
-          }
-
-          .dice-face-left {
-            transform: rotateY(-90deg) translateZ(32px);
-          }
-
-          .dice-face-top {
-            transform: rotateX(90deg) translateZ(32px);
-          }
-
-          .dice-face-bottom {
-            transform: rotateX(-90deg) translateZ(32px);
-          }
-        }
-      `}</style>
     </div>
   );
 }
@@ -310,38 +231,6 @@ function DiceDots({ value }: { value: number }) {
           }}
         />
       ))}
-
-      <style jsx>{`
-        .dice-dots-grid {
-          display: grid;
-          grid-template-rows: repeat(3, 1fr);
-          grid-template-columns: repeat(3, 1fr);
-          gap: 8px;
-          padding: 10px;
-          width: 100%;
-          height: 100%;
-        }
-
-        .dice-dot {
-          width: 10px;
-          height: 10px;
-          background-color: hsl(var(--primary));
-          border-radius: 50%;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        @media (max-width: 640px) {
-          .dice-dots-grid {
-            gap: 6px;
-            padding: 8px;
-          }
-
-          .dice-dot {
-            width: 8px;
-            height: 8px;
-          }
-        }
-      `}</style>
     </div>
   );
 }

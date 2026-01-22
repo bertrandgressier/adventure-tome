@@ -15,9 +15,10 @@ interface DiceRollerProps {
 }
 
 export default function DiceRoller({ onClose }: DiceRollerProps) {
-  const [diceResult, setDiceResult] = useState<[number] | [number, number]>([6, 6]);
-  const [diceTotal, setDiceTotal] = useState(12);
+  const [diceResult, setDiceResult] = useState<[number] | [number, number] | null>(null);
+  const [diceTotal, setDiceTotal] = useState<number | null>(null);
   const [isRolling, setIsRolling] = useState(false);
+  const [pendingTotal, setPendingTotal] = useState<number | null>(null);
 
   const rollDice = (count: 1 | 2) => {
     setIsRolling(true);
@@ -26,15 +27,26 @@ export default function DiceRoller({ onClose }: DiceRollerProps) {
     const roll2 = count === 2 ? Math.floor(Math.random() * 6) + 1 as 1 | 2 | 3 | 4 | 5 | 6 : 0;
     const total = count === 1 ? roll1 : roll1 + roll2;
 
+    // Mettre à jour immédiatement le nombre de dés pour l'animation
+    const results: [number] | [number, number] = count === 1 ? [roll1] : [roll1, roll2];
+    setDiceResult(results);
+    setDiceTotal(null); // Masquer le total pendant l'animation
+    setPendingTotal(total); // Stocker le total pour l'afficher après l'animation
+
     setTimeout(() => {
-      const results: [number] | [number, number] = count === 1 ? [roll1] : [roll1, roll2];
-      setDiceResult(results);
-      setDiceTotal(total);
       setIsRolling(false);
       
       // Tracker le lancer de dés
       trackDiceRoll(count === 1 ? '1d6' : '2d6', total, 'general');
     }, 1200); // Match DiceAnimation3D duration
+  };
+
+  const handleAnimationComplete = () => {
+    // Afficher le total uniquement quand l'animation est complètement terminée
+    if (pendingTotal !== null) {
+      setDiceTotal(pendingTotal);
+      setPendingTotal(null);
+    }
   };
 
   return (
@@ -48,13 +60,25 @@ export default function DiceRoller({ onClose }: DiceRollerProps) {
 
         {/* DiceAnimation3D - Remplace les emojis (issue #133) */}
         <div className="mb-6">
-          <DiceAnimation3D
-            result={diceResult}
-            isRolling={isRolling}
-          />
-          {diceTotal > 0 && (
-            <div className="font-[var(--font-uncial)] text-3xl text-center mt-4">
-              Total: <span className="text-primary text-4xl font-bold">{diceTotal}</span>
+          {diceResult ? (
+            <>
+              <DiceAnimation3D
+                result={diceResult}
+                isRolling={isRolling}
+                onComplete={handleAnimationComplete}
+              />
+              {/* Réserver l'espace pour le total pour éviter le "saut" */}
+              <div className="font-[var(--font-uncial)] text-3xl text-center mt-4 min-h-[3rem]">
+                {diceTotal !== null && (
+                  <span>
+                    Total: <span className="text-primary text-4xl font-bold">{diceTotal}</span>
+                  </span>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="h-32 flex items-center justify-center text-muted-foreground font-[var(--font-merriweather)] text-center px-4">
+              Cliquez sur un bouton pour lancer les dés
             </div>
           )}
         </div>
