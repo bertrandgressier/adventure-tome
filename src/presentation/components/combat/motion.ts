@@ -133,16 +133,16 @@ export const combatantCardVariants: Variants = {
     borderColor: 'hsl(var(--border) / 0.5)',
   },
   active: (prefersReducedMotion: boolean) => ({
-    scale: prefersReducedMotion ? 1 : 1.02,
-    borderColor: 'hsl(var(--primary) / 0.5)',
+    scale: prefersReducedMotion ? 1 : 1.03,
+    borderColor: 'hsl(var(--primary) / 0.7)',
     boxShadow: prefersReducedMotion
       ? 'none'
-      : '0 0 10px rgba(234, 179, 8, 0.2)',
+      : '0 0 20px rgba(234, 179, 8, 0.3), 0 0 10px rgba(234, 179, 8, 0.2)',
     transition: {
       type: 'spring',
-      stiffness: prefersReducedMotion ? 0 : 50,
-      damping: prefersReducedMotion ? 0 : 15,
-      duration: prefersReducedMotion ? 0 : 0.5,
+      stiffness: prefersReducedMotion ? 0 : 60,
+      damping: prefersReducedMotion ? 0 : 12,
+      duration: prefersReducedMotion ? 0 : 0.4,
     },
   }),
   damaged: (prefersReducedMotion: boolean) => ({

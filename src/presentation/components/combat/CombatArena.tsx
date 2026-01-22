@@ -123,15 +123,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
         <X className="size-6" />
       </Button>
 
-      {/* Turn Indicator Banner */}
-      <TurnIndicator 
-        isPlayerTurn={isPlayerTurn} 
-        isEnemyTurn={isEnemyTurn}
-        isAnimating={isAnimating}
-        enemyName={activeEnemy?.name ?? 'Ennemi'}
-      />
-
-      <div className="flex-1 flex flex-col p-4 pb-20">
+      <div className="flex-1 flex flex-col p-4 pt-12 pb-20">
         <div className="flex-1 min-h-0 flex flex-col relative">
           {activeEnemy ? (
             <CombatantCard
@@ -209,65 +201,6 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
 
       {/* CombatLog positionné en fixed en bas de l'écran */}
       <CombatLog history={combat.history} />
-    </motion.div>
-  );
-}
-
-/**
- * Turn Indicator - Shows whose turn it is with animation
- */
-function TurnIndicator({
-  isPlayerTurn,
-  isEnemyTurn,
-  enemyName,
-  isAnimating,
-}: {
-  isPlayerTurn: boolean;
-  isEnemyTurn: boolean;
-  enemyName: string;
-  isAnimating: boolean;
-}) {
-  const prefersReducedMotion = useReducedMotion() ?? false;
-
-  // Determine the text and style based on current turn
-  const turnText = isPlayerTurn ? 'Votre tour' : isEnemyTurn ? `Tour de ${enemyName}` : 'Combat';
-  const bgClass = isPlayerTurn 
-    ? 'bg-primary/20 border-primary/50' 
-    : isEnemyTurn 
-      ? 'bg-destructive/20 border-destructive/50' 
-      : 'bg-card/50 border-border/50';
-  const textClass = isPlayerTurn 
-    ? 'text-primary' 
-    : isEnemyTurn 
-      ? 'text-destructive' 
-      : 'text-muted-foreground';
-
-  return (
-    <motion.div 
-      className={`mx-4 mt-12 mb-2 px-4 py-2 rounded-lg border text-center ${bgClass}`}
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ 
-        opacity: 1, 
-        y: 0,
-        scale: isAnimating && !prefersReducedMotion ? [1, 1.02, 1] : 1,
-      }}
-      transition={{ 
-        duration: 0.3,
-        scale: { duration: 0.5, repeat: isAnimating ? Infinity : 0 }
-      }}
-    >
-      <span className={`font-cinzel font-bold ${textClass}`}>
-        {turnText}
-      </span>
-      {isAnimating && (
-        <motion.span 
-          className="ml-2 inline-block"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-        >
-          🎲
-        </motion.span>
-      )}
     </motion.div>
   );
 }

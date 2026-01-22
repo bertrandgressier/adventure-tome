@@ -46,7 +46,8 @@ export function CombatantCard({
   return (
     <motion.div
       className={cn(
-        'bg-card/50 border border-border/50 rounded-lg p-4 min-h-[120px]'
+        'bg-card/50 border rounded-lg p-4 min-h-[120px] relative',
+        isActive ? 'border-primary/70' : 'border-border/50'
       )}
       variants={combatantCardVariants}
       initial="idle"
@@ -63,7 +64,12 @@ export function CombatantCard({
 
       <div className="flex justify-between items-start mb-2">
         <div>
-          <h3 className="font-cinzel text-lg text-primary">{combatant.name}</h3>
+          <h3 className={cn(
+            'font-cinzel text-lg',
+            isActive ? 'text-primary' : 'text-muted-foreground'
+          )}>
+            {combatant.name}
+          </h3>
           <p className="text-sm text-muted-foreground">
             DEX: {combatant.dexterite}
           </p>
