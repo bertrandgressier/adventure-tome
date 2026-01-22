@@ -53,7 +53,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
   const turnPhase = useCharacterStore((state) => state.turnPhase);
 
   // Hook orchestrateur : gère le séquençage des animations et actions
-  const { animationPhase, isAnimating, prefersReducedMotion } = useCombatOrchestrator();
+  const { animationPhase, isAnimating, prefersReducedMotion, showEndScreen } = useCombatOrchestrator();
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -209,10 +209,10 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
 
       {/* Écrans de fin en plein écran */}
       <AnimatePresence>
-        {CombatValidator.checkCombatEnd(combat) === 'victory' && (
+        {showEndScreen && CombatValidator.checkCombatEnd(combat) === 'victory' && (
           <VictoryScreen characterId={characterId} />
         )}
-        {CombatValidator.checkCombatEnd(combat) === 'defeat' && (
+        {showEndScreen && CombatValidator.checkCombatEnd(combat) === 'defeat' && (
           <DefeatScreen characterId={characterId} />
         )}
       </AnimatePresence>

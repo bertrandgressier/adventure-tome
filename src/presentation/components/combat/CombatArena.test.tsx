@@ -13,6 +13,16 @@ vi.mock('@/src/presentation/providers/character-store-provider', async (importOr
   };
 });
 
+vi.mock('@/src/presentation/hooks/useCombatOrchestrator', () => ({
+  useCombatOrchestrator: vi.fn(() => ({
+    animationPhase: 'idle',
+    turnPhase: 'PLAYER_TURN_START',
+    isAnimating: false,
+    showEndScreen: true,
+    prefersReducedMotion: false,
+  })),
+}));
+
 const mockUseCharacterStore = vi.mocked(useCharacterStore);
 
 // Helper pour créer un mock character standard

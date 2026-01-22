@@ -66,6 +66,9 @@ export function useCombatOrchestrator() {
   // Phase d'animation locale (pour l'UI des dés)
   const [animationPhase, setAnimationPhase] = useState<AnimationPhase>('idle');
   
+  // Flag pour afficher les écrans de fin après les animations
+  const [showEndScreen, setShowEndScreen] = useState(false);
+  
   // Ref pour accéder aux availableActions dans les callbacks
   const availableActionsRef = useRef(availableActions);
 
@@ -73,6 +76,11 @@ export function useCombatOrchestrator() {
   useEffect(() => {
     availableActionsRef.current = availableActions;
   }, [availableActions]);
+
+  // Réinitialiser showEndScreen quand le combat change
+  useEffect(() => {
+    setShowEndScreen(false);
+  }, [combat?.id]);
 
   // Nettoyer les timeouts au démontage
   useEffect(() => {
@@ -163,10 +171,24 @@ export function useCombatOrchestrator() {
         break;
 
       case 'PLAYER_TURN_START':
-      case 'COMBAT_ENDED':
         // Rien à faire automatiquement
         clearTimeouts();
         setAnimationPhase('idle');
+        break;
+
+      case 'COMBAT_ENDED':
+        // Combat terminé - jouer les animations finales puis afficher l'écran
+        if (animationPhase !== 'idle') {
+          // Les animations sont encore en cours, attendre qu'elles finissent
+          // (géré par runAttackAnimation qui set idle)
+          return;
+        }
+        // Animations finies, afficher l'écran de fin après un court délai
+        clearTimeouts();
+        const endScreenTimeout = setTimeout(() => {
+          setShowEndScreen(true);
+        }, 500);
+        timeoutsRef.current.push(endScreenTimeout);
         break;
     }
   }, [turnPhase, combat, runAttackAnimation, endPlayerTurn, executeEnemyAttack, endEnemyTurn, durations, clearTimeouts]);
