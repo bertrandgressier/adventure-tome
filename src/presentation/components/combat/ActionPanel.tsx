@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
 import { ItemPicker } from './ItemPicker';
-import type { CombatActionType } from '@/src/domain/types/CombatActionType';
+import { CombatActionType } from '@/src/domain/types/CombatActionType';
 import type { CatalogItem } from '@/src/domain/types/items';
 import { getActionMetadata } from './combatUIHelpers';
 import {
@@ -17,9 +17,11 @@ import {
 
 export interface ActionPanelProps {
   characterId: string;
+  /** Si true, masque le bouton SKIP (Continuer) pendant les animations */
+  isAnimating?: boolean;
 }
 
-export function ActionPanel({ characterId }: ActionPanelProps) {
+export function ActionPanel({ characterId, isAnimating = false }: ActionPanelProps) {
   const availableActions = useCharacterStore((state) => state.availableActions);
   const executeAction = useCharacterStore((state) => state.executeAction);
   const combat = useCharacterStore((state) => state.combat);
@@ -34,6 +36,11 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
   if (!combat || CombatValidator.checkCombatEnd(combat) !== 'ongoing') {
     return null;
   }
+
+  // Filtrer SKIP pendant les animations pour éviter les clics accidentels
+  const filteredActions = isAnimating
+    ? availableActions.filter(a => a.action.type !== CombatActionType.SKIP)
+    : availableActions;
 
   const character = getCharacter(characterId);
   const inventory = character?.getInventory();
@@ -73,7 +80,7 @@ export function ActionPanel({ characterId }: ActionPanelProps) {
         custom={prefersReducedMotion}
       >
         <AnimatePresence mode="popLayout">
-          {availableActions.map((action, index) => {
+          {filteredActions.map((action, index) => {
             const actionInfo = getActionMetadata(action.action.type);
             const isWeaponAbility = action.action.type === 'weapon_ability';
 

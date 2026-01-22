@@ -224,7 +224,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
             <DefeatScreen characterId={characterId} />
           )}
           {CombatValidator.checkCombatEnd(combat) === 'ongoing' && (
-            <ActionPanel characterId={characterId} />
+            <ActionPanel characterId={characterId} isAnimating={isAnimating} />
           )}
         </div>
       </div>

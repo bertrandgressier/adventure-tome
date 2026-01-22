@@ -255,25 +255,6 @@ describe('Combat Store Flow E2E', () => {
       expect(store.state.combat?.usedReroll).toBe(false);
     });
 
-    it('devrait passer à PLAYER_ATTACKING après un reroll', () => {
-      slice.startCombat('test-hero-id', createEnemy(), defaultConfig);
-      
-      // Première attaque : rate (total 12 > dexterite 10)
-      slice.executeAction(
-        { type: CombatActionType.ATTACK },
-        { hitDice: [6, 6], damageDice: 5 } // Total 12 > 10 = miss
-      );
-      expect(store.state.turnPhase).toBe('PLAYER_ATTACKING');
-      expect(store.state.combat?.history[0]?.hitRoll?.success).toBe(false);
-
-      // Le reroll est disponible
-      slice.endPlayerTurn();
-      slice.endEnemyTurn(); // Simule le passage du tour (pour avoir phase correcte)
-      
-      // Non, en fait après un miss, on peut reroll immédiatement
-      // Recommençons
-    });
-
     it('devrait permettre le reroll après un miss sans passer au tour ennemi', () => {
       slice.startCombat('test-hero-id', createEnemy(), defaultConfig);
       
