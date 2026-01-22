@@ -1,4 +1,4 @@
-import type { Preview, Decorator } from '@storybook/react';
+import type { Preview, Decorator } from '@storybook/nextjs';
 import React from 'react';
 import { CharacterStoreProvider } from '@/src/presentation/providers/character-store-provider';
 import '@/app/globals.css';
@@ -17,6 +17,7 @@ const withCharacterStore: Decorator = (Story) => {
 
 const preview: Preview = {
   decorators: [withCharacterStore],
+
   parameters: {
     controls: {
       matchers: {
@@ -25,20 +26,26 @@ const preview: Preview = {
       },
     },
     backgrounds: {
-      default: 'dark',
-      values: [
-        {
+      options: {
+        dark: {
           name: 'dark',
           value: '#0a0a0a',
         },
-        {
+
+        light: {
           name: 'light',
           value: '#ffffff',
-        },
-      ],
+        }
+      }
     },
     actions: { argTypesRegex: '^on[A-Z].*' },
   },
+
+  initialGlobals: {
+    backgrounds: {
+      value: 'dark'
+    }
+  }
 };
 
 export default preview;

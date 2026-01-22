@@ -1,4 +1,4 @@
-import type { Meta } from '@storybook/react';
+import type { Meta } from '@storybook/nextjs';
 
 /**
  * Documentation des helpers utilitaires pour le Combat V2

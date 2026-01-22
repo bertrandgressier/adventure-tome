@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { CombatantCard } from './CombatantCard';
 import type { PlayerState, EnemyState } from '@/src/domain/types/combatants';
 

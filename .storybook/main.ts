@@ -1,3 +1,4 @@
+// This file has been automatically migrated to valid ESM format by Storybook.
 import type { StorybookConfig } from '@storybook/nextjs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';

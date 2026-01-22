@@ -1,6 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { ItemPicker } from './ItemPicker';
-import { fn } from '@storybook/test';
+import { fn } from 'storybook/test';
 import type { CatalogItem } from '@/src/domain/types/items';
 import { ItemType } from '@/src/domain/types/items';
 
