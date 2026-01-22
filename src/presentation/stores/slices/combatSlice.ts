@@ -261,8 +261,6 @@ export const createCombatSlice = (): StateCreator<
         // Résoudre l'attaque ennemi
         const attackAction: CombatAction = { type: 'attack' };
         const result = CombatEngine.resolve(combat, attackAction, diceOverrides);
-        
-        const availableActions = CombatEngine.getAvailableActions(result.state);
 
         const updatedCombat = {
           ...result.state,
@@ -272,11 +270,12 @@ export const createCombatSlice = (): StateCreator<
         // Vérifier si le combat est terminé après l'attaque ennemi
         const isEnded = updatedCombat.player.endurance <= 0 || updatedCombat.enemy.endurance <= 0;
 
+        // Pendant le tour ennemi, aucune action disponible pour le joueur
         set({
           combat: updatedCombat,
           turnPhase: isEnded ? 'COMBAT_ENDED' : 'ENEMY_ATTACKING',
           lastActionTimestamp: Date.now(),
-          availableActions,
+          availableActions: [], // Pas d'actions pendant le tour ennemi
           error: null,
         }, false, 'combat/executeEnemyAttack');
       } catch (error) {

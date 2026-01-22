@@ -12,7 +12,6 @@ import { DiceAnimation } from './DiceAnimation';
 import type { DiceRollResult } from './DiceAnimation';
 import { ActionPanel } from './ActionPanel';
 import { CombatLog } from './CombatLog';
-import type { DiceRoll } from '@/src/domain/types/combatants';
 import {
   wouldBeLethal,
 } from './combatUIHelpers';
@@ -25,27 +24,6 @@ import {
 export interface CombatArenaProps {
   characterId: string;
   onExit: () => void;
-}
-
-/**
- * Adapter: Convertit DiceRoll (Combat V2) vers DiceRollResult (DiceAnimation)
- */
-function convertToDiceRollResult(
-  roll: DiceRoll,
-  playerDexterite: number,
-  weaponBonus: number
-): DiceRollResult {
-  return {
-    dice: [roll.dice1, roll.dice2],
-    total: roll.total,
-    modifiers: {
-      habilete: playerDexterite,
-      weaponBonus: weaponBonus,
-    },
-    finalScore: roll.modifiedTotal ?? roll.total,
-    isDouble: roll.isDouble,
-    success: roll.success,
-  };
 }
 
 /**

@@ -2,7 +2,6 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
-import type { CombatTurnPhase } from '@/src/presentation/stores/slices/combatSlice';
 import type { AvailableAction } from '@/src/domain/types/combat-state';
 
 /**
@@ -69,7 +68,11 @@ export function useCombatOrchestrator() {
   
   // Ref pour accéder aux availableActions dans les callbacks
   const availableActionsRef = useRef(availableActions);
-  availableActionsRef.current = availableActions;
+
+  // Mettre à jour la ref quand availableActions change
+  useEffect(() => {
+    availableActionsRef.current = availableActions;
+  }, [availableActions]);
 
   // Nettoyer les timeouts au démontage
   useEffect(() => {

@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
-import { ScrollText, ChevronUp, ChevronDown, Swords, Sparkles, Wand2, Dices, Zap } from 'lucide-react';
+import { ScrollText, ChevronUp, ChevronDown, Swords, Sparkles, Wand2, Dices } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { CombatHistoryEntry } from '@/src/domain/types/combat-history';

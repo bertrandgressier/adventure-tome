@@ -1,4 +1,4 @@
-import { CombatEngine, type CombatResult } from './CombatEngine';
+import { CombatEngine } from './CombatEngine';
 import { CombatValidator } from './CombatValidator';
 import { CombatActionType } from '../../types/CombatActionType';
 import type { CombatState } from '../../types/combat-state';
