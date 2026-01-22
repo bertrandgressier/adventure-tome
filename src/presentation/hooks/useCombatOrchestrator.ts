@@ -177,21 +177,21 @@ export function useCombatOrchestrator() {
         break;
 
       case 'COMBAT_ENDED':
-        // Combat terminé - jouer les animations finales puis afficher l'écran
-        if (animationPhase !== 'idle') {
-          // Les animations sont encore en cours, attendre qu'elles finissent
-          // (géré par runAttackAnimation qui set idle)
-          return;
-        }
-        // Animations finies, afficher l'écran de fin après un court délai
-        clearTimeouts();
-        const endScreenTimeout = setTimeout(() => {
-          setShowEndScreen(true);
-        }, 500);
-        timeoutsRef.current.push(endScreenTimeout);
+        // Combat terminé - rien à faire, l'écran s'affichera via l'effet animationPhase
         break;
     }
   }, [turnPhase, combat, runAttackAnimation, endPlayerTurn, executeEnemyAttack, endEnemyTurn, durations, clearTimeouts]);
+
+  // Observer animationPhase : afficher l'écran de fin quand animations terminées et combat fini
+  useEffect(() => {
+    if (turnPhase === 'COMBAT_ENDED' && animationPhase === 'idle' && !showEndScreen) {
+      clearTimeouts();
+      const endScreenTimeout = setTimeout(() => {
+        setShowEndScreen(true);
+      }, 500);
+      timeoutsRef.current.push(endScreenTimeout);
+    }
+  }, [animationPhase, turnPhase, showEndScreen, clearTimeouts]);
 
   return {
     /** Phase d'animation actuelle (pour affichage dés/dégâts) */
