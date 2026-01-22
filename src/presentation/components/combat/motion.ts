@@ -178,12 +178,17 @@ export const combatantCardVariants: Variants = {
       ease: 'easeInOut',
     },
   }),
-  dead: {
-    opacity: 0.5,
+  dead: (prefersReducedMotion: boolean) => ({
+    opacity: 0.3,
     filter: 'grayscale(100%)',
     borderColor: 'hsl(0 0% 50% / 0.3)',
-    transition: { duration: 0.3 },
-  },
+    scale: prefersReducedMotion ? 1 : 0.95,
+    y: prefersReducedMotion ? 0 : 10,
+    transition: {
+      duration: 0.8,
+      ease: 'easeOut',
+    },
+  }),
 };
 
 /**

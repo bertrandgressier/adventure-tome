@@ -472,7 +472,7 @@ describe('CombatArena', () => {
           <CombatArena characterId="test-id" onExit={mockOnExit} />
         );
 
-        expect(screen.getByText('DÉFAITE...')).toBeInTheDocument();
+        expect(screen.getByText('DÉFAITE')).toBeInTheDocument();
         expect(screen.getByText('Terminer')).toBeInTheDocument();
       });
     });

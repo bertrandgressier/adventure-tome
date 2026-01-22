@@ -197,21 +197,25 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
           })()}
         </AnimatePresence>
 
-        <div className="mt-4">
-          {CombatValidator.checkCombatEnd(combat) === 'victory' && (
-            <VictoryScreen characterId={characterId} />
-          )}
-          {CombatValidator.checkCombatEnd(combat) === 'defeat' && (
-            <DefeatScreen characterId={characterId} />
-          )}
-          {CombatValidator.checkCombatEnd(combat) === 'ongoing' && (
+        {CombatValidator.checkCombatEnd(combat) === 'ongoing' && (
+          <div className="mt-4">
             <ActionPanel characterId={characterId} isAnimating={isAnimating} />
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* CombatLog positionné en fixed en bas de l'écran */}
       <CombatLog history={combat.history} />
+
+      {/* Écrans de fin en plein écran */}
+      <AnimatePresence>
+        {CombatValidator.checkCombatEnd(combat) === 'victory' && (
+          <VictoryScreen characterId={characterId} />
+        )}
+        {CombatValidator.checkCombatEnd(combat) === 'defeat' && (
+          <DefeatScreen characterId={characterId} />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -285,23 +289,40 @@ function VictoryScreen({ characterId }: { characterId: string }) {
 
   return (
     <motion.div
-      className="bg-gradient-magic p-4 rounded-lg border border-primary/30 text-center"
-      variants={victoryScreenVariants}
-      initial="hidden"
-      animate="visible"
-      custom={prefersReducedMotion}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
     >
-      <h3 className="text-2xl font-cinzel text-primary mb-2">VICTOIRE !</h3>
-      <Button
-        onClick={async () => {
-          await endCombat();
-          window.location.href = `/characters/${characterId}`;
-        }}
-        variant="default"
-        className="btn-mobile"
+      <motion.div
+        className="bg-gradient-magic p-8 rounded-2xl border-2 border-primary/50 text-center shadow-2xl max-w-md mx-4"
+        variants={victoryScreenVariants}
+        initial="hidden"
+        animate="visible"
+        custom={prefersReducedMotion}
       >
-        Terminer
-      </Button>
+        <motion.h2 
+          className="text-5xl font-cinzel font-bold text-primary mb-6"
+          initial={{ scale: 0.5, rotate: -10 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ delay: 0.2, type: 'spring', bounce: 0.5 }}
+        >
+          VICTOIRE !
+        </motion.h2>
+        <p className="text-lg text-muted-foreground mb-6">Vous avez triomphé !</p>
+        <Button
+          onClick={async () => {
+            await endCombat();
+            window.location.href = `/characters/${characterId}`;
+          }}
+          variant="default"
+          className="btn-mobile text-lg px-8 py-6"
+          size="lg"
+        >
+          Terminer
+        </Button>
+      </motion.div>
     </motion.div>
   );
 }
@@ -312,23 +333,40 @@ function DefeatScreen({ characterId }: { characterId: string }) {
 
   return (
     <motion.div
-      className="bg-gradient-fire p-4 rounded-lg border border-destructive/30 text-center"
-      variants={defeatScreenVariants}
-      initial="hidden"
-      animate="visible"
-      custom={prefersReducedMotion}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
     >
-      <h3 className="text-2xl font-cinzel text-destructive mb-2">DÉFAITE...</h3>
-      <Button
-        onClick={async () => {
-          await endCombat();
-          window.location.href = `/characters/${characterId}`;
-        }}
-        variant="destructive"
-        className="btn-mobile"
+      <motion.div
+        className="bg-gradient-fire p-8 rounded-2xl border-2 border-destructive/50 text-center shadow-2xl max-w-md mx-4"
+        variants={defeatScreenVariants}
+        initial="hidden"
+        animate="visible"
+        custom={prefersReducedMotion}
       >
-        Terminer
-      </Button>
+        <motion.h2 
+          className="text-5xl font-cinzel font-bold text-destructive mb-6"
+          initial={{ scale: 1.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+        >
+          DÉFAITE
+        </motion.h2>
+        <p className="text-lg text-muted-foreground mb-6">Vous avez été vaincu...</p>
+        <Button
+          onClick={async () => {
+            await endCombat();
+            window.location.href = `/characters/${characterId}`;
+          }}
+          variant="destructive"
+          className="btn-mobile text-lg px-8 py-6"
+          size="lg"
+        >
+          Terminer
+        </Button>
+      </motion.div>
     </motion.div>
   );
 }
