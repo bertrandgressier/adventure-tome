@@ -8,7 +8,7 @@ import { useCharacterStore } from '@/src/presentation/providers/character-store-
 import { useCombatOrchestrator } from '@/src/presentation/hooks/useCombatOrchestrator';
 import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
 import { CombatantCard } from './CombatantCard';
-import { DiceAnimation } from './DiceAnimation';
+import { DiceResultCard } from './DiceResultCard';
 import type { DiceRollResult } from './DiceAnimation';
 import { ActionPanel } from './ActionPanel';
 import { CombatLog } from './CombatLog';
@@ -154,7 +154,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
             isActive={isPlayerTurn}
           />
 
-          {/* DiceAnimation - Réactivé avec animations basées sur useCombatAnimations */}
+          {/* DiceResultCard - Migration vers animation 3D (issue #133) */}
           <AnimatePresence>
             {(animationPhase === 'rolling' || animationPhase === 'result') && diceResult && (
               <motion.div 
@@ -165,7 +165,7 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
                 transition={{ duration: 0.2 }}
               >
                 <div className="pointer-events-auto">
-                  <DiceAnimation
+                  <DiceResultCard
                     diceResult={diceResult}
                     isRolling={animationPhase === 'rolling'}
                     outcome={outcome}
