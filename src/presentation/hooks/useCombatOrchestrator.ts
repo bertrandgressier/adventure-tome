@@ -10,9 +10,9 @@ import type { AvailableAction } from '@/src/domain/types/combat-state';
 const ANIMATION_DURATIONS = {
   standard: {
     rolling: 1200,      // Animation des dés
-    result: 2500,       // Affichage du résultat (temps de lecture)
-    damage: 2000,       // Affichage des dégâts
-    enemyTurnDelay: 200, // Délai pour voir le banner "Tour de l'ennemi"
+    result: 1500,       // Affichage du résultat (réduit de 2500 → 1500)
+    damage: 800,        // Affichage des dégâts (réduit de 2000 → 800)
+    enemyTurnDelay: 100, // Délai minimal (réduit de 200 → 100)
   },
   reduced: {
     rolling: 100,

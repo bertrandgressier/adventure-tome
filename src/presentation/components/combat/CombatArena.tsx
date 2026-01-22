@@ -19,6 +19,7 @@ import {
   combatArenaVariants,
   victoryScreenVariants,
   defeatScreenVariants,
+  impactFlashVariants,
 } from './motion';
 
 export interface CombatArenaProps {
@@ -166,6 +167,16 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Impact Flash - Flash d'impact seulement quand joueur touche */}
+          <AnimatePresence>
+            {animationPhase === 'result' && 
+             lastHistoryEntry && 
+             lastHistoryEntry.turn === 'player' && 
+             lastHistoryEntry.damageRoll && (
+              <ImpactFlash />
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Damage Indicator - Réactivé */}
@@ -202,6 +213,22 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
       {/* CombatLog positionné en fixed en bas de l'écran */}
       <CombatLog history={combat.history} />
     </motion.div>
+  );
+}
+
+function ImpactFlash() {
+  const prefersReducedMotion = useReducedMotion() ?? false;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-30 pointer-events-none"
+      style={{ backgroundColor: 'rgba(234, 179, 8, 1)' }}
+      variants={impactFlashVariants}
+      initial="hidden"
+      animate="flash"
+      exit="hidden"
+      custom={prefersReducedMotion}
+    />
   );
 }
 

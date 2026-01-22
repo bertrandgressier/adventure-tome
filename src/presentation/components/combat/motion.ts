@@ -125,6 +125,21 @@ export const defeatScreenVariants: Variants = {
 };
 
 /**
+ * Impact flash variants (full screen effect)
+ */
+export const impactFlashVariants: Variants = {
+  hidden: { opacity: 0 },
+  flash: (prefersReducedMotion: boolean) => ({
+    opacity: prefersReducedMotion ? 0 : [0, 0.4, 0],
+    transition: {
+      duration: 0.6,
+      times: [0, 0.15, 1],
+      ease: 'easeOut',
+    },
+  }),
+};
+
+/**
  * Combatant card variants
  */
 export const combatantCardVariants: Variants = {
