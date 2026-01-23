@@ -100,6 +100,8 @@ export function formatEventDescription(event: CombatEvent): string {
       return '✨ Capacité utilisée';
 
     case CombatEventType.WEAPON_ABILITY:
+      // Use explicit description from event if available
+      if (event.description) return event.description;
       if (event.abilityId) return `⚔️ ${actor} utilise${verb} ${event.abilityId}`;
       return `⚔️ ${actor} utilise${verb} son arme`;
 

@@ -362,4 +362,68 @@ describe('HistoryManager', () => {
       expect(description).toBe('Vous relancez les dés');
     });
   });
+
+  describe('generateWeaponAbilityTriggeredDescription', () => {
+    it('should generate description for Lame de l\'Aube (extra attack)', () => {
+      const description = HistoryManager.generateWeaponAbilityTriggeredDescription('lame-aube-extra-attack');
+      
+      expect(description).toContain('Lame de l\'Aube Éternelle');
+      expect(description).toContain('Double');
+      expect(description).toContain('Attaque supplémentaire');
+    });
+
+    it('should generate description for Marteau de la Terre (heal on kill)', () => {
+      const description = HistoryManager.generateWeaponAbilityTriggeredDescription('marteau-vampiric', {
+        healAmount: 1,
+        currentHp: 26,
+        maxHp: 32,
+      });
+      
+      expect(description).toContain('Marteau de la Terre');
+      expect(description).toContain('+1 PV');
+      expect(description).toContain('26/32');
+    });
+
+    it('should generate description for Arc des Vents (convert miss)', () => {
+      const description = HistoryManager.generateWeaponAbilityTriggeredDescription('arc-wind-guided', {
+        chanceSpent: 1,
+        chanceRemaining: 4,
+      });
+      
+      expect(description).toContain('Arc des Vents');
+      expect(description).toContain('Raté → Touché');
+      expect(description).toContain('-1 CHANCE');
+      expect(description).toContain('reste 4');
+    });
+
+    it('should generate description for Dague des Ombres (surprise bonus)', () => {
+      const description = HistoryManager.generateWeaponAbilityTriggeredDescription('dague-surprise-strike', {
+        bonusDamage: 2,
+        totalDamage: 4,
+      });
+      
+      expect(description).toContain('Dague des Ombres');
+      expect(description).toContain('+2 dégâts');
+      expect(description).toContain('total: 4');
+    });
+
+    it('should generate description for Bâton du Sage (negate damage)', () => {
+      const description = HistoryManager.generateWeaponAbilityTriggeredDescription('baton-mystic-shield', {
+        negatedDamage: 7,
+      });
+      
+      expect(description).toContain('Bâton du Sage');
+      expect(description).toContain('bouclier mystique');
+      expect(description).toContain('7 dégâts annulés');
+    });
+
+    it('should generate generic description for unknown ability', () => {
+      const description = HistoryManager.generateWeaponAbilityTriggeredDescription('unknown-ability', {
+        abilityName: 'Super Pouvoir',
+      });
+      
+      expect(description).toContain('Super Pouvoir');
+      expect(description).toContain('activé');
+    });
+  });
 });

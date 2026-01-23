@@ -8,6 +8,7 @@ import type { CombatState } from '../../types/combat-state';
 import type { CombatActionType } from '../../types/CombatActionType';
 import type { Attacker } from '../../types/Attacker';
 import type { DiceRoll } from '../../types/combatants';
+import { COMBAT_MESSAGES, WEAPON_ABILITY_IDS } from './constants';
 
 export class HistoryManager {
   /**
@@ -141,6 +142,60 @@ export class HistoryManager {
    */
   static generateAbilityDescription(abilityName: string): string {
     return `Vous utilisez ${abilityName}`;
+  }
+
+  /**
+   * Génère une description détaillée pour un déclenchement de capacité d'arme
+   * @param abilityId ID de la capacité
+   * @param context Contexte du déclenchement (heal amount, damage, etc.)
+   */
+  static generateWeaponAbilityTriggeredDescription(
+    abilityId: string,
+    context: {
+      healAmount?: number;
+      currentHp?: number;
+      maxHp?: number;
+      chanceSpent?: number;
+      chanceRemaining?: number;
+      bonusDamage?: number;
+      totalDamage?: number;
+      negatedDamage?: number;
+      abilityName?: string;
+    } = {}
+  ): string {
+    switch (abilityId) {
+      case WEAPON_ABILITY_IDS.LAME_AUBE_EXTRA_ATTACK:
+        return COMBAT_MESSAGES.HISTORY.EXTRA_ATTACK_TRIGGERED;
+
+      case WEAPON_ABILITY_IDS.MARTEAU_VAMPIRIC:
+        return COMBAT_MESSAGES.HISTORY.HEAL_ON_KILL_TRIGGERED(
+          context.healAmount ?? 1,
+          context.currentHp ?? 0,
+          context.maxHp ?? 0
+        );
+
+      case WEAPON_ABILITY_IDS.ARC_WIND_GUIDED:
+        return COMBAT_MESSAGES.HISTORY.CONVERT_MISS_TRIGGERED(
+          context.chanceSpent ?? 1,
+          context.chanceRemaining ?? 0
+        );
+
+      case WEAPON_ABILITY_IDS.DAGUE_SURPRISE_STRIKE:
+        return COMBAT_MESSAGES.HISTORY.SURPRISE_BONUS_TRIGGERED(
+          context.bonusDamage ?? 2,
+          context.totalDamage ?? 0
+        );
+
+      case WEAPON_ABILITY_IDS.BATON_MYSTIC_SHIELD:
+        return COMBAT_MESSAGES.HISTORY.NEGATE_DAMAGE_TRIGGERED(
+          context.negatedDamage ?? 0
+        );
+
+      default:
+        return COMBAT_MESSAGES.HISTORY.ABILITY_TRIGGERED(
+          context.abilityName ?? abilityId
+        );
+    }
   }
 
   /**
