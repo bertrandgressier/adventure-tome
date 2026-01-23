@@ -7,6 +7,7 @@ import { useCharacterStore } from '@/src/presentation/providers/character-store-
 import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
 import { ItemPicker, type ItemWithQuantity } from './ItemPicker';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
+import type { CombatAction } from '@/src/domain/types/combat-state';
 import { getActionMetadata } from './combatUIHelpers';
 import {
   actionPanelVariants,
@@ -73,14 +74,14 @@ export function ActionPanel({ characterId, isAnimating = false }: ActionPanelPro
       (entry.item.healAmount !== undefined || entry.item.damageToEnemy !== undefined)
     ) ?? [];
 
-  const handleAction = (actionType: CombatActionType) => {
+  const handleAction = (action: CombatAction) => {
 
-    if (actionType === 'use_item') {
+    if (action.type === 'use_item') {
       setIsItemPickerOpen(true);
       return;
     }
 
-    executeAction({ type: actionType });
+    executeAction(action);
   };
 
   const handleItemSelect = (itemId: string) => {
@@ -144,7 +145,7 @@ export function ActionPanel({ characterId, isAnimating = false }: ActionPanelPro
                 <Button
                   variant="default"
                   disabled={!action.enabled}
-                  onClick={() => handleAction(action.action.type as CombatActionType)}
+                  onClick={() => handleAction(action.action)}
                   className="btn-mobile min-h-[44px] relative group"
                   aria-label={actionInfo.label}
                   aria-disabled={!action.enabled}
