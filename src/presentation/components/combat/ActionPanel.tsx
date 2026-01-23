@@ -5,9 +5,8 @@ import { motion, useReducedMotion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
-import { ItemPicker } from './ItemPicker';
+import { ItemPicker, type ItemWithQuantity } from './ItemPicker';
 import { CombatActionType } from '@/src/domain/types/CombatActionType';
-import type { CatalogItem } from '@/src/domain/types/items';
 import { getActionMetadata } from './combatUIHelpers';
 import {
   actionPanelVariants,
@@ -45,14 +44,33 @@ export function ActionPanel({ characterId, isAnimating = false }: ActionPanelPro
   const character = getCharacter(characterId);
   const inventory = character?.getInventory();
 
-  const usableItems: CatalogItem[] = inventory?.items
-    .filter(itemRef => itemRef.possessed && itemRef.quantity > 0)
-    .map(itemRef => getItem(itemRef.itemId))
-    .filter((item): item is CatalogItem => item !== undefined && (item.type === 'active' || item.type === 'special'))
-    .filter(item => 
-      item.healAmount !== undefined ||
-      item.damageToEnemy !== undefined ||
-      item.effect !== undefined
+  // Compter combien de fois chaque itemIndex a été utilisé dans ce combat
+  const usedItemsCount = new Map<number, number>();
+  if (combat) {
+    combat.usedItems.forEach(usedItem => {
+      const count = usedItemsCount.get(usedItem.itemIndex) || 0;
+      usedItemsCount.set(usedItem.itemIndex, count + 1);
+    });
+  }
+
+  const usableItems: ItemWithQuantity[] = inventory?.items
+    .map((itemRef, index) => ({ itemRef, index }))
+    .filter(({ itemRef, index }) => {
+      if (!itemRef.possessed || itemRef.quantity <= 0) return false;
+      
+      // Vérifier si toutes les quantités ont été utilisées
+      const usedCount = usedItemsCount.get(index) || 0;
+      return usedCount < itemRef.quantity;
+    })
+    .map(({ itemRef, index }) => {
+      const item = getItem(itemRef.itemId);
+      const usedCount = usedItemsCount.get(index) || 0;
+      return item ? { item, quantity: itemRef.quantity, usedCount } : null;
+    })
+    .filter((entry): entry is ItemWithQuantity => 
+      entry !== null && 
+      (entry.item.type === 'active' || entry.item.type === 'special') &&
+      (entry.item.healAmount !== undefined || entry.item.damageToEnemy !== undefined)
     ) ?? [];
 
   const handleAction = (actionType: CombatActionType) => {
@@ -67,7 +85,34 @@ export function ActionPanel({ characterId, isAnimating = false }: ActionPanelPro
 
   const handleItemSelect = (itemId: string) => {
     setIsItemPickerOpen(false);
-    executeAction({ type: 'use_item', payload: { itemId } });
+    
+    // Trouver l'item dans le catalogue
+    const catalogItem = getItem(itemId);
+    if (!catalogItem) {
+      console.error(`Item not found in catalog: ${itemId}`);
+      return;
+    }
+    
+    // Trouver l'index de l'item dans l'inventaire
+    const itemIndex = inventory?.items.findIndex(ref => ref.itemId === itemId) ?? -1;
+    if (itemIndex < 0) {
+      console.error(`Item not found in inventory: ${itemId}`);
+      return;
+    }
+
+    const inventoryItem = inventory!.items[itemIndex];
+    
+    // Construire le CombatUsableItem
+    const combatItem = {
+      id: catalogItem.id,
+      name: catalogItem.name,
+      itemIndex,
+      quantity: inventoryItem.quantity,
+      healAmount: catalogItem.healAmount,
+      damageToEnemy: catalogItem.damageToEnemy,
+    };
+    
+    executeAction({ type: 'use_item', payload: combatItem });
   };
 
   return (

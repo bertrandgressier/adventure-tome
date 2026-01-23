@@ -24,7 +24,7 @@ export class CombatValidator {
     return 'ongoing';
   }
 
-  static getAvailableActions(state: CombatState): AvailableAction[] {
+  static getAvailableActions(state: CombatState, hasUsableItems = false): AvailableAction[] {
     const actions: AvailableAction[] = [];
 
     // WAITING_ATTACK_ROLL - selon qui joue
@@ -32,11 +32,10 @@ export class CombatValidator {
       if (state.currentTurn === 'player') {
         actions.push({ action: { type: CombatActionType.ATTACK }, enabled: true });
 
-        // TODO: Items consommables (potions, etc.) - pas les weapon abilities
-        // const hasUsableItems = ...;
-        // if (hasUsableItems) {
-        //   actions.push({ action: { type: CombatActionType.USE_ITEM, payload: {} }, enabled: true });
-        // }
+        // Items consommables (vérifié par le store qui a accès à l'inventaire)
+        if (hasUsableItems) {
+          actions.push({ action: { type: CombatActionType.USE_ITEM, payload: {} }, enabled: true });
+        }
 
         // Weapon abilities (MANUAL trigger) - ajoutées ici, pas à la fin
         const weaponAbility = state.player.weapon.ability;

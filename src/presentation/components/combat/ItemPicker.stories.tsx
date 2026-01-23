@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-import { ItemPicker } from './ItemPicker';
+import { ItemPicker, type ItemWithQuantity } from './ItemPicker';
 import { fn } from 'storybook/test';
 import type { CatalogItem } from '@/src/domain/types/items';
 import { ItemType } from '@/src/domain/types/items';
@@ -21,7 +21,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const sampleItems: CatalogItem[] = [
+const catalogItems: CatalogItem[] = [
   {
     id: 'potion-soin',
     name: 'Potion de Soin',
@@ -48,6 +48,12 @@ const sampleItems: CatalogItem[] = [
     stackable: true,
   },
 ];
+
+const sampleItems: ItemWithQuantity[] = catalogItems.map((item, index) => ({
+  item,
+  quantity: index === 0 ? 3 : 1, // Potion de soin: 3 exemplaires
+  usedCount: 0,
+}));
 
 /**
  * Liste vide - Aucun objet disponible
@@ -126,27 +132,39 @@ export const ManyItems: Story = {
     items: [
       ...sampleItems,
       {
-        id: 'elixir',
-        name: 'Élixir Mystique',
-        effect: 'Restaure toute l\'endurance',
-        type: ItemType.ACTIVE,
-        tome: 1,
-        healAmount: 999,
-        stackable: true,
+        item: {
+          id: 'elixir',
+          name: 'Élixir Mystique',
+          effect: 'Restaure toute l\'endurance',
+          type: ItemType.ACTIVE,
+          tome: 1,
+          healAmount: 999,
+          stackable: true,
+        },
+        quantity: 1,
+        usedCount: 0,
       },
       {
-        id: 'poison',
-        name: 'Fiole de Poison',
-        effect: 'Empoisonne l\'ennemi (-2 END par tour)',
-        type: ItemType.SPECIAL,
-        tome: 1,
+        item: {
+          id: 'poison',
+          name: 'Fiole de Poison',
+          effect: 'Empoisonne l\'ennemi (-2 END par tour)',
+          type: ItemType.SPECIAL,
+          tome: 1,
+        },
+        quantity: 2,
+        usedCount: 1,
       },
       {
-        id: 'fumigene',
-        name: 'Bombe Fumigène',
-        effect: 'Facilite la fuite (+50% chance)',
-        type: ItemType.SPECIAL,
-        tome: 1,
+        item: {
+          id: 'fumigene',
+          name: 'Bombe Fumigène',
+          effect: 'Facilite la fuite (+50% chance)',
+          type: ItemType.SPECIAL,
+          tome: 1,
+        },
+        quantity: 1,
+        usedCount: 0,
       },
     ],
     isOpen: true,
@@ -156,7 +174,7 @@ export const ManyItems: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Liste avec défilement pour nombreux objets.',
+        story: 'Liste avec défilement pour nombreux objets. Note les quantités : Potion de soin 3/3, Poison 1/2 (déjà utilisé une fois).',
       },
     },
   },

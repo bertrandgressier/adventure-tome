@@ -108,6 +108,29 @@ export interface CombatSlice {
 
 type StoreState = CombatSlice & CharacterListSlice & CharacterStatsSlice & CharacterInventorySlice & ItemsCatalogSlice;
 
+/**
+ * Vérifie si le joueur a des objets utilisables en combat
+ */
+function hasUsableItems(get: () => StoreState, characterId: string): boolean {
+  const character = get().characters[characterId];
+  if (!character) return false;
+  
+  const inventory = character.getInventory();
+  const getItem = get().getItem;
+  
+  return inventory.items.some(itemRef => {
+    if (!itemRef.possessed || itemRef.quantity <= 0) return false;
+    
+    const item = getItem(itemRef.itemId);
+    if (!item) return false;
+    
+    // Objets consommables en combat : ceux qui ont un effet direct (heal ou damage)
+    // Exclut les objets passifs (bague, etc.) qui n'ont qu'un "effect" descriptif
+    return (item.type === 'active' || item.type === 'special') &&
+      (item.healAmount !== undefined || item.damageToEnemy !== undefined);
+  });
+}
+
 export const createCombatSlice = (): StateCreator<
   StoreState,
   [['zustand/devtools', never]],
@@ -157,7 +180,8 @@ export const createCombatSlice = (): StateCreator<
           usedReroll: !hasRerollItem,
         };
 
-        const availableActions = CombatEngine.getAvailableActions(stateWithReroll);
+        const hasItems = hasUsableItems(get, characterId);
+        const availableActions = CombatEngine.getAvailableActions(stateWithReroll, hasItems);
 
         set({
           combat: stateWithReroll,
@@ -183,7 +207,8 @@ export const createCombatSlice = (): StateCreator<
         // Résoudre l'action utilisateur
         const result = CombatEngine.resolve(combat, action, diceOverrides);
         
-        const availableActions = CombatEngine.getAvailableActions(result.state);
+        const hasItems = hasUsableItems(get, combat.characterId);
+        const availableActions = CombatEngine.getAvailableActions(result.state, hasItems);
 
         const updatedCombat = {
           ...result.state,
@@ -192,13 +217,16 @@ export const createCombatSlice = (): StateCreator<
 
         // Déterminer la nouvelle phase
         const isAttack = action.type === 'attack' || action.type === 'reroll';
+        const isSkip = action.type === 'skip';
         const isEnded = updatedCombat.player.endurance <= 0 || updatedCombat.enemy.endurance <= 0;
         
         const turnPhase: CombatTurnPhase = isEnded 
           ? 'COMBAT_ENDED' 
           : isAttack 
-            ? 'PLAYER_ATTACKING' 
-            : 'PLAYER_TURN_START';
+            ? 'PLAYER_ATTACKING'
+            : isSkip
+              ? 'ENEMY_TURN_START' // SKIP passe directement au tour ennemi
+              : 'PLAYER_TURN_START';
 
         set({
           combat: updatedCombat,
@@ -267,13 +295,11 @@ export const createCombatSlice = (): StateCreator<
           events: [...result.state.events, ...result.events],
         };
 
-        // Vérifier si le combat est terminé après l'attaque ennemi
-        const isEnded = updatedCombat.player.endurance <= 0 || updatedCombat.enemy.endurance <= 0;
-
-        // Pendant le tour ennemi, aucune action disponible pour le joueur
+        // TOUJOURS passer par ENEMY_ATTACKING pour que l'orchestrateur puisse jouer les animations
+        // L'orchestrateur passera à COMBAT_ENDED après les animations via endEnemyTurn()
         set({
           combat: updatedCombat,
-          turnPhase: isEnded ? 'COMBAT_ENDED' : 'ENEMY_ATTACKING',
+          turnPhase: 'ENEMY_ATTACKING',
           lastActionTimestamp: Date.now(),
           availableActions: [], // Pas d'actions pendant le tour ennemi
           error: null,
@@ -314,7 +340,8 @@ export const createCombatSlice = (): StateCreator<
       };
       
       // Recalculer les actions disponibles pour le nouveau tour
-      const availableActions = CombatEngine.getAvailableActions(updatedCombat);
+      const hasItems = hasUsableItems(get, combat.characterId);
+      const availableActions = CombatEngine.getAvailableActions(updatedCombat, hasItems);
       
       set({
         combat: updatedCombat,

@@ -52,6 +52,10 @@ export interface CombatEvent {
   luckResult?: 'success' | 'failure';
   result?: 'victory' | 'defeat';
   pointsSpent?: number;
+  /** Nom de l'item utilisé (pour événements ITEM_USED) */
+  itemName?: string;
+  /** Description textuelle de l'effet de l'item */
+  description?: string;
 }
 
 export interface CombatAction {

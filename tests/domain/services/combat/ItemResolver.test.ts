@@ -42,6 +42,7 @@ function createMockCombatState(overrides?: Partial<CombatState>): CombatState {
     isFirstAttack: true,
     usedItems: [],
     events: [],
+    history: [],
     ...overrides,
   };
 }
@@ -54,6 +55,7 @@ describe('ItemResolver', () => {
         id: 'tome1-potion-soin',
         name: 'Potion de soin',
         itemIndex: 0,
+      quantity: 1,
         healAmount: 5,
       };
 
@@ -72,6 +74,7 @@ describe('ItemResolver', () => {
         id: 'tome1-potion-soin',
         name: 'Potion de soin',
         itemIndex: 1,
+      quantity: 1,
         healAmount: 5,
       };
 
@@ -87,6 +90,7 @@ describe('ItemResolver', () => {
         id: 'tome3-potion-confusion',
         name: 'Potion de confusion',
         itemIndex: 0,
+      quantity: 1,
         damageToEnemy: 5,
       };
 
@@ -106,6 +110,7 @@ describe('ItemResolver', () => {
         id: 'tome3-potion-confusion',
         name: 'Potion de confusion',
         itemIndex: 0,
+      quantity: 1,
         damageToEnemy: 5,
       };
 
@@ -122,6 +127,7 @@ describe('ItemResolver', () => {
         id: 'combo-item',
         name: 'Item Combo',
         itemIndex: 2,
+      quantity: 1,
         healAmount: 3,
         damageToEnemy: 2,
       };
@@ -133,20 +139,71 @@ describe('ItemResolver', () => {
       expect(result.events).toHaveLength(2); // One for heal, one for damage
     });
 
-    it('should return unchanged state for item with no effects', () => {
+    it('should throw error for item with no effects', () => {
       const state = createMockCombatState();
       const item: CombatUsableItem = {
         id: 'useless-item',
         name: 'Item inutile',
         itemIndex: 0,
+      quantity: 1,
+      };
+
+      expect(() => ItemResolver.resolve(state, item)).toThrow(
+        'Item "Item inutile" has no usable combat effects (healAmount or damageToEnemy required).'
+      );
+    });
+
+    it('should throw error for negative itemIndex', () => {
+      const state = createMockCombatState();
+      const item: CombatUsableItem = {
+        id: 'healing-potion',
+        name: 'Potion de soin',
+        itemIndex: -1,
+        healAmount: 5,
+      };
+
+      expect(() => ItemResolver.resolve(state, item)).toThrow(
+        'Invalid itemIndex: -1. Must be >= 0.'
+      );
+    });
+
+    it('should throw error when item already used in combat', () => {
+      const state = createMockCombatState({
+        usedItems: [{ itemId: 'healing-potion', itemIndex: 0 }],
+      });
+      const item: CombatUsableItem = {
+        id: 'healing-potion',
+        name: 'Potion de soin',
+        itemIndex: 0,
+      quantity: 1,
+        healAmount: 5,
+      };
+
+      expect(() => ItemResolver.resolve(state, item)).toThrow(
+        'Potion de soin : quantité épuisée (1/1 utilisées)'
+      );
+    });
+
+    it('should add entry to history', () => {
+      const state = createMockCombatState();
+      const item: CombatUsableItem = {
+        id: 'healing-potion',
+        name: 'Potion de soin',
+        itemIndex: 0,
+      quantity: 1,
+        healAmount: 5,
       };
 
       const result = ItemResolver.resolve(state, item);
 
-      expect(result.state.player.endurance).toBe(state.player.endurance);
-      expect(result.state.enemy.endurance).toBe(state.enemy.endurance);
-      // Item still tracked even if no effect
-      expect(result.state.usedItems).toContainEqual({ itemId: 'useless-item', itemIndex: 0 });
+      expect(result.state.history).toHaveLength(1);
+      expect(result.state.history[0]).toMatchObject({
+        round: 1,
+        turn: 'player',
+        action: 'use_item',
+        itemId: 'healing-potion',
+        description: expect.stringContaining('Potion de soin utilisé'),
+      });
     });
   });
 
@@ -169,6 +226,50 @@ describe('ItemResolver', () => {
 
     it('should return false for zero damage', () => {
       expect(ItemResolver.isUsableInCombat({ damageToEnemy: 0 })).toBe(false);
+    });
+  });
+
+  describe('event enrichment', () => {
+    it('should include itemName and description in heal event', () => {
+      const state = createMockCombatState();
+      const item: CombatUsableItem = {
+        id: 'healing-potion',
+        name: 'Potion de soin',
+        itemIndex: 0,
+      quantity: 1,
+        healAmount: 5,
+      };
+
+      const result = ItemResolver.resolve(state, item);
+
+      expect(result.events).toHaveLength(1);
+      expect(result.events[0]).toMatchObject({
+        type: CombatEventType.ITEM_USED,
+        healAmount: 5,
+        itemName: 'Potion de soin',
+        description: 'Potion de soin utilisé : +5 PV',
+      });
+    });
+
+    it('should include itemName and description in damage event', () => {
+      const state = createMockCombatState();
+      const item: CombatUsableItem = {
+        id: 'fire-bomb',
+        name: 'Bombe incendiaire',
+        itemIndex: 0,
+      quantity: 1,
+        damageToEnemy: 3,
+      };
+
+      const result = ItemResolver.resolve(state, item);
+
+      expect(result.events).toHaveLength(1);
+      expect(result.events[0]).toMatchObject({
+        type: CombatEventType.ITEM_USED,
+        damage: 3,
+        itemName: 'Bombe incendiaire',
+        description: expect.stringContaining('Bombe incendiaire inflige 3 dégâts'),
+      });
     });
   });
 });

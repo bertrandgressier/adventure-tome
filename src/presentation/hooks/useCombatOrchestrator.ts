@@ -67,7 +67,15 @@ export function useCombatOrchestrator() {
   const [animationPhase, setAnimationPhase] = useState<AnimationPhase>('idle');
   
   // Flag pour afficher les écrans de fin après les animations
+  // Utilise combat?.id comme key pour se réinitialiser automatiquement
   const [showEndScreen, setShowEndScreen] = useState(false);
+  const combatIdRef = useRef(combat?.id);
+  
+  // Réinitialiser showEndScreen quand le combat change
+  if (combatIdRef.current !== combat?.id) {
+    combatIdRef.current = combat?.id;
+    setShowEndScreen(false);
+  }
   
   // Ref pour accéder aux availableActions dans les callbacks
   const availableActionsRef = useRef(availableActions);
@@ -76,11 +84,6 @@ export function useCombatOrchestrator() {
   useEffect(() => {
     availableActionsRef.current = availableActions;
   }, [availableActions]);
-
-  // Réinitialiser showEndScreen quand le combat change
-  useEffect(() => {
-    setShowEndScreen(false);
-  }, [combat?.id]);
 
   // Nettoyer les timeouts au démontage
   useEffect(() => {
@@ -204,5 +207,7 @@ export function useCombatOrchestrator() {
     hasPlayerActions: hasMeaningfulActions(availableActions),
     /** Si on respecte prefers-reduced-motion */
     prefersReducedMotion,
+    /** Si l'écran de fin doit être affiché (victoire/défaite) */
+    showEndScreen,
   };
 }

@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
 import { useCombatOrchestrator } from '@/src/presentation/hooks/useCombatOrchestrator';
 import { CombatValidator } from '@/src/domain/services/combat/CombatValidator';
+import { CombatEventType } from '@/src/domain/types/CombatEventType';
 import { CombatantCard } from './CombatantCard';
 import { DiceResultCard } from './DiceResultCard';
 import type { DiceRollResult } from './DiceAnimation';
 import { ActionPanel } from './ActionPanel';
 import { CombatLog } from './CombatLog';
+import { ItemEffectAnimation } from './ItemEffectAnimation';
 import {
   wouldBeLethal,
 } from './combatUIHelpers';
@@ -98,6 +100,13 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
       ? ('win' as const)
       : ('lose' as const)
     : undefined;
+
+  // Détecter les events ITEM_USED récents pour afficher l'animation
+  const lastItemEvent = combat.events.length > 0 && combat.events[combat.events.length - 1].type === CombatEventType.ITEM_USED
+    ? combat.events[combat.events.length - 1]
+    : null;
+  
+  const showItemEffect = lastItemEvent && animationPhase === 'result';
 
   // Déterminer si c'est le tour du joueur ou de l'ennemi pour l'UI
   // turnPhase reflète la RÉALITÉ du combat
@@ -193,6 +202,39 @@ export function CombatArena({ characterId, onExit }: CombatArenaProps) {
                 />
               );
             }
+            return null;
+          })()}
+        </AnimatePresence>
+
+        {/* Item Effect Animation */}
+        <AnimatePresence>
+          {showItemEffect && lastItemEvent && (() => {
+            // Déterminer le type d'effet
+            const hasHeal = lastItemEvent.healAmount !== undefined && lastItemEvent.healAmount > 0;
+            const hasDamage = lastItemEvent.damage !== undefined && lastItemEvent.damage > 0;
+            
+            if (hasHeal) {
+              return (
+                <ItemEffectAnimation
+                  key={`item-heal-${lastItemEvent.timestamp}`}
+                  type="heal"
+                  amount={lastItemEvent.healAmount!}
+                  itemName={lastItemEvent.itemName || 'Item'}
+                />
+              );
+            }
+            
+            if (hasDamage) {
+              return (
+                <ItemEffectAnimation
+                  key={`item-damage-${lastItemEvent.timestamp}`}
+                  type="damage"
+                  amount={lastItemEvent.damage!}
+                  itemName={lastItemEvent.itemName || 'Item'}
+                />
+              );
+            }
+            
             return null;
           })()}
         </AnimatePresence>

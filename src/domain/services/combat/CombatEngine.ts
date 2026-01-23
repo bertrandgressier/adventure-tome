@@ -91,9 +91,10 @@ export class CombatEngine {
 
   /**
    * Obtient les actions disponibles pour l'état actuel
+   * @param hasUsableItems - Si le joueur a des objets utilisables (vérifié côté store avec accès à l'inventaire)
    */
-  static getAvailableActions(state: CombatState): AvailableAction[] {
-    return CombatValidator.getAvailableActions(state);
+  static getAvailableActions(state: CombatState, hasUsableItems = false): AvailableAction[] {
+    return CombatValidator.getAvailableActions(state, hasUsableItems);
   }
 
   /**

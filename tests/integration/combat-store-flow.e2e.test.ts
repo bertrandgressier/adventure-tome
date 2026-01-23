@@ -387,6 +387,7 @@ describe('Combat Store Flow E2E', () => {
       }
       
       expect(store.state.combat?.enemy.endurance).toBeLessThanOrEqual(0);
+      // Quand le joueur gagne (via executeAction), on passe directement à COMBAT_ENDED
       expect(store.state.turnPhase).toBe('COMBAT_ENDED');
     });
   });
@@ -421,6 +422,11 @@ describe('Combat Store Flow E2E', () => {
       }
       
       expect(store.state.combat?.player.endurance).toBeLessThanOrEqual(0);
+      // Après executeEnemyAttack, on est en ENEMY_ATTACKING, pas encore COMBAT_ENDED
+      expect(store.state.turnPhase).toBe('ENEMY_ATTACKING');
+      
+      // Il faut appeler endEnemyTurn pour passer à COMBAT_ENDED
+      slice.endEnemyTurn();
       expect(store.state.turnPhase).toBe('COMBAT_ENDED');
     });
 
@@ -443,6 +449,11 @@ describe('Combat Store Flow E2E', () => {
       slice.executeEnemyAttack({ hitDice: [3, 3], damageDice: 6 }); // Gros dégâts
       
       expect(store.state.combat?.player.endurance).toBeLessThanOrEqual(0);
+      // Après executeEnemyAttack, on est en ENEMY_ATTACKING, pas encore COMBAT_ENDED
+      expect(store.state.turnPhase).toBe('ENEMY_ATTACKING');
+      
+      // Il faut appeler endEnemyTurn pour passer à COMBAT_ENDED
+      slice.endEnemyTurn();
       expect(store.state.turnPhase).toBe('COMBAT_ENDED');
     });
   });

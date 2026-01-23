@@ -1,5 +1,6 @@
 import type { CombatState, CombatEvent } from '../../types/combat-state';
 import { CombatEventType } from '../../types/CombatEventType';
+import { HistoryManager } from './HistoryManager';
 
 /**
  * Item utilisable en combat
@@ -10,6 +11,8 @@ export interface CombatUsableItem {
   name: string;
   /** Index de l'item dans l'inventaire (pour consommation à la fin du combat) */
   itemIndex: number;
+  /** Quantité disponible de cet item */
+  quantity: number;
   /** Points de vie restaurés au joueur */
   healAmount?: number;
   /** Dégâts infligés à l'ennemi actif */
@@ -42,6 +45,26 @@ export class ItemResolver {
     state: CombatState,
     item: CombatUsableItem
   ): ItemResolutionResult {
+    // Validation de l'item
+    if (item.itemIndex < 0) {
+      throw new Error(`Invalid itemIndex: ${item.itemIndex}. Must be >= 0.`);
+    }
+    if (!ItemResolver.isUsableInCombat(item)) {
+      throw new Error(`Item "${item.name}" has no usable combat effects (healAmount or damageToEnemy required).`);
+    }
+
+    // Compter combien de fois cet item a été utilisé
+    const usageCount = state.usedItems.filter(
+      usedItem => usedItem.itemId === item.id && usedItem.itemIndex === item.itemIndex
+    ).length;
+    
+    if (usageCount >= item.quantity) {
+      throw new Error(`${item.name} : quantité épuisée (${usageCount}/${item.quantity} utilisées)`);
+    }
+
+    // Snapshot HP avant l'action
+    const hpBefore = HistoryManager.createHPSnapshot(state);
+
     let newState = { ...state };
     const events: CombatEvent[] = [];
 
@@ -72,6 +95,8 @@ export class ItemResolver {
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
         healAmount: actualHeal,
+        itemName: item.name,
+        description: `${item.name} utilisé : +${actualHeal} PV`,
       });
     }
 
@@ -90,8 +115,38 @@ export class ItemResolver {
         timestamp: new Date().toISOString(),
         round: state.roundNumber,
         damage: item.damageToEnemy,
+        itemName: item.name,
+        description: `${item.name} inflige ${item.damageToEnemy} dégâts à ${targetEnemy.name}`,
       });
     }
+
+    // Snapshot HP après l'action
+    const hpAfter = HistoryManager.createHPSnapshot(newState);
+
+    // Créer une description complète pour l'historique
+    const parts = [];
+    if (item.healAmount && item.healAmount > 0) {
+      const actualHeal = hpAfter.player - hpBefore.player;
+      if (actualHeal > 0) {
+        parts.push(`+${actualHeal} PV`);
+      }
+    }
+    if (item.damageToEnemy && item.damageToEnemy > 0) {
+      parts.push(`${item.damageToEnemy} dégâts à ${newState.enemy.name}`);
+    }
+    const description = `${item.name} utilisé${parts.length > 0 ? ' : ' + parts.join(', ') : ''}`;
+
+    // Ajouter entrée dans l'historique
+    newState.history = HistoryManager.addEntry(newState, {
+      round: state.roundNumber,
+      turn: 'player',
+      action: 'use_item',
+      hpBefore,
+      hpAfter,
+      timestamp: new Date().toISOString(),
+      description,
+      itemId: item.id,
+    });
 
     return { state: newState, events };
   }

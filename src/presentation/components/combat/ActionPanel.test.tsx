@@ -242,26 +242,6 @@ describe('ActionPanel', () => {
       expect(chanceButton).toBeDisabled();
     });
 
-    // TODO: Re-implémenter ce test si nécessaire après suppression de isAnimating
-    it.skip('should disable all buttons when animating', () => {
-      mockUseCharacterStore.mockImplementation((selector) => {
-        const state = {
-          combat: mockCombat,
-          availableActions: mockAvailableActions,
-          isAnimating: true,
-          characters: { 'test-id': mockCharacter },
-          executeAction: mockExecuteAction,
-          getItem: (id: string) => mockCatalogItems[id as keyof typeof mockCatalogItems],
-        };
-        return selector(state as any);
-      });
-
-      render(<ActionPanel characterId="test-id" />);
-
-      const attackButton = screen.getByText('Attaquer').closest('button');
-      expect(attackButton).toBeDisabled();
-    });
-
     it('should call executeAction when attack button is clicked', async () => {
       const user = userEvent.setup();
       render(<ActionPanel characterId="test-id" />);
@@ -291,7 +271,7 @@ describe('ActionPanel', () => {
         await user.click(itemButton!);
 
         expect(screen.getByText('Potion de soin')).toBeInTheDocument();
-        expect(screen.getByText("Bague de deuxième chance")).toBeInTheDocument();
+        // La bague passive ne devrait pas apparaître (pas de healAmount/damageToEnemy)
       });
 
       it('should display item effects', async () => {
@@ -302,7 +282,7 @@ describe('ActionPanel', () => {
         await user.click(itemButton!);
 
         expect(screen.getByText('Restaure 5 points de vie')).toBeInTheDocument();
-        expect(screen.getByText('Permet de relancer un jet de dés')).toBeInTheDocument();
+        // L'effet de la bague passive ne devrait pas apparaître
       });
 
       it('should display item heal amount', async () => {
@@ -327,7 +307,14 @@ describe('ActionPanel', () => {
 
         expect(mockExecuteAction).toHaveBeenCalledWith({
           type: 'use_item',
-          payload: { itemId: 'tome1-potion-soin' },
+          payload: {
+            id: 'tome1-potion-soin',
+            name: 'Potion de soin',
+            itemIndex: 0,
+            quantity: 2,
+            healAmount: 5,
+            damageToEnemy: undefined,
+          },
         });
       });
 

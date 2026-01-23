@@ -5,8 +5,14 @@ import { Button } from '@/components/ui/button';
 import type { CatalogItem } from '@/src/domain/types/items';
 import { itemPickerVariants, itemOptionVariants } from './motion';
 
+export interface ItemWithQuantity {
+  item: CatalogItem;
+  quantity: number;
+  usedCount: number;
+}
+
 export interface ItemPickerProps {
-  items: CatalogItem[];
+  items: ItemWithQuantity[];
   onSelect: (itemId: string) => void;
   onClose: () => void;
   isOpen: boolean;
@@ -57,45 +63,52 @@ export function ItemPicker({ items, onSelect, onClose, isOpen }: ItemPickerProps
               </p>
             ) : (
               <div className="space-y-2 max-h-[50vh] overflow-y-auto">
-                {items.map((item, index) => (
-                  <motion.button
-                    key={item.id}
-                    variants={itemOptionVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    custom={index}
-                    onClick={() => {
-                      onSelect(item.id);
-                      onClose();
-                    }}
-                    className="w-full text-left p-3 bg-card border border-border rounded-lg hover:bg-primary/10 transition-colors min-h-[44px] flex items-start gap-3"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-foreground">{item.name}</span>
-                        {item.tome && (
-                          <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">
-                            T{item.tome}
+                {items.map(({ item, quantity, usedCount }, index) => {
+                  const remaining = quantity - usedCount;
+                  return (
+                    <motion.button
+                      key={item.id}
+                      variants={itemOptionVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      custom={index}
+                      onClick={() => {
+                        onSelect(item.id);
+                        onClose();
+                      }}
+                      className="w-full text-left p-3 bg-card border border-border rounded-lg hover:bg-primary/10 transition-colors min-h-[44px] flex items-start gap-3"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-foreground">{item.name}</span>
+                          {item.tome && (
+                            <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">
+                              T{item.tome}
+                            </span>
+                          )}
+                          {/* Badge quantité restante */}
+                          <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded font-mono">
+                            {remaining}/{quantity}
                           </span>
+                        </div>
+                        {item.effect && (
+                          <p className="text-sm text-muted-foreground">{item.effect}</p>
+                        )}
+                        {item.healAmount && (
+                          <p className="text-sm text-green-500">
+                            +{item.healAmount} PV
+                          </p>
+                        )}
+                        {item.damageToEnemy && (
+                          <p className="text-sm text-destructive">
+                            -{item.damageToEnemy} dégâts à l&apos;ennemi
+                          </p>
                         )}
                       </div>
-                      {item.effect && (
-                        <p className="text-sm text-muted-foreground">{item.effect}</p>
-                      )}
-                      {item.healAmount && (
-                        <p className="text-sm text-green-500">
-                          +{item.healAmount} PV
-                        </p>
-                      )}
-      {item.damageToEnemy && (
-        <p className="text-sm text-destructive">
-          -{item.damageToEnemy} dégâts à l&apos;ennemi
-        </p>
-      )}
-                    </div>
-                  </motion.button>
-                ))}
+                    </motion.button>
+                  );
+                })}
               </div>
             )}
 

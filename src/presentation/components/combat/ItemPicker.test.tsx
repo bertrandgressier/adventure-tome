@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ItemPicker } from './ItemPicker';
+import { ItemPicker, type ItemWithQuantity } from './ItemPicker';
 import type { CatalogItem } from '@/src/domain/types/items';
 import { ItemType } from '@/src/domain/types/items';
 
@@ -9,7 +9,7 @@ describe('ItemPicker', () => {
   const mockOnSelect = vi.fn();
   const mockOnClose = vi.fn();
 
-  const mockItems: CatalogItem[] = [
+  const mockCatalogItems: CatalogItem[] = [
     {
       id: 'tome1-potion-soin',
       name: 'Potion de soin',
@@ -35,6 +35,12 @@ describe('ItemPicker', () => {
       effect: 'Inflige 3 dégâts à l\'ennemi',
     },
   ];
+
+  const mockItems: ItemWithQuantity[] = mockCatalogItems.map((item) => ({
+    item,
+    quantity: 2,
+    usedCount: 0,
+  }));
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -138,13 +144,19 @@ describe('ItemPicker', () => {
     });
 
     it('should render items in scrollable container when many items', () => {
-      const manyItems: CatalogItem[] = Array.from({ length: 20 }, (_, i) => ({
+      const manyCatalogItems: CatalogItem[] = Array.from({ length: 20 }, (_, i) => ({
         id: `item-${i}`,
         name: `Item ${i}`,
         type: ItemType.ACTIVE,
         tome: 1,
         healAmount: 1,
         effect: 'Effect',
+      }));
+
+      const manyItems: ItemWithQuantity[] = manyCatalogItems.map(item => ({
+        item,
+        quantity: 1,
+        usedCount: 0,
       }));
 
       render(
@@ -266,16 +278,20 @@ describe('ItemPicker', () => {
 
   describe('Item types', () => {
     it('should display items with only damage effect', () => {
-      const damageItem: CatalogItem[] = [
-        {
-          id: 'tome1-bombe-feu',
-          name: 'Bombe de feu',
-          type: ItemType.SPECIAL,
-          tome: 1,
-          damageToEnemy: 5,
-          effect: 'Explosion de feu',
-        },
-      ];
+      const damageCatalogItem: CatalogItem = {
+        id: 'tome1-bombe-feu',
+        name: 'Bombe de feu',
+        type: ItemType.SPECIAL,
+        tome: 1,
+        damageToEnemy: 5,
+        effect: 'Explosion de feu',
+      };
+
+      const damageItem: ItemWithQuantity[] = [{
+        item: damageCatalogItem,
+        quantity: 1,
+        usedCount: 0,
+      }];
 
       render(
         <ItemPicker
@@ -290,16 +306,20 @@ describe('ItemPicker', () => {
     });
 
     it('should display items with only heal effect', () => {
-      const healItem: CatalogItem[] = [
-        {
-          id: 'tome1-potion-soin',
-          name: 'Potion de soin',
-          type: ItemType.ACTIVE,
-          tome: 1,
-          healAmount: 10,
-          effect: 'Grande potion',
-        },
-      ];
+      const healCatalogItem: CatalogItem = {
+        id: 'tome1-potion-soin',
+        name: 'Potion de soin',
+        type: ItemType.ACTIVE,
+        tome: 1,
+        healAmount: 10,
+        effect: 'Grande potion',
+      };
+
+      const healItem: ItemWithQuantity[] = [{
+        item: healCatalogItem,
+        quantity: 1,
+        usedCount: 0,
+      }];
 
       render(
         <ItemPicker
@@ -314,17 +334,21 @@ describe('ItemPicker', () => {
     });
 
     it('should display items with both heal and damage', () => {
-      const hybridItem: CatalogItem[] = [
-        {
-          id: 'tome1-potion-guerriere',
-          name: 'Potion guerrière',
-          type: ItemType.SPECIAL,
-          tome: 1,
-          healAmount: 5,
-          damageToEnemy: 3,
-          effect: 'Soin + dégâts',
-        },
-      ];
+      const hybridCatalogItem: CatalogItem = {
+        id: 'tome1-potion-guerriere',
+        name: 'Potion guerrière',
+        type: ItemType.SPECIAL,
+        tome: 1,
+        healAmount: 5,
+        damageToEnemy: 3,
+        effect: 'Soin + dégâts',
+      };
+
+      const hybridItem: ItemWithQuantity[] = [{
+        item: hybridCatalogItem,
+        quantity: 1,
+        usedCount: 0,
+      }];
 
       render(
         <ItemPicker
@@ -340,15 +364,19 @@ describe('ItemPicker', () => {
     });
 
     it('should display items with only effect text', () => {
-      const effectOnlyItem: CatalogItem[] = [
-        {
-          id: 'tome1-bague-chance',
-          name: 'Bague de chance',
-          type: ItemType.SPECIAL,
-          tome: 1,
-          effect: 'Augmente la chance',
-        },
-      ];
+      const effectOnlyCatalogItem: CatalogItem = {
+        id: 'tome1-bague-chance',
+        name: 'Bague de chance',
+        type: ItemType.SPECIAL,
+        tome: 1,
+        effect: 'Augmente la chance',
+      };
+
+      const effectOnlyItem: ItemWithQuantity[] = [{
+        item: effectOnlyCatalogItem,
+        quantity: 1,
+        usedCount: 0,
+      }];
 
       render(
         <ItemPicker
