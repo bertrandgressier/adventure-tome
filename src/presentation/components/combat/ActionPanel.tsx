@@ -118,7 +118,7 @@ export function ActionPanel({ characterId, isAnimating = false }: ActionPanelPro
   return (
     <>
       <motion.div
-        className="grid grid-cols-2 gap-2"
+        className="flex flex-wrap gap-2 justify-center"
         variants={actionPanelContainerVariants}
         initial="hidden"
         animate="visible"
