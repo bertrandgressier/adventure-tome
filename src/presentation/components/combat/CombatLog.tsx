@@ -215,7 +215,7 @@ function CombatHistoryEntryDisplay({ entry, isLast }: CombatHistoryEntryDisplayP
       </div>
       <div className="flex-1 leading-relaxed space-y-1">
         <div>{entry.description}</div>
-        {entry.hitRoll && (
+        {entry.hitRoll && entry.action !== CombatActionType.WEAPON_ABILITY && (
           <div className="text-xs text-muted-foreground">
             🎲 [{entry.hitRoll.dice[0]}+{entry.hitRoll.dice[1]}] = {entry.hitRoll.total} 
             {entry.hitRoll.success ? ' → Touché !' : ' → Raté !'}
