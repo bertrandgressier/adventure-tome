@@ -2,8 +2,9 @@ import type { CombatState, CombatEvent } from '../../types/combat-state';
 import type { WeaponAbility, DiceRoll, PendingDamage } from '../../types/combatants';
 import { CombatEventType } from '../../types/CombatEventType';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
-import { COMBAT_MESSAGES } from './constants';
+import { COMBAT_MESSAGES, WEAPON_ABILITY_IDS } from './constants';
 import { PhaseManager } from './PhaseManager';
+import { HistoryManager } from './HistoryManager';
 
 /**
  * Type union des états de combat compatibles avec WeaponAbilityResolver
@@ -136,11 +137,16 @@ export class WeaponAbilityResolver {
       pendingExtraAttack: true,
     };
 
+    const description = HistoryManager.generateWeaponAbilityTriggeredDescription(
+      WEAPON_ABILITY_IDS.LAME_AUBE_EXTRA_ATTACK
+    );
+
     const event: CombatEvent = {
       type: CombatEventType.WEAPON_ABILITY,
       timestamp: new Date().toISOString(),
       round: state.roundNumber,
       abilityId,
+      description,
     };
 
     return { state: newState, events: [event], triggered: true };
@@ -159,12 +165,22 @@ export class WeaponAbilityResolver {
       },
     };
 
+    const description = HistoryManager.generateWeaponAbilityTriggeredDescription(
+      WEAPON_ABILITY_IDS.MARTEAU_VAMPIRIC,
+      {
+        healAmount: amount,
+        currentHp: newEndurance,
+        maxHp: maxEndurance,
+      }
+    );
+
     const event: CombatEvent = {
       type: CombatEventType.WEAPON_ABILITY,
       timestamp: new Date().toISOString(),
       round: state.roundNumber,
       abilityId,
       healAmount: amount,
+      description,
     };
 
     return { state: newState, events: [event], triggered: true };
@@ -176,7 +192,8 @@ export class WeaponAbilityResolver {
     if (!ability) {
       return { state, events: [], triggered: false };
     }
-    const newChance = state.player.chance - (ability.costChance ?? 0);
+    const costChance = ability.costChance ?? 0;
+    const newChance = state.player.chance - costChance;
 
     const newState = {
       ...state,
@@ -186,31 +203,51 @@ export class WeaponAbilityResolver {
       },
     };
 
+    const description = HistoryManager.generateWeaponAbilityTriggeredDescription(
+      WEAPON_ABILITY_IDS.ARC_WIND_GUIDED,
+      {
+        chanceSpent: costChance,
+        chanceRemaining: newChance,
+      }
+    );
+
     const event: CombatEvent = {
       type: CombatEventType.WEAPON_ABILITY,
       timestamp: new Date().toISOString(),
       round: state.roundNumber,
       abilityId,
       pointsSpent: ability.costChance,
+      description,
     };
 
     return { state: newState, events: [event], triggered: true };
   }
 
   private static resolveBonusDamage(state: CombatState, abilityId: string, amount: number): AbilityResolutionResult {
+    const newTotalDamageBonus = state.player.totalDamageBonus + amount;
+    
     const newState = {
       ...state,
       player: {
         ...state.player,
-        totalDamageBonus: state.player.totalDamageBonus + amount,
+        totalDamageBonus: newTotalDamageBonus,
       },
     };
+
+    const description = HistoryManager.generateWeaponAbilityTriggeredDescription(
+      WEAPON_ABILITY_IDS.DAGUE_SURPRISE_STRIKE,
+      {
+        bonusDamage: amount,
+        totalDamage: newTotalDamageBonus,
+      }
+    );
 
     const event: CombatEvent = {
       type: CombatEventType.WEAPON_ABILITY,
       timestamp: new Date().toISOString(),
       round: state.roundNumber,
       abilityId,
+      description,
     };
 
     return { state: newState, events: [event], triggered: true };
@@ -218,6 +255,7 @@ export class WeaponAbilityResolver {
 
   private static resolveNegateDamage(state: CombatState, abilityId: string): AbilityResolutionResult {
     const usageCount = (state.usedAbilities[abilityId] ?? 0) + 1;
+    const negatedDamage = state.pendingDamage?.amount ?? 0;
 
     const newState = {
       ...state,
@@ -233,11 +271,19 @@ export class WeaponAbilityResolver {
     const phaseUpdate = PhaseManager.advancePhase(newState, {});
     const finalState = { ...newState, ...phaseUpdate };
 
+    const description = HistoryManager.generateWeaponAbilityTriggeredDescription(
+      WEAPON_ABILITY_IDS.BATON_MYSTIC_SHIELD,
+      {
+        negatedDamage,
+      }
+    );
+
     const event: CombatEvent = {
       type: CombatEventType.WEAPON_ABILITY,
       timestamp: new Date().toISOString(),
       round: state.roundNumber,
       abilityId,
+      description,
     };
 
     return { state: finalState, events: [event], triggered: true };

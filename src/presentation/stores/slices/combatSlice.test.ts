@@ -345,5 +345,79 @@ describe('combatSlice', () => {
       }
     });
   });
-});
 
+  describe('useWeaponAbility', () => {
+    beforeEach(() => {
+      mockSet.mockClear();
+      // Start combat first
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
+      mockSet.mockClear();
+    });
+
+    it('should throw error when no active combat', () => {
+      currentState.combat = null;
+
+      expect(() => slice.useWeaponAbility('some-ability')).toThrow('No active combat');
+    });
+
+    it('should throw error when weapon has no ability', () => {
+      // Default weapon has no ability
+      expect(() => slice.useWeaponAbility('some-ability')).toThrow('Arme requise non équipée');
+    });
+
+    it('should set error state when ability cannot be used', () => {
+      currentState.combat = null;
+      
+      expect(() => slice.useWeaponAbility('invalid-ability')).toThrow();
+
+      const lastCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];
+      if (lastCallArgs && typeof lastCallArgs === 'object') {
+        expect(lastCallArgs.error).toBeDefined();
+      }
+    });
+  });
+
+  describe('clearTriggeredAbility', () => {
+    it('should clear lastTriggeredAbility', () => {
+      slice.clearTriggeredAbility();
+
+      expect(mockSet).toHaveBeenCalledWith(
+        { lastTriggeredAbility: null },
+        false,
+        'combat/clearTriggeredAbility'
+      );
+    });
+  });
+
+  describe('lastTriggeredAbility tracking', () => {
+    beforeEach(() => {
+      mockSet.mockClear();
+      slice.startCombat('hero-id', mockEnemy, defaultConfig);
+    });
+
+    it('should be null initially after startCombat', () => {
+      const setCallArgs = mockSet.mock.calls[0]?.[0];
+      if (setCallArgs && typeof setCallArgs === 'object') {
+        expect(setCallArgs.lastTriggeredAbility).toBeNull();
+      }
+    });
+
+    it('should be cleared after endCombat', async () => {
+      await slice.endCombat();
+
+      const lastCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];
+      if (lastCallArgs && typeof lastCallArgs === 'object') {
+        expect(lastCallArgs.lastTriggeredAbility).toBeNull();
+      }
+    });
+
+    it('should be cleared after cancelCombat', () => {
+      slice.cancelCombat();
+
+      const lastCallArgs = mockSet.mock.calls[mockSet.mock.calls.length - 1]?.[0];
+      if (lastCallArgs && typeof lastCallArgs === 'object') {
+        expect(lastCallArgs.lastTriggeredAbility).toBeNull();
+      }
+    });
+  });
+});

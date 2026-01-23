@@ -12,7 +12,10 @@ import type {
 } from '@/src/domain/types/combatants';
 import type { CatalogItem, WeaponAbilityDefinition } from '@/src/domain/types/items';
 import { CombatEngine } from '@/src/domain/services/combat/CombatEngine';
+import { CombatActionType } from '@/src/domain/types/CombatActionType';
+import { CombatEventType } from '@/src/domain/types/CombatEventType';
 import { PhaseManager } from '@/src/domain/services/combat/PhaseManager';
+import { WeaponAbilityResolver } from '@/src/domain/services/combat/WeaponAbilityResolver';
 import type { DiceOverrides } from '@/src/domain/services/combat/DiceRoller';
 import type { CharacterListSlice } from './characterListSlice';
 import type { CharacterStatsSlice } from './characterStatsSlice';
@@ -55,6 +58,9 @@ export interface CombatSlice {
   
   /** Erreur éventuelle lors des opérations de combat */
   error: string | null;
+  
+  /** Dernière capacité d'arme déclenchée (pour notifications UI) */
+  lastTriggeredAbility: TriggeredAbilityInfo | null;
 
   /**
    * Démarre un nouveau combat
@@ -101,9 +107,31 @@ export interface CombatSlice {
    * Annule le combat sans persister les changements
    */
   cancelCombat: () => void;
+  
+  /**
+   * Utilise une capacité d'arme manuelle (ex: Arc des Vents, Bâton du Sage)
+   * @param abilityId ID de la capacité à utiliser
+   */
+  useWeaponAbility: (abilityId: string) => void;
+  
+  /**
+   * Efface la notification de capacité déclenchée
+   */
+  clearTriggeredAbility: () => void;
 
   /** @internal Valeur privée pour tracker la chance initiale */
   privateInitialChance: number;
+}
+
+/**
+ * Informations sur une capacité d'arme déclenchée (pour notifications UI)
+ */
+export interface TriggeredAbilityInfo {
+  abilityId: string;
+  abilityName: string;
+  effectType: string;
+  description: string;
+  timestamp: number;
 }
 
 type StoreState = CombatSlice & CharacterListSlice & CharacterStatsSlice & CharacterInventorySlice & ItemsCatalogSlice;
@@ -144,6 +172,7 @@ export const createCombatSlice = (): StateCreator<
     lastActionTimestamp: 0,
     privateInitialChance: 0,
     error: null,
+    lastTriggeredAbility: null,
 
     startCombat: (characterId, enemy, config) => {
       try {
@@ -190,6 +219,7 @@ export const createCombatSlice = (): StateCreator<
           availableActions,
           privateInitialChance: stats.chanceInitiale,
           error: null,
+          lastTriggeredAbility: null,
         }, false, 'combat/startCombat');
       } catch (error) {
         handleSliceError(set, error);
@@ -215,9 +245,12 @@ export const createCombatSlice = (): StateCreator<
           events: [...result.state.events, ...result.events],
         };
 
+        // Détecter les capacités d'arme auto-déclenchées
+        const triggeredAbility = extractTriggeredAbility(result.events, combat.player.weapon);
+
         // Déterminer la nouvelle phase
-        const isAttack = action.type === 'attack' || action.type === 'reroll';
-        const isSkip = action.type === 'skip';
+        const isAttack = action.type === CombatActionType.ATTACK || action.type === CombatActionType.REROLL;
+        const isSkip = action.type === CombatActionType.SKIP;
         const isEnded = updatedCombat.player.endurance <= 0 || updatedCombat.enemy.endurance <= 0;
         
         const turnPhase: CombatTurnPhase = isEnded 
@@ -233,6 +266,7 @@ export const createCombatSlice = (): StateCreator<
           turnPhase,
           lastActionTimestamp: Date.now(),
           availableActions,
+          lastTriggeredAbility: triggeredAbility,
           error: null,
         }, false, `combat/executeAction/${action.type}`);
       } catch (error) {
@@ -383,6 +417,7 @@ export const createCombatSlice = (): StateCreator<
           lastActionTimestamp: 0,
           availableActions: [],
           privateInitialChance: 0,
+          lastTriggeredAbility: null,
           error: null,
         }, false, 'combat/endCombat');
       } catch (error) {
@@ -398,11 +433,99 @@ export const createCombatSlice = (): StateCreator<
         lastActionTimestamp: 0,
         availableActions: [],
         privateInitialChance: 0,
+        lastTriggeredAbility: null,
         error: null,
       }, false, 'combat/cancelCombat');
     },
+    
+    useWeaponAbility: (abilityId: string) => {
+      try {
+        const { combat } = get();
+        if (!combat) {
+          throw new Error('No active combat');
+        }
+
+        // Vérifier que l'arme a cette capacité
+        const weapon = combat.player.weapon;
+        if (!weapon?.ability || weapon.ability.id !== abilityId) {
+          throw new Error('Arme requise non équipée');
+        }
+
+        // Vérifier que la capacité peut être utilisée
+        const { canUse, reason } = WeaponAbilityResolver.canUseAbility(combat, abilityId);
+        if (!canUse) {
+          throw new Error(reason ?? 'Impossible d\'utiliser cette capacité');
+        }
+
+        // Résoudre la capacité
+        const result = WeaponAbilityResolver.resolveAbility(combat, abilityId);
+        
+        if (!result.triggered) {
+          return;
+        }
+
+        const hasItems = hasUsableItems(get, combat.characterId);
+        const availableActions = CombatEngine.getAvailableActions(result.state, hasItems);
+
+        const updatedCombat = {
+          ...result.state,
+          events: [...result.state.events, ...result.events],
+        };
+
+        // Créer les infos de la capacité déclenchée
+        const triggeredAbility = extractTriggeredAbility(result.events, weapon);
+
+        set({
+          combat: updatedCombat,
+          lastActionTimestamp: Date.now(),
+          availableActions,
+          lastTriggeredAbility: triggeredAbility,
+          error: null,
+        }, false, `combat/useWeaponAbility/${abilityId}`);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erreur lors de l\'utilisation de la capacité';
+        set({ error: errorMessage }, false, 'combat/error');
+        throw error;
+      }
+    },
+    
+    clearTriggeredAbility: () => {
+      set({ lastTriggeredAbility: null }, false, 'combat/clearTriggeredAbility');
+    },
   });
 };
+
+/**
+ * Extrait les informations de capacité d'arme déclenchée depuis les événements
+ * @param events Événements du combat
+ * @param weapon Arme du joueur
+ * @returns Informations sur la capacité déclenchée ou null
+ */
+function extractTriggeredAbility(
+  events: import('@/src/domain/types/combat-state').CombatEvent[],
+  weapon: CombatWeapon
+): TriggeredAbilityInfo | null {
+  // Chercher un événement WEAPON_ABILITY dans les nouveaux événements
+  const abilityEvent = events.find(e => e.type === CombatEventType.WEAPON_ABILITY);
+  
+  if (!abilityEvent || !abilityEvent.abilityId) {
+    return null;
+  }
+  
+  // Récupérer les informations de la capacité depuis l'arme
+  const ability = weapon.ability;
+  if (!ability || ability.id !== abilityEvent.abilityId) {
+    return null;
+  }
+  
+  return {
+    abilityId: ability.id,
+    abilityName: ability.name,
+    effectType: ability.effect.type,
+    description: abilityEvent.description ?? `${ability.name} activé !`,
+    timestamp: Date.now(),
+  };
+}
 
 /**
  * Extrait la configuration de l'arme à partir de l'inventaire du personnage
