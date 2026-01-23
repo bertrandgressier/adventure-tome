@@ -226,24 +226,6 @@ export class CombatEngine {
         newState.player.endurance = Math.max(0, newState.player.endurance - damageDealt);
       }
 
-      // Check for weapon abilities on successful attack
-      if (isPlayerAttacking && newState.lastRoll?.isDouble) {
-        const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
-          newState,
-          WeaponAbilityTrigger.ON_DOUBLE,
-          { roll: newState.lastRoll }
-        );
-        if (doubleAbility) {
-          const doubleResult = WeaponAbilityResolver.resolveAbility(newState, doubleAbility.id);
-          newState.player = doubleResult.state.player;
-          newState.enemy = doubleResult.state.enemy;
-          newState.usedAbilities = doubleResult.state.usedAbilities;
-          newState.pendingExtraAttack = doubleResult.state.pendingExtraAttack;
-          events.push(...doubleResult.events);
-          triggeredResults.push(doubleResult);
-        }
-      }
-
       // Check for ON_KILL ability if enemy was defeated
       if (isPlayerAttacking && newState.enemy.endurance <= 0) {
         const killAbility = WeaponAbilityResolver.checkAutoTrigger(
@@ -259,6 +241,24 @@ export class CombatEngine {
           events.push(...killResult.events);
           triggeredResults.push(killResult);
         }
+      }
+    }
+
+    // Check for weapon abilities on any double (hit or miss)
+    if (isPlayerAttacking && newState.lastRoll?.isDouble) {
+      const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
+        newState,
+        WeaponAbilityTrigger.ON_DOUBLE,
+        { roll: newState.lastRoll }
+      );
+      if (doubleAbility) {
+        const doubleResult = WeaponAbilityResolver.resolveAbility(newState, doubleAbility.id);
+        newState.player = doubleResult.state.player;
+        newState.enemy = doubleResult.state.enemy;
+        newState.usedAbilities = doubleResult.state.usedAbilities;
+        newState.pendingExtraAttack = doubleResult.state.pendingExtraAttack;
+        events.push(...doubleResult.events);
+        triggeredResults.push(doubleResult);
       }
     }
 
