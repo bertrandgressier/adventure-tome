@@ -21,7 +21,8 @@ describe('Character', () => {
 
       expect(character.name).toBe('Aragorn');
       expect(character.book).toBe(1);
-      expect(character.talent).toBe('instinct');
+      expect(character.talentId).toBe('instinct');
+      expect(character.talentLevel).toBe(1);
       expect(character.gameMode).toBe('mortal');
       expect(character.id).toBeTruthy();
       expect(character.createdAt).toBeTruthy();
@@ -526,6 +527,181 @@ describe('Character', () => {
 
       expect(data.updatedAt).toBeTruthy();
       expect(new Date(data.updatedAt).getTime()).toBeGreaterThan(0);
+    });
+  });
+
+  describe('updateTalentLevel() et updateSecondTalentLevel()', () => {
+    it('devrait mettre à jour le niveau du talent principal', () => {
+      const character = Character.create({
+        name: 'Aragorn',
+        book: 3,
+        talent: 'instinct',
+        gameMode: 'mortal',
+        stats: {
+          dexterite: 7,
+          chance: 5,
+          chanceInitiale: 5,
+          pointsDeVieMax: 32,
+          pointsDeVieActuels: 32,
+          experience: 0,
+        },
+      });
+
+      const updated = character.updateTalentLevel(2);
+
+      expect(updated.talentLevel).toBe(2);
+      expect(updated.talentId).toBe('instinct');
+      expect(character.talentLevel).toBe(1);
+    });
+
+    it('devrait rejeter un niveau inférieur à 1 pour le talent principal', () => {
+      const character = Character.create({
+        name: 'Aragorn',
+        book: 3,
+        talent: 'instinct',
+        gameMode: 'mortal',
+        stats: {
+          dexterite: 7,
+          chance: 5,
+          chanceInitiale: 5,
+          pointsDeVieMax: 32,
+          pointsDeVieActuels: 32,
+          experience: 0,
+        },
+      });
+
+      expect(() => character.updateTalentLevel(0)).toThrow('Le niveau du talent doit être >= 1');
+      expect(() => character.updateTalentLevel(-1)).toThrow('Le niveau du talent doit être >= 1');
+    });
+
+    it('devrait mettre à jour le niveau du second talent', () => {
+      const character = Character.create({
+        name: 'Aragorn',
+        book: 3,
+        talent: 'instinct',
+        secondTalent: 'discretion',
+        gameMode: 'mortal',
+        stats: {
+          dexterite: 7,
+          chance: 5,
+          chanceInitiale: 5,
+          pointsDeVieMax: 32,
+          pointsDeVieActuels: 32,
+          experience: 0,
+        },
+      });
+
+      const updated = character.updateSecondTalentLevel(3);
+
+      expect(updated.secondTalentLevel).toBe(3);
+      expect(updated.secondTalentId).toBe('discretion');
+      expect(character.secondTalentLevel).toBe(1);
+    });
+
+    it('devrait rejeter un niveau inférieur à 1 pour le second talent', () => {
+      const character = Character.create({
+        name: 'Aragorn',
+        book: 3,
+        talent: 'instinct',
+        secondTalent: 'discretion',
+        gameMode: 'mortal',
+        stats: {
+          dexterite: 7,
+          chance: 5,
+          chanceInitiale: 5,
+          pointsDeVieMax: 32,
+          pointsDeVieActuels: 32,
+          experience: 0,
+        },
+      });
+
+      expect(() => character.updateSecondTalentLevel(0)).toThrow('Le niveau du talent doit être >= 1');
+      expect(() => character.updateSecondTalentLevel(-1)).toThrow('Le niveau du talent doit être >= 1');
+    });
+
+    it('devrait rejeter la mise à jour du niveau si pas de second talent', () => {
+      const character = Character.create({
+        name: 'Aragorn',
+        book: 2,
+        talent: 'instinct',
+        gameMode: 'mortal',
+        stats: {
+          dexterite: 7,
+          chance: 5,
+          chanceInitiale: 5,
+          pointsDeVieMax: 32,
+          pointsDeVieActuels: 32,
+        },
+      });
+
+      expect(() => character.updateSecondTalentLevel(2)).toThrow('Pas de second talent');
+    });
+
+    it('devrait initialiser le niveau à 1 par défaut', () => {
+      const character = Character.create({
+        name: 'Aragorn',
+        book: 3,
+        talent: 'instinct',
+        secondTalent: 'discretion',
+        gameMode: 'mortal',
+        stats: {
+          dexterite: 7,
+          chance: 5,
+          chanceInitiale: 5,
+          pointsDeVieMax: 32,
+          pointsDeVieActuels: 32,
+          experience: 0,
+        },
+      });
+
+      expect(character.talentLevel).toBe(1);
+      expect(character.secondTalentLevel).toBe(1);
+    });
+  });
+
+  describe('Talent getters', () => {
+    it('devrait retourner les IDs et niveaux des talents', () => {
+      const character = Character.create({
+        name: 'Aragorn',
+        book: 3,
+        talent: 'instinct',
+        secondTalent: 'discretion',
+        gameMode: 'mortal',
+        stats: {
+          dexterite: 7,
+          chance: 5,
+          chanceInitiale: 5,
+          pointsDeVieMax: 32,
+          pointsDeVieActuels: 32,
+          experience: 0,
+        },
+      });
+
+      expect(character.talentId).toBe('instinct');
+      expect(character.talentLevel).toBe(1);
+      expect(character.secondTalentId).toBe('discretion');
+      expect(character.secondTalentLevel).toBe(1);
+    });
+
+    it('devrait retourner undefined pour secondTalentId et secondTalentLevel si pas de second talent', () => {
+      const character = Character.create({
+        name: 'Aragorn',
+        book: 1,
+        talent: 'instinct',
+        gameMode: 'mortal',
+        stats: {
+          dexterite: 7,
+          chance: 5,
+          chanceInitiale: 5,
+          pointsDeVieMax: 32,
+          pointsDeVieActuels: 32,
+        },
+      });
+
+      expect(character.talentId).toBe('instinct');
+      expect(character.talentLevel).toBe(1);
+      expect(character.secondTalentId).toBeUndefined();
+      expect(character.secondTalentLevel).toBeUndefined();
     });
   });
 });

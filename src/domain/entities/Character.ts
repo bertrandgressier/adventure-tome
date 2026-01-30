@@ -1,6 +1,7 @@
 import { Stats, StatsData } from '../value-objects/Stats';
 import { Inventory, InventoryData, InventoryItem, BOURSE_ITEM_NAME, BOURSE_ITEM_ID } from '../value-objects/Inventory';
 import { InventoryItemRef } from '../types/items';
+import { TalentData, TalentRef, normalizeTalent } from '../types/talents';
 
 /**
  * Game Mode Types
@@ -107,8 +108,8 @@ export interface CharacterData {
   id: string;
   name: string;
   book: number;
-  talent: string;
-  secondTalent?: string;
+  talent: TalentRef;
+  secondTalent?: TalentRef;
   gameMode: GameMode;
   version: number;
   createdAt: string;
@@ -124,8 +125,8 @@ export class Character {
     public readonly id: string,
     private _name: string,
     public readonly book: number,
-    public readonly talent: string,
-    public readonly secondTalent: string | undefined,
+    public readonly talent: TalentData,
+    public readonly secondTalent: TalentData | undefined,
     public readonly gameMode: GameMode,
     public readonly version: number,
     public readonly createdAt: string,
@@ -151,7 +152,8 @@ export class Character {
   private withChanges(changes: {
     name?: string;
     book?: number;
-    secondTalent?: string | undefined;
+    talent?: TalentData;
+    secondTalent?: TalentData | undefined;
     stats?: Stats;
     inventory?: Inventory;
     progress?: Progress;
@@ -161,7 +163,7 @@ export class Character {
       this.id,
       changes.name ?? this._name,
       changes.book ?? this.book,
-      this.talent,
+      changes.talent ?? this.talent,
       changes.secondTalent !== undefined ? changes.secondTalent : this.secondTalent,
       this.gameMode,
       this.version,
@@ -181,6 +183,22 @@ export class Character {
 
   get notes(): string {
     return this._notes;
+  }
+
+  get talentId(): string {
+    return this.talent.id;
+  }
+
+  get talentLevel(): number {
+    return this.talent.level;
+  }
+
+  get secondTalentId(): string | undefined {
+    return this.secondTalent?.id;
+  }
+
+  get secondTalentLevel(): number | undefined {
+    return this.secondTalent?.level;
   }
 
   /**
@@ -204,8 +222,38 @@ export class Character {
   /**
    * Met à jour le second talent (Tome 2+)
    */
-  updateSecondTalent(secondTalent: string | undefined): Character {
-    return this.withChanges({ secondTalent });
+  updateSecondTalent(secondTalent: TalentRef | undefined): Character {
+    if (!secondTalent) {
+      return this.withChanges({ secondTalent: undefined });
+    }
+    return this.withChanges({ secondTalent: normalizeTalent(secondTalent) });
+  }
+
+  /**
+   * Met à jour le niveau du talent principal
+   */
+  updateTalentLevel(level: number): Character {
+    if (level < 1) {
+      throw new Error('Le niveau du talent doit être >= 1');
+    }
+    return this.withChanges({
+      talent: { id: this.talent.id, level }
+    });
+  }
+
+  /**
+   * Met à jour le niveau du second talent
+   */
+  updateSecondTalentLevel(level: number): Character {
+    if (!this.secondTalent) {
+      throw new Error('Pas de second talent');
+    }
+    if (level < 1) {
+      throw new Error('Le niveau du talent doit être >= 1');
+    }
+    return this.withChanges({
+      secondTalent: { id: this.secondTalent.id, level }
+    });
   }
 
   /**
@@ -471,8 +519,8 @@ export class Character {
       data.id,
       data.name,
       data.book,
-      data.talent,
-      data.secondTalent,
+      normalizeTalent(data.talent),
+      data.secondTalent ? normalizeTalent(data.secondTalent) : undefined,
       data.gameMode,
       data.version,
       data.createdAt,
@@ -498,14 +546,18 @@ export class Character {
     const now = new Date().toISOString();
     const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-    // Initialiser la réputation à 0 pour le tome 2 si non fournie
-    // Initialiser l'expérience à 0 pour le tome 3+ si non fournie
     const statsData = { ...data.stats };
     if (data.book === 2 && statsData.reputation === undefined) {
       statsData.reputation = 0;
     }
     if (data.book >= 3 && statsData.experience === undefined) {
       statsData.experience = 0;
+    }
+    if (data.book >= 3 && (statsData.etat === undefined || typeof statsData.etat !== 'string')) {
+      statsData.etat = "";
+    }
+    if (data.book >= 3 && (statsData.statut === undefined || typeof statsData.statut !== 'string')) {
+      statsData.statut = "Apprenti";
     }
 
     const initialInventory = new Inventory(0, undefined, []);
@@ -522,10 +574,10 @@ export class Character {
       id,
       data.name.trim(),
       data.book,
-      data.talent,
-      data.secondTalent,
+      normalizeTalent(data.talent),
+      data.secondTalent ? normalizeTalent(data.secondTalent) : undefined,
       data.gameMode,
-      13, // CURRENT_VERSION - Keep in sync with migrations.ts
+      14, // CURRENT_VERSION
       now,
       now,
       Stats.fromData(statsData),

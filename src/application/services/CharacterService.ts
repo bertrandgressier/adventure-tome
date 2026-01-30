@@ -322,7 +322,7 @@ export class CharacterService {
     const copy = Character.create({
       name: `${original.name} (Copie)`,
       book: original.book,
-      talent: original.talent,
+      talent: original.talentId,
       gameMode: original.gameMode,
       stats: original.getStats(),
     });
@@ -397,16 +397,31 @@ export class CharacterService {
   }
 
   /**
-   * Retire une quantité d'un item par son itemId
-   * Utile pour le combat où on connaît l'itemId mais pas l'index
+   * Met à jour le niveau du talent principal
    */
-  async removeItemQuantity(id: string, itemId: string, quantity: number = 1): Promise<Character> {
+  async updateTalentLevel(id: string, level: number): Promise<Character> {
     const character = await this.repository.findById(id);
     if (!character) {
       throw new CharacterNotFoundError(id);
     }
 
-    const updated = character.removeItemQuantityByItemId(itemId, quantity);
+    const updated = character.updateTalentLevel(level);
+
+    await this.repository.save(updated);
+
+    return updated;
+  }
+
+  /**
+   * Met à jour le niveau du second talent
+   */
+  async updateSecondTalentLevel(id: string, level: number): Promise<Character> {
+    const character = await this.repository.findById(id);
+    if (!character) {
+      throw new CharacterNotFoundError(id);
+    }
+
+    const updated = character.updateSecondTalentLevel(level);
 
     await this.repository.save(updated);
 

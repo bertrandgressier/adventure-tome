@@ -11,6 +11,8 @@ export type CharacterMetadataSlice = {
   updateDaysElapsed: (id: string, days: number) => Promise<void>;
   updateNextWakeUpParagraph: (id: string, paragraph: number | undefined) => Promise<void>;
   updateSecondTalent: (id: string, secondTalent: string | undefined) => Promise<void>;
+  updateTalentLevel: (id: string, level: number) => Promise<void>;
+  updateSecondTalentLevel: (id: string, level: number) => Promise<void>;
 };
 
 type StoreState = CharacterMetadataSlice & CharacterListSlice;
@@ -121,6 +123,36 @@ export const createCharacterMetadataSlice = (service: CharacterService): StateCr
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
         }), false, 'metadata/updateSecondTalent');
+      } catch (error) {
+        handleSliceError(set, error);
+        throw error;
+      }
+    },
+
+    updateTalentLevel: async (id: string, level: number) => {
+      const character = get().characters[id];
+      if (!character) return;
+
+      try {
+        const updated = await service.updateTalentLevel(id, level);
+        set((state) => ({
+          characters: { ...state.characters, [id]: updated },
+        }));
+      } catch (error) {
+        handleSliceError(set, error);
+        throw error;
+      }
+    },
+
+    updateSecondTalentLevel: async (id: string, level: number) => {
+      const character = get().characters[id];
+      if (!character) return;
+
+      try {
+        const updated = await service.updateSecondTalentLevel(id, level);
+        set((state) => ({
+          characters: { ...state.characters, [id]: updated },
+        }));
       } catch (error) {
         handleSliceError(set, error);
         throw error;

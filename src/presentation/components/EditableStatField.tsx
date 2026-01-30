@@ -97,14 +97,18 @@ export default function EditableStatField({
 
   if (icon) {
     return (
-      <div className={cn("bg-background border border-primary/20 rounded-lg p-2 text-center flex flex-col items-center justify-center min-h-[80px]", containerClassName)}>
-        <div className="flex items-center gap-1.5 text-muted-light mb-1">
-          {icon}
-          <span className="text-[10px] uppercase font-bold tracking-wider">{label}</span>
+      <div className={cn("bg-background border border-primary/20 rounded-lg p-1 text-center flex flex-col items-center justify-center min-h-[60px]", containerClassName)}>
+        <div className="flex items-center gap-1 text-muted-light mb-0.5">
+          {size === 'xs' ? <span className="text-[8px] uppercase font-bold tracking-wider">{label}</span> : (
+            <>
+              {icon}
+              <span className="text-[10px] uppercase font-bold tracking-wider">{label}</span>
+            </>
+          )}
         </div>
-        
+
         {isEditing ? (
-          <div className="flex items-center justify-center gap-1">
+          <div className="flex items-center justify-center gap-0.5">
             <input
               ref={inputRef}
               type="number"
@@ -112,18 +116,22 @@ export default function EditableStatField({
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               className={cn(
-                "bg-card border border-primary/50 rounded px-1 py-0.5 text-center font-[var(--font-geist-mono)] text-xl text-primary focus:outline-none focus:border-primary",
-                size === 'lg' ? "w-16" : size === 'sm' ? "w-12" : "w-10"
+                "bg-card border border-primary/50 rounded px-1 py-0.5 text-center font-[var(--font-geist-mono)] text-primary focus:outline-none focus:border-primary",
+                size === 'lg' ? "text-3xl w-20" : size === 'sm' ? "text-2xl w-16" : size === 'xs' ? "text-lg w-12" : "text-3xl w-20"
               )}
               min={min}
             />
-            <button onClick={save} className="text-green-400 hover:text-green-300 text-lg">✓</button>
-            <button onClick={cancel} className="text-red-400 hover:text-red-300 text-lg">✕</button>
+            <button onClick={save} className="text-green-400 hover:text-green-300 text-sm">✓</button>
+            <button onClick={cancel} className="text-red-400 hover:text-red-300 text-sm">✕</button>
           </div>
         ) : (
           <div
             onClick={startEdit}
-            className={`font-[var(--font-geist-mono)] text-2xl font-bold hover:text-yellow-300 cursor-pointer transition-colors ${colorClass}`}
+            className={cn(
+              "font-[var(--font-geist-mono)] font-bold hover:text-yellow-300 cursor-pointer transition-colors",
+              size === 'lg' ? "text-2xl" : size === 'sm' ? "text-xl" : size === 'xs' ? "text-base" : "text-2xl",
+              colorClass
+            )}
             title={title}
           >
             {value ?? placeholder}
@@ -134,11 +142,11 @@ export default function EditableStatField({
   }
 
   return (
-    <div className={cn("bg-background glow-border rounded-lg p-4 text-center", containerClassName)}>
+    <div className={cn("bg-background glow-border rounded-lg text-center", containerClassName)}>
       <div className="font-[var(--font-merriweather)] text-sm text-muted-light mb-2">
         {label}
       </div>
-      
+
       {isEditing ? (
         <div className="flex items-center justify-center gap-2">
           <input
@@ -147,7 +155,10 @@ export default function EditableStatField({
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-16 bg-card border border-primary/50 rounded px-2 py-1 text-center font-[var(--font-geist-mono)] text-2xl text-primary focus:outline-none focus:border-primary"
+              className={cn(
+                "bg-card border border-primary/50 rounded px-2 py-1 text-center font-[var(--font-geist-mono)] text-primary focus:outline-none focus:border-primary",
+                size === 'lg' ? "text-4xl w-24" : size === 'sm' ? "text-2xl w-20" : size === 'xs' ? "text-lg w-16" : "text-4xl w-24"
+              )}
             min={min}
           />
           <button
@@ -168,7 +179,11 @@ export default function EditableStatField({
       ) : (
         <div
           onClick={startEdit}
-          className={`font-[var(--font-geist-mono)] text-4xl hover:text-yellow-300 cursor-pointer transition-colors ${colorClass}`}
+          className={cn(
+            "font-[var(--font-geist-mono)] hover:text-yellow-300 cursor-pointer transition-colors",
+            size === 'lg' ? "text-4xl" : size === 'sm' ? "text-2xl" : size === 'xs' ? "text-lg" : "text-4xl",
+            colorClass
+          )}
           title={title}
         >
           {value ?? placeholder}

@@ -12,6 +12,30 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 4.6.0
+*14 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- add État and Statut fields for Tome 3+ (issue [#84](https://github.com/bertrandgressier/adventure-tome/issues/84))
+
+### 🐛 Corrections de bugs
+
+- restore larger input widths for EditableStatField
+- update CURRENT_VERSION to 14 after merge
+
+---
+
+## Version 4.5.0
+*14 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- Add talent levels for Tome 3 ([#85](https://github.com/bertrandgressier/adventure-tome/issues/85))
+- add OpenCode custom command for autonomous issue development
+
+---
+
 ## Version 4.4.0
 *13 janvier 2026*
 
