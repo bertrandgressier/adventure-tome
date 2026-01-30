@@ -79,9 +79,7 @@ export interface ActionMetadata {
 export const COMBAT_ACTION_METADATA: Record<string, ActionMetadata> = {
   attack: { label: 'Attaquer', icon: '⚔️' },
   use_item: { label: 'Objet', icon: '🎒' },
-  spend_chance: { label: 'CHANCE', icon: '🍀' },
   weapon_ability: { label: 'Pouvoir', icon: '✨' },
-  flee: { label: 'Fuir', icon: '🏃' },
   reroll: { label: 'Relancer', icon: '🎲' },
   block: { label: 'Bloquer', icon: '🛡️' },
   skip: { label: 'Continuer', icon: '▶️' },

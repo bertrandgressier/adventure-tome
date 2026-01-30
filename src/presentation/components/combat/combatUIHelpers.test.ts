@@ -111,25 +111,11 @@ describe('combatUIHelpers', () => {
       expect(result.icon).toBe('🎒');
     });
 
-    it('should return spend_chance metadata', () => {
-      const result = getActionMetadata('spend_chance');
-      
-      expect(result.label).toBe('CHANCE');
-      expect(result.icon).toBe('🍀');
-    });
-
     it('should return weapon_ability metadata', () => {
       const result = getActionMetadata('weapon_ability');
       
       expect(result.label).toBe('Pouvoir');
       expect(result.icon).toBe('✨');
-    });
-
-    it('should return flee metadata', () => {
-      const result = getActionMetadata('flee');
-      
-      expect(result.label).toBe('Fuir');
-      expect(result.icon).toBe('🏃');
     });
 
     it('should return reroll metadata', () => {
