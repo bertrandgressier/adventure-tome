@@ -1,3 +1,268 @@
+# [5.0.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.6.0...v5.0.0) (2026-01-30)
+
+
+### Bug Fixes
+
+* correct storybook imports and remove unused variables ([c35b39a](https://github.com/bertrandgressier/adventure-tome/commit/c35b39a6c8b98d7f575f2c7354d502134f56047d))
+* **tests:** corrige tous les tests échouants ([d566fec](https://github.com/bertrandgressier/adventure-tome/commit/d566fec26a7790e5bb15540f3c3f4cb7306c6f40))
+
+
+### Features
+
+* **combat:** Combat V3 - Système de combat conforme aux règles officielles ([#151](https://github.com/bertrandgressier/adventure-tome/issues/151)) ([ca085c0](https://github.com/bertrandgressier/adventure-tome/commit/ca085c03916a9b4a58ad45be202f13323c4d77da)), closes [#62](https://github.com/bertrandgressier/adventure-tome/issues/62) [#94](https://github.com/bertrandgressier/adventure-tome/issues/94) [#94](https://github.com/bertrandgressier/adventure-tome/issues/94) [PR#95](https://github.com/PR/issues/95) [#95](https://github.com/bertrandgressier/adventure-tome/issues/95) [#94](https://github.com/bertrandgressier/adventure-tome/issues/94) [#94](https://github.com/bertrandgressier/adventure-tome/issues/94) [#94](https://github.com/bertrandgressier/adventure-tome/issues/94) [#94](https://github.com/bertrandgressier/adventure-tome/issues/94) [#94](https://github.com/bertrandgressier/adventure-tome/issues/94) [#95](https://github.com/bertrandgressier/adventure-tome/issues/95) [#66](https://github.com/bertrandgressier/adventure-tome/issues/66) [#64](https://github.com/bertrandgressier/adventure-tome/issues/64) [#67](https://github.com/bertrandgressier/adventure-tome/issues/67) [#68](https://github.com/bertrandgressier/adventure-tome/issues/68) [#68](https://github.com/bertrandgressier/adventure-tome/issues/68) [#69](https://github.com/bertrandgressier/adventure-tome/issues/69) [#69](https://github.com/bertrandgressier/adventure-tome/issues/69) [#70](https://github.com/bertrandgressier/adventure-tome/issues/70) [#103](https://github.com/bertrandgressier/adventure-tome/issues/103) [#71](https://github.com/bertrandgressier/adventure-tome/issues/71) [#105](https://github.com/bertrandgressier/adventure-tome/issues/105) [#72](https://github.com/bertrandgressier/adventure-tome/issues/72) [#72](https://github.com/bertrandgressier/adventure-tome/issues/72) [#70](https://github.com/bertrandgressier/adventure-tome/issues/70) [#81](https://github.com/bertrandgressier/adventure-tome/issues/81) [#81](https://github.com/bertrandgressier/adventure-tome/issues/81) [#73](https://github.com/bertrandgressier/adventure-tome/issues/73) [#74](https://github.com/bertrandgressier/adventure-tome/issues/74) [#5](https://github.com/bertrandgressier/adventure-tome/issues/5) [#74](https://github.com/bertrandgressier/adventure-tome/issues/74) [#110](https://github.com/bertrandgressier/adventure-tome/issues/110) [#72](https://github.com/bertrandgressier/adventure-tome/issues/72) [#115](https://github.com/bertrandgressier/adventure-tome/issues/115) [#116](https://github.com/bertrandgressier/adventure-tome/issues/116) [#116](https://github.com/bertrandgressier/adventure-tome/issues/116) [#115](https://github.com/bertrandgressier/adventure-tome/issues/115) [#117](https://github.com/bertrandgressier/adventure-tome/issues/117) [#117](https://github.com/bertrandgressier/adventure-tome/issues/117) [#115](https://github.com/bertrandgressier/adventure-tome/issues/115) [#117](https://github.com/bertrandgressier/adventure-tome/issues/117) [#118](https://github.com/bertrandgressier/adventure-tome/issues/118) [#129](https://github.com/bertrandgressier/adventure-tome/issues/129) [#129](https://github.com/bertrandgressier/adventure-tome/issues/129) [#129](https://github.com/bertrandgressier/adventure-tome/issues/129) [#81](https://github.com/bertrandgressier/adventure-tome/issues/81) [#81](https://github.com/bertrandgressier/adventure-tome/issues/81) [#119](https://github.com/bertrandgressier/adventure-tome/issues/119) [#115](https://github.com/bertrandgressier/adventure-tome/issues/115) [#119](https://github.com/bertrandgressier/adventure-tome/issues/119) [#120](https://github.com/bertrandgressier/adventure-tome/issues/120) [#120](https://github.com/bertrandgressier/adventure-tome/issues/120) [#133](https://github.com/bertrandgressier/adventure-tome/issues/133) [#135](https://github.com/bertrandgressier/adventure-tome/issues/135) [#115](https://github.com/bertrandgressier/adventure-tome/issues/115) [#121](https://github.com/bertrandgressier/adventure-tome/issues/121) [#138](https://github.com/bertrandgressier/adventure-tome/issues/138) [#140](https://github.com/bertrandgressier/adventure-tome/issues/140) [#133](https://github.com/bertrandgressier/adventure-tome/issues/133) [#133](https://github.com/bertrandgressier/adventure-tome/issues/133) [#116](https://github.com/bertrandgressier/adventure-tome/issues/116) [#77](https://github.com/bertrandgressier/adventure-tome/issues/77) [#80](https://github.com/bertrandgressier/adventure-tome/issues/80) [#80](https://github.com/bertrandgressier/adventure-tome/issues/80) [#76](https://github.com/bertrandgressier/adventure-tome/issues/76) [#148](https://github.com/bertrandgressier/adventure-tome/issues/148) [#75](https://github.com/bertrandgressier/adventure-tome/issues/75) [#149](https://github.com/bertrandgressier/adventure-tome/issues/149) [#83](https://github.com/bertrandgressier/adventure-tome/issues/83)
+
+
+### BREAKING CHANGES
+
+* **combat:** Remove flee functionality from Combat V3
+
+Changes:
+- Remove FLEE from CombatActionType enum
+- Remove FLEE from CombatEventType enum
+- Remove allowFlee and fleeCost from CombatConfig interface
+- Remove resolveFlee() method from ReactionResolver
+- Remove FLEE case from CombatEngine.resolve()
+- Remove FLEE messages from constants
+- Remove FLEE logic from CombatValidator.getAvailableActions()
+- Remove fled result from CombatEndSummary
+- Update CombatOrchestrator to handle only victory/defeat
+- Remove all FLEE-related UI components and logic
+- Update all tests to remove FLEE scenarios
+- Temporarily disable Storybook stories pending refactor
+
+All tests pass (638/638)
+Lint passes with no errors
+Build succeeds
+* **combat:** CombatEngine now accepts a single enemy instead of an array
+
+- Remove enemies[] array in favor of single enemy object
+- Remove activeEnemyIndex from CombatState
+- Remove maxEnemies from CombatConfig
+- Simplify CombatEngine.createInitialState() signature
+- Update all resolvers (Attack, Reaction, Item) to work with single enemy
+- Simplify CombatValidator.checkCombatEnd()
+- Update combatSlice.startCombat() to accept single enemy
+- Update CombatArena UI component to use state.enemy
+- Adapt all unit and integration tests
+- Remove multi-enemy scenario tests
+* **combat:** Remove generic SPEND_CHANCE action type
+
+- Remove CombatActionType.SPEND_CHANCE enum value
+- Remove ReactionResolver.resolveSpendChance() method
+- Remove SPEND_CHANCE from CombatValidator available actions
+- Remove SPEND_CHANCE case from CombatEngine.resolve()
+- Update tests to remove generic chance spending scenarios
+- Update documentation to reflect that CHANCE is only usable via weapon abilities
+
+Arc des Vents still works correctly via WEAPON_ABILITY action.
+* **combat:** EnemyConfig no longer contains weapon, chance, or isBoss properties
+
+- Split CombatantConfig into PlayerConfig and EnemyConfig
+- PlayerConfig: name, dexterite, endurance, enduranceMax, chance, weapon
+- EnemyConfig: name, dexterite, endurance, enduranceMax (only)
+- CombatEngine: enemies now have weaponDamage = 0 (no weapon bonus)
+- Updated all tests to reflect new enemy structure
+* **combat:** negate_damage weapon ability no longer supported in V3
+(immediate damage application incompatible with damage negation)
+
+Tests: 766/766 passing (100%)
+
+* fix(combat): complete V3 migration - build fixes and test adaptations
+
+- Fix CombatArena.tsx: currentAttacker → currentTurn (V3 property)
+- Fix ActionPanel.tsx: replace phase checks with CombatValidator
+- Fix DiceAnimation3D.tsx: type animations with TargetAndTransition
+- Fix CombatValidator: support both V2 enemy and V3 enemies array
+- Fix CombatState type: add optional enemies[] for V3 multi-enemy
+- Adapt tests: replace V2 phases (victory/defeat) with ENDED + HP checks
+- Add characters/getItem mocks in UI component tests
+
+All 766 tests passing (100%)
+Production build successful with no TypeScript errors
+
+* feat(store): add descriptive action names for Redux DevTools
+
+* docs: add Redux DevTools actions reference guide
+
+* refactor(combat): remove V2 dead code from AttackResolver
+
+- Remove isStateV3 type guard (no longer needed, all states are V3)
+- Remove commented V2 resolveV2 method (156 lines of dead code)
+- Remove CombatEngine.global.test.ts (V2-only test file that reappeared)
+
+All 766 tests passing
+
+* refactor(combat): remove remaining V2 dead code from resolvers
+
+- ReactionResolver: Remove isStateV3 type guard and commented resolveRerollV2 (~95 lines)
+- CombatEngine: Remove V2/V3 state adaptation methods (~60 lines)
+- Total V2 code removed this session: ~318 lines (AttackResolver + ReactionResolver + CombatEngine)
+
+All 766 tests passing
+
+* fix(store): use StateCreator type for Redux DevTools action naming
+
+- Install @redux-devtools/extension as required by Zustand docs
+- Convert all slices to use StateCreator<T, [['zustand/devtools', never]], [], Slice>
+- Use (...args) pattern in characterStore.ts to pass all 3 parameters (set, get, api)
+- Fixes TypeScript errors: 'Expected 1 arguments, but got 3'
+- All 43 store actions now have proper Redux DevTools integration
+
+Affected slices:
+- characterStatsSlice
+- characterInventorySlice
+- characterMetadataSlice
+- characterMutationSlice
+- characterListSlice
+- characterItemsSlice
+- itemsCatalogSlice
+- combatSlice
+
+Reference: https://zustand.docs.pmnd.rs/middlewares/devtools\#all-action-names-are-labeled-as-anonymous
+
+All 766 tests passing, production build successful
+
+* fix(lint): remove unused imports and replace 'any' with proper types
+
+- AttackResolver: Remove unused PhaseManager import
+- CombatEngine: Replace 'as any' with WeaponAbilityTrigger enum (ON_SURPRISE, ON_DOUBLE, ON_KILL)
+- characterItemsSlice: Remove unused SetState type
+
+ESLint now passes with 0 errors, 0 warnings
+
+* fix(combat): ajouter +1 automatique dans formule de dégâts AttackResolver
+
+Correction de la formule de calcul des dégâts pour respecter les règles officielles.
+
+Avant: damage = 1d6 + totalDamageBonus
+Après: damage = 1 + 1d6 + totalDamageBonus
+
+Conforme à docs/COMBAT.md (Dégâts = 1 + 1d6 + DOMMAGES ACTUELS)
+S'applique aux attaques du joueur ET des ennemis.
+
+Tests: 766/766 passent
+
+* fix(combat): reroll applique les dégâts + historique affiche les actions
+
+- Fix REROLL: applique maintenant les dégâts automatiquement au lieu de rester bloqué
+- Refactor CombatLog: affiche history (actions métier) au lieu de events (technique)
+- Meilleure UX: on voit 'Vous relancez les dés' avec détails des jets
+- Clean Architecture: séparation events (moteur) vs history (présentation)
+
+* feat(combat): auto-skip + auto-play ennemi sans setTimeout
+
+- Auto-skip TURN_COMPLETE si pas dactions manuelles
+- Auto-play ennemi immediatement apres joueur
+- Nouveau CombatAutoPlayService pour orchestration
+- Supprime isAnimating, animationPhase, 200 lignes setTimeout
+- Tests: 727 pass, 34 skipped, Build OK
+
+* feat(combat): animations Framer Motion avec useCombatAnimations hook
+
+- Nouveau hook useCombatAnimations pour gerer les phases danimation
+- Animations basees sur lastActionTimestamp (pas de setTimeout dans slice)
+- Sequences: rolling → result → damage → idle
+- Reactivation DiceAnimation + DamageIndicator + TurnIndicator pulse
+- Animation de barre de vie deja presente dans CombatantCard
+- Respecte prefers-reduced-motion
+- Tests: 727 pass, 34 skipped
+
+* fix(combat): amélioration timing et visibilité des animations
+
+- Durées augmentées : rolling 800→1000ms, result 600→1800ms, damage 1500→2000ms
+- Barre de vie : animation tween visible (0.8s) au lieu de spring subtil
+- Lancers de dé : affichage pour joueur ET ennemi via history
+- Adaptateur convertHistoryHitRollToDiceRollResult pour HitRollDetails
+- Fix tests : ajout history et currentTurn aux mocks
+- Tests: 727 pass, 34 skipped
+
+* refactor(combat): auto-play ennemi géré dans React avec délai
+
+PROBLÈME : Auto-play synchrone rendait invisible le tour ennemi
+SOLUTION : Séparer auto-skip (domain) et auto-play ennemi (présentation)
+
+- CombatAutoPlayService : auto-skip uniquement
+- CombatArena : auto-play ennemi avec setTimeout 600ms
+- useCombatAnimations : simplifié, une action à la fois
+- State reflète la réalité (currentTurn visible)
+- TurnIndicator affiche correctement le tour actif
+
+* fix(combat): attendre fin animations avant auto-play ennemi
+
+- Vérifier animationPhase === idle avant de déclencher ennemi
+- Évite affichage "Tour de ennemi" pendant animations joueur
+- Séquence correcte: anim joueur → idle → délai → ennemi
+
+* refactor(combat): callback onAnimationComplete pour auto-play ennemi
+
+- Remplacer useEffect fragile par callback dans useCombatAnimations
+- handleAnimationComplete appelée quand animation termine
+- Plus simple et plus fiable: déclenchement au bon moment
+- Évite boucles useEffect avec multiples dépendances
+
+* fix(combat): empêcher auto-skip pendant tour ennemi
+
+- shouldAutoSkip vérifie maintenant currentTurn !== enemy
+- State reste sur currentTurn=enemy pendant délai animation
+- React déclenche attaque ennemi via callback
+- Évite skip automatique qui passait direct à player
+
+* revert: remettre shouldAutoSkip original
+
+* feat(combat): implement state-based combat sequencing architecture
+
+- Add CombatDisplayPhase type: 'idle' | 'player_attacking' | 'enemy_turn_start' | 'enemy_attacking' | 'enemy_attack_complete'
+- Add displayPhase field to combat store
+- Implement granular actions: confirmPlayerTurnEnd, executeEnemyAttack, setDisplayPhase
+- Create useCombatOrchestrator hook for observing state and triggering actions
+- Update CombatArena to use new orchestrator instead of callbacks
+- Fix tests to include new store fields
+
+This architecture separates concerns:
+- Store: Source of truth (displayPhase, combat state)
+- Hook: Temporal sequencing (setTimeout for animations)
+- UI: Reactive to state (no complex timing logic)
+
+* fix(combat): prevent auto-skip when player has REROLL available
+
+- Add hasMeaningfulActions() to check for actions beyond SKIP
+- Add availableActionsRef to access current state in setTimeout callback
+- Modify PLAYER_ATTACKING handler to wait if player has actions (REROLL)
+- Add comprehensive E2E tests for combat store flow (29 tests)
+
+The orchestrator now respects engine's availableActions as source of truth:
+- If player has REROLL after a miss → wait for user action
+- If only SKIP available → auto-advance to enemy turn
+
+Fixes reroll button being skipped due to premature turn transition.
+
+* refactor(combat): hide SKIP button during animations and cleanup
+
+- Add isAnimating prop to ActionPanel to hide SKIP button during animations
+- Remove useCombatOrchestrator.v2.ts experimental file
+- Remove incomplete/duplicate test case in combat-store-flow.e2e.test.ts
+
+This prevents accidental clicks on 'Continuer' during animations which
+could break the combat orchestration flow.
+
+* chore: fix ESLint errors and remove dead code
+
+- Fix: Move availableActionsRef update to useEffect (react-hooks/refs)
+- Fix: Empty availableActions during enemy turn (ENEMY_TURN_START, ENEMY_ATTACKING)
+- Remove unused imports: CombatTurnPhase, DiceRoll, Zap, CombatResult
+- Remove unused hook: useCombatAnimations.ts (replaced by useCombatOrchestrator)
+- Remove unused function: convertToDiceRollResult
+- Remove obsolete docs: COMBAT_ANIMATIONS.md, COMBAT_V3_AUDIT.md, COMBAT_V3_PHASE_FLOW_ANALYSIS.md
+
+✅ ESLint: 0 errors, 0 warnings
+✅ Tests: 755/755 passing
+✅ Build: successful
+
+* feat(combat-v3): migrate to DiceAnimation3D in CombatArena and DiceRoller
+
+- Create DiceResultCard wrapper component combining DiceAnimation3D + result display
+* **combat:** Legacy combat components are no longer used
+
 # [4.6.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.5.0...v4.6.0) (2026-01-14)
 
 

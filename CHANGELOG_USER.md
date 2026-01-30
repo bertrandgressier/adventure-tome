@@ -12,6 +12,48 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 5.0.0
+*30 janvier 2026*
+
+### ✨ Nouvelles fonctionnalités
+
+- Combat V3 - Système de combat conforme aux règles officielles ([#151](https://github.com/bertrandgressier/adventure-tome/issues/151))
+- Remove flee functionality from Combat V3
+- CombatEngine now accepts a single enemy instead of an array
+- Remove generic SPEND_CHANCE action type
+- EnemyConfig no longer contains weapon, chance, or isBoss properties
+- negate_damage weapon ability no longer supported in V3
+- fix(combat): complete V3 migration - build fixes and test adaptations
+- feat(store): add descriptive action names for Redux DevTools
+- docs: add Redux DevTools actions reference guide
+- refactor(combat): remove V2 dead code from AttackResolver
+- refactor(combat): remove remaining V2 dead code from resolvers
+- fix(store): use StateCreator type for Redux DevTools action naming
+- fix(lint): remove unused imports and replace 'any' with proper types
+- fix(combat): ajouter +1 automatique dans formule de dégâts AttackResolver
+- fix(combat): reroll applique les dégâts + historique affiche les actions
+- feat(combat): auto-skip + auto-play ennemi sans setTimeout
+- feat(combat): animations Framer Motion avec useCombatAnimations hook
+- fix(combat): amélioration timing et visibilité des animations
+- refactor(combat): auto-play ennemi géré dans React avec délai
+- fix(combat): attendre fin animations avant auto-play ennemi
+- refactor(combat): callback onAnimationComplete pour auto-play ennemi
+- fix(combat): empêcher auto-skip pendant tour ennemi
+- revert: remettre shouldAutoSkip original
+- feat(combat): implement state-based combat sequencing architecture
+- fix(combat): prevent auto-skip when player has REROLL available
+- refactor(combat): hide SKIP button during animations and cleanup
+- chore: fix ESLint errors and remove dead code
+- feat(combat-v3): migrate to DiceAnimation3D in CombatArena and DiceRoller
+- Legacy combat components are no longer used
+
+### 🐛 Corrections de bugs
+
+- correct storybook imports and remove unused variables
+- corrige tous les tests échouants
+
+---
+
 ## Version 4.6.0
 *14 janvier 2026*
 
