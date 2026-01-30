@@ -11,7 +11,7 @@ import type { PlayerConfig, EnemyConfig, CombatConfig } from '../../types/combat
 import type { DiceOverrides } from './DiceRoller';
 import type { AvailableAction } from '../../types/combat-state';
 import { ItemResolver, type CombatUsableItem } from './ItemResolver';
-import { WeaponAbilityResolver } from './WeaponAbilityResolver';
+import { WeaponAbilityResolver, type AbilityResolutionResult } from './WeaponAbilityResolver';
 import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
 import { PhaseManager } from './PhaseManager';
 import { CombatValidator } from './CombatValidator';
@@ -160,6 +160,7 @@ export class CombatEngine {
 
     const newState = { ...state };
     const events: CombatEvent[] = [];
+    const triggeredResults: AbilityResolutionResult[] = [];
 
     // Check for ON_SURPRISE ability BEFORE attack (first attack only)
     if (isPlayerAttacking && newState.isFirstAttack) {
@@ -168,12 +169,13 @@ export class CombatEngine {
         WeaponAbilityTrigger.ON_SURPRISE,
         {}
       );
-      if (surpriseAbility) {
+        if (surpriseAbility) {
         const surpriseResult = WeaponAbilityResolver.resolveAbility(newState, surpriseAbility.id);
         newState.player = surpriseResult.state.player;
         newState.enemy = surpriseResult.state.enemy;
         newState.usedAbilities = surpriseResult.state.usedAbilities;
         events.push(...surpriseResult.events);
+        triggeredResults.push(surpriseResult);
       }
     }
 
@@ -224,23 +226,6 @@ export class CombatEngine {
         newState.player.endurance = Math.max(0, newState.player.endurance - damageDealt);
       }
 
-      // Check for weapon abilities on successful attack
-      if (isPlayerAttacking && newState.lastRoll?.isDouble) {
-        const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
-          newState,
-          WeaponAbilityTrigger.ON_DOUBLE,
-          { roll: newState.lastRoll }
-        );
-        if (doubleAbility) {
-          const doubleResult = WeaponAbilityResolver.resolveAbility(newState, doubleAbility.id);
-          newState.player = doubleResult.state.player;
-          newState.enemy = doubleResult.state.enemy;
-          newState.usedAbilities = doubleResult.state.usedAbilities;
-          newState.pendingExtraAttack = doubleResult.state.pendingExtraAttack;
-          events.push(...doubleResult.events);
-        }
-      }
-
       // Check for ON_KILL ability if enemy was defeated
       if (isPlayerAttacking && newState.enemy.endurance <= 0) {
         const killAbility = WeaponAbilityResolver.checkAutoTrigger(
@@ -254,7 +239,26 @@ export class CombatEngine {
           newState.enemy = killResult.state.enemy;
           newState.usedAbilities = killResult.state.usedAbilities;
           events.push(...killResult.events);
+          triggeredResults.push(killResult);
         }
+      }
+    }
+
+    // Check for weapon abilities on any double (hit or miss)
+    if (isPlayerAttacking && newState.lastRoll?.isDouble) {
+      const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
+        newState,
+        WeaponAbilityTrigger.ON_DOUBLE,
+        { roll: newState.lastRoll }
+      );
+      if (doubleAbility) {
+        const doubleResult = WeaponAbilityResolver.resolveAbility(newState, doubleAbility.id);
+        newState.player = doubleResult.state.player;
+        newState.enemy = doubleResult.state.enemy;
+        newState.usedAbilities = doubleResult.state.usedAbilities;
+        newState.pendingExtraAttack = doubleResult.state.pendingExtraAttack;
+        events.push(...doubleResult.events);
+        triggeredResults.push(doubleResult);
       }
     }
 
@@ -304,12 +308,33 @@ export class CombatEngine {
       ),
     };
 
+    // Add history entry (Attack)
+    let history = HistoryManager.addEntry(newState, historyEntry);
+
+    // Add history entries for triggered abilities
+    for (const result of triggeredResults) {
+      const abilityEvent = result.events.find(e => e.type === CombatEventType.WEAPON_ABILITY);
+      if (abilityEvent) {
+        const abilityEntry = {
+          round: state.roundNumber,
+          turn: Attacker.PLAYER,
+          action: CombatActionType.WEAPON_ABILITY,
+          timestamp: new Date().toISOString(),
+          description: abilityEvent.description ?? 'Capacité activée',
+          hpBefore,
+          hpAfter,
+        };
+        history = HistoryManager.addEntry({ ...newState, history }, abilityEntry);
+      }
+    }
+
     const finalState: CombatState = {
       ...newState,
       phase: phaseUpdate.phase,
       currentTurn: phaseUpdate.currentTurn,
       roundNumber: phaseUpdate.roundNumber,
-      history: HistoryManager.addEntry(newState, historyEntry),
+      events: [...state.events, ...events],
+      history,
     };
 
     // Ajouter événement de fin si le combat est terminé

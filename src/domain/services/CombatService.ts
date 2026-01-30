@@ -51,6 +51,10 @@ export class CombatService {
 
   /**
    * Résout un round de combat (une attaque)
+   * 
+   * Règles selon docs/regles.md:
+   * - Joueur: dégâts = 1 (base) + 1d6 + bonus arme
+   * - Ennemi: dégâts = 1 (base) + 1d6 (pas d'arme, pas de bonus)
    */
   static resolveCombatRound(
     roundNumber: number,
@@ -65,7 +69,8 @@ export class CombatService {
   ): CombatRound {
     const isPlayerAttacking = attacker === Attacker.PLAYER;
     const attackerDex = isPlayerAttacking ? playerDexterite : enemy.dexterite;
-    const attackerWeapon = isPlayerAttacking ? playerWeaponDamage : enemy.attackPoints;
+    // L'ennemi n'a pas d'arme selon les règles officielles
+    const attackerWeapon = isPlayerAttacking ? playerWeaponDamage : 0;
     
     // 1. Test pour toucher
     const hitCheck = this.checkHit(attackerDex, hitDiceRoll);

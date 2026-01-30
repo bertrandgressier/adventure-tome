@@ -13,6 +13,8 @@ export { ItemPicker } from './ItemPicker';
 export type { ItemPickerProps } from './ItemPicker';
 export { CombatLog } from './CombatLog';
 export type { CombatLogProps } from './CombatLog';
+export { default as CombatSetupV3 } from './CombatSetupV3';
+export type { CombatSetupV3Props } from './CombatSetupV3';
 // export { CombatDemo } from './CombatDemo'; // Temporarily disabled (issue #116)
 // export type { CombatDemoProps } from './CombatDemo';
 // export { CombatStateDemo } from './CombatStateDemo'; // Temporarily disabled (issue #116)

@@ -219,12 +219,6 @@ export default function CombatInterface({
                   {combatState.enemyEndurance}/{combatState.enemy.enduranceMax}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-light">ARME:</span>
-                <span className="text-primary font-bold">
-                  +{combatState.enemy.attackPoints}
-                </span>
-              </div>
             </div>
           </div>
         </div>

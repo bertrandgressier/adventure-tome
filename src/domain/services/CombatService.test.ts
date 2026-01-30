@@ -68,7 +68,6 @@ describe('CombatService', () => {
         dexterite: 10,
         endurance: 15,
         enduranceMax: 15,
-        attackPoints: 2
       };
     });
 
@@ -131,9 +130,9 @@ describe('CombatService', () => {
 
       expect(round.attacker).toBe(Attacker.ENEMY);
       expect(round.hitSuccess).toBe(true);
-      expect(round.weaponDamage).toBe(2); // enemy weapon
-      expect(round.totalDamage).toBe(8); // 1 + 5 + 2
-      expect(round.playerEnduranceAfter).toBe(12); // 20 - 8
+      expect(round.weaponDamage).toBe(0); // L'ennemi n'a pas d'arme selon les règles
+      expect(round.totalDamage).toBe(6); // 1 + 5 + 0 (pas de bonus arme pour l'ennemi)
+      expect(round.playerEnduranceAfter).toBe(14); // 20 - 6
       expect(round.enemyEnduranceAfter).toBe(15); // pas touché
     });
 

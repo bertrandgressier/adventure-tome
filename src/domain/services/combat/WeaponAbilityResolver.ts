@@ -1,3 +1,6 @@
+import { CombatActionType } from '../../types/CombatActionType';
+import { Attacker } from '../../types/Attacker';
+import { CombatPhase } from '../../types/CombatPhase';
 import type { CombatState, CombatEvent } from '../../types/combat-state';
 import type { WeaponAbility, DiceRoll, PendingDamage } from '../../types/combatants';
 import { CombatEventType } from '../../types/CombatEventType';
@@ -192,8 +195,17 @@ export class WeaponAbilityResolver {
     if (!ability) {
       return { state, events: [], triggered: false };
     }
+
+    // Snapshot HP before damage
+    const hpBefore = HistoryManager.createHPSnapshot(state);
+
     const costChance = ability.costChance ?? 0;
     const newChance = state.player.chance - costChance;
+
+    // Calculate damage (1d6 + bonus)
+    const damageDice = Math.floor(Math.random() * 6) + 1;
+    const totalDamageBonus = state.player.totalDamageBonus;
+    const damageDealt = 1 + damageDice + totalDamageBonus;
 
     const newState = {
       ...state,
@@ -201,7 +213,16 @@ export class WeaponAbilityResolver {
         ...state.player,
         chance: newChance,
       },
+      enemy: {
+        ...state.enemy,
+        endurance: Math.max(0, state.enemy.endurance - damageDealt),
+      },
+      lastRoll: state.lastRoll ? { ...state.lastRoll, success: true } : undefined,
+      phase: CombatPhase.TURN_COMPLETE,
     };
+
+    // Snapshot HP after damage
+    const hpAfter = HistoryManager.createHPSnapshot(newState);
 
     const description = HistoryManager.generateWeaponAbilityTriggeredDescription(
       WEAPON_ABILITY_IDS.ARC_WIND_GUIDED,
@@ -211,7 +232,7 @@ export class WeaponAbilityResolver {
       }
     );
 
-    const event: CombatEvent = {
+    const abilityEvent: CombatEvent = {
       type: CombatEventType.WEAPON_ABILITY,
       timestamp: new Date().toISOString(),
       round: state.roundNumber,
@@ -220,7 +241,41 @@ export class WeaponAbilityResolver {
       description,
     };
 
-    return { state: newState, events: [event], triggered: true };
+    const damageEvent: CombatEvent = {
+      type: CombatEventType.DAMAGE_DEALT,
+      timestamp: new Date().toISOString(),
+      round: state.roundNumber,
+      attacker: Attacker.PLAYER,
+      roll: { dice1: damageDice, dice2: 0, total: damageDice },
+      damage: damageDealt,
+    };
+
+    // Add History Entry
+    const historyEntry = {
+      round: state.roundNumber,
+      turn: Attacker.PLAYER,
+      action: CombatActionType.WEAPON_ABILITY,
+      hitRoll: HistoryManager.createHitRollDetails(
+        state.lastRoll ? { ...state.lastRoll, success: true } : { dice1: 0, dice2: 0, total: 0, success: true, isDouble: false },
+        state.player.dexterite
+      ),
+      damageRoll: HistoryManager.createDamageRollDetails(
+        damageDice,
+        totalDamageBonus,
+        damageDealt
+      ),
+      hpBefore,
+      hpAfter,
+      timestamp: new Date().toISOString(),
+      description,
+    };
+
+    const finalState = {
+      ...newState,
+      history: HistoryManager.addEntry(newState, historyEntry),
+    };
+
+    return { state: finalState, events: [abilityEvent, damageEvent], triggered: true };
   }
 
   private static resolveBonusDamage(state: CombatState, abilityId: string, amount: number): AbilityResolutionResult {

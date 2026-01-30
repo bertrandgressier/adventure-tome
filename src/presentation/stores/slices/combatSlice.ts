@@ -249,7 +249,9 @@ export const createCombatSlice = (): StateCreator<
         const triggeredAbility = extractTriggeredAbility(result.events, combat.player.weapon);
 
         // Déterminer la nouvelle phase
-        const isAttack = action.type === CombatActionType.ATTACK || action.type === CombatActionType.REROLL;
+        const isAttack = action.type === CombatActionType.ATTACK || 
+                        action.type === CombatActionType.REROLL ||
+                        action.type === CombatActionType.WEAPON_ABILITY;
         const isSkip = action.type === CombatActionType.SKIP;
         const isEnded = updatedCombat.player.endurance <= 0 || updatedCombat.enemy.endurance <= 0;
         
