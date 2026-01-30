@@ -24,8 +24,8 @@ describe('CombatSetup - Issue 80', () => {
     expect(screen.getByLabelText(/ENDURANCE/i)).toBeInTheDocument();
     
     // Vérifier l'option "qui commence"
-    expect(screen.getByText(/Vous/i)).toBeInTheDocument();
-    expect(screen.getByText(/Ennemi/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Vous/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Ennemi/i })).toBeInTheDocument();
     
     // Vérifier les boutons
     expect(screen.getByText(/Annuler/i)).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe('CombatSetup - Issue 80', () => {
     });
 
     // Choisir que l'ennemi commence
-    fireEvent.click(screen.getByText(/Ennemi/i));
+    fireEvent.click(screen.getByRole('button', { name: /Ennemi/i }));
 
     // Cliquer sur Commencer
     fireEvent.click(screen.getByText(/Commencer/i));

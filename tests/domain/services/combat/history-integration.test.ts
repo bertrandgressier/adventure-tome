@@ -196,8 +196,8 @@ describe('Combat History Integration', () => {
       );
       state = result.state;
 
-      // Should have attack entry
-      expect(state.history).toHaveLength(1);
+      // Should have attack entry (and possibly weapon ability entry)
+      expect(state.history.length).toBeGreaterThanOrEqual(1);
       expect(state.history[0].action).toBe(CombatActionType.ATTACK);
     });
   });

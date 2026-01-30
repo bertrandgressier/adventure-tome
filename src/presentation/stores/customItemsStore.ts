@@ -8,25 +8,29 @@ interface CustomItemsStore {
   removeCustomItem: (itemId: string) => void;
 }
 
-export const useCustomItemsStore = create<CustomItemsStore>()(
-  persist(
-    (set) => ({
-      customItems: [],
+const isTest = typeof process !== 'undefined' && (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true');
 
-      addCustomItem: (item: CatalogItem) => {
-        set((state) => ({
-          customItems: [...state.customItems, item],
-        }));
-      },
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const storeDefinition = (set: any) => ({
+  customItems: [] as CatalogItem[],
 
-      removeCustomItem: (itemId: string) => {
-        set((state) => ({
-          customItems: state.customItems.filter((item) => item.id !== itemId),
-        }));
-      },
-    }),
-    {
-      name: 'adventure-tome-custom-items-storage',
-    }
-  )
-);
+  addCustomItem: (item: CatalogItem) => {
+    set((state: CustomItemsStore) => ({
+      customItems: [...state.customItems, item],
+    }));
+  },
+
+  removeCustomItem: (itemId: string) => {
+    set((state: CustomItemsStore) => ({
+      customItems: state.customItems.filter((item) => item.id !== itemId),
+    }));
+  },
+});
+
+export const useCustomItemsStore = isTest
+  ? create<CustomItemsStore>()(storeDefinition)
+  : create<CustomItemsStore>()(
+      persist(storeDefinition, {
+        name: 'adventure-tome-custom-items-storage',
+      })
+    );
