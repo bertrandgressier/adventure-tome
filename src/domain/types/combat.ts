@@ -5,7 +5,6 @@ export interface Enemy {
   dexterite: number;
   endurance: number;
   enduranceMax: number;
-  attackPoints: number; // Points de dommage de l'arme
 }
 
 export interface CombatRound {

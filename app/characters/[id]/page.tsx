@@ -81,9 +81,9 @@ export default function CharacterDetail() {
   };
 
   // Combat handlers
-  const handleStartCombat = (enemy: Enemy, mode: CombatMode, firstAttacker: 'player' | 'enemy') => {
+  const handleStartCombat = (enemy: Enemy, firstAttacker: 'player' | 'enemy') => {
     setCurrentEnemy(enemy);
-    setCombatMode(mode);
+    setCombatMode('manual');
     setFirstAttacker(firstAttacker);
     setShowCombatSetup(false);
     setShowCombat(true);

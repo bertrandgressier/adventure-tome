@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
-import { useState } from 'react';
-import type { Enemy } from '@/src/domain/types/combat';
+import React, { useState } from 'react';
+import type { EnemyConfig } from '@/src/domain/types/combatants';
 import {
   Dialog,
   DialogContent,
@@ -10,17 +9,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-interface CombatSetupProps {
-  onStartCombat: (enemy: Enemy, firstAttacker: 'player' | 'enemy') => void;
+export interface CombatSetupV3Props {
+  onStartCombat: (enemy: EnemyConfig, firstAttacker: 'player' | 'enemy') => void;
   onCancel: () => void;
 }
 
-export default function CombatSetup({ onStartCombat, onCancel }: CombatSetupProps) {
-  const [formData, setFormData] = useState<Partial<Enemy>>({
+export default function CombatSetupV3({ onStartCombat, onCancel }: CombatSetupV3Props) {
+  const [formData, setFormData] = useState<{
+    name: string;
+    dexterite: number;
+    endurance: number;
+  }>({
     name: '',
     dexterite: 6,
     endurance: 6,
-    enduranceMax: 6,
   });
   const [firstAttacker, setFirstAttacker] = useState<'player' | 'enemy'>('player');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -49,13 +51,11 @@ export default function CombatSetup({ onStartCombat, onCancel }: CombatSetupProp
       return;
     }
 
-    const { name, dexterite, endurance } = formData;
-
-    const enemy: Enemy = {
-      name: name!.trim(),
-      dexterite: dexterite!,
-      endurance: endurance!,
-      enduranceMax: endurance!,
+    const enemy: EnemyConfig = {
+      name: formData.name.trim(),
+      dexterite: formData.dexterite,
+      endurance: formData.endurance,
+      enduranceMax: formData.endurance,
     };
 
     onStartCombat(enemy, firstAttacker);
@@ -63,7 +63,7 @@ export default function CombatSetup({ onStartCombat, onCancel }: CombatSetupProp
 
   const handleEnduranceChange = (value: string) => {
     const val = parseInt(value) || 0;
-    setFormData({ ...formData, endurance: val, enduranceMax: val });
+    setFormData({ ...formData, endurance: val });
     if (errors.endurance) {
       setErrors({ ...errors, endurance: '' });
     }
@@ -87,7 +87,7 @@ export default function CombatSetup({ onStartCombat, onCancel }: CombatSetupProp
             <input
               id="enemy-name"
               type="text"
-              value={formData.name || ''}
+              value={formData.name}
               onChange={(e) => {
                 setFormData({ ...formData, name: e.target.value });
                 if (errors.name) setErrors({ ...errors, name: '' });
