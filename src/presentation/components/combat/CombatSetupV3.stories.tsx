@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import CombatSetupV3 from './CombatSetupV3';
 
 const meta: Meta<typeof CombatSetupV3> = {
