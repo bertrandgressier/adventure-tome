@@ -3,12 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useCharacterStore } from '@/src/presentation/providers/character-store-provider';
-import type { Enemy, CombatMode } from '@/src/domain/types/combat';
 import type { CatalogItem } from '@/src/domain/types/items';
 import { ItemType } from '@/src/domain/types/items';
-import CombatSetup from '@/components/adventure/CombatSetup';
-import CombatInterface from '@/components/adventure/CombatInterface';
-import CombatEndModal from '@/components/adventure/CombatEndModal';
+import CombatSetupV3 from '@/src/presentation/components/combat/CombatSetupV3';
+import { CombatArena } from '@/src/presentation/components/combat';
 import CharacterStats from '@/src/presentation/components/CharacterStats';
 import CharacterProgress from '@/src/presentation/components/CharacterProgress';
 import CharacterTalents from '@/src/presentation/components/CharacterTalents';
@@ -19,7 +17,6 @@ import CharacterNotes from '@/src/presentation/components/CharacterNotes';
 import DiceRoller from '@/components/character/DiceRoller';
 import { AddItemModal } from '@/src/presentation/components/AddItemModal';
 import { GameModeBadge } from '@/components/ui/game-mode-badge';
-import { CombatArena } from '@/src/presentation/components/combat';
 import type { EnemyConfig, CombatConfig } from '@/src/domain/types/combatants';
 
 export default function CharacterDetail() {
@@ -34,7 +31,7 @@ export default function CharacterDetail() {
   const loadOne = useCharacterStore((state) => state.loadOne);
   const updateName = useCharacterStore((state) => state.updateName);
   const equipWeapon = useCharacterStore((state) => state.equipWeapon);
-  const applyDamage = useCharacterStore((state) => state.applyDamage);
+  const startCombat = useCharacterStore((state) => state.startCombat);
 
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
@@ -42,19 +39,10 @@ export default function CharacterDetail() {
   // Modal states
   const [showItemModal, setShowItemModal] = useState(false);
   const [showDiceModal, setShowDiceModal] = useState(false);
-  const [showCombatV2, setShowCombatV2] = useState(false);
 
-
-
-  // Combat states
+  // Combat V3 states
   const [showCombatSetup, setShowCombatSetup] = useState(false);
-  const [currentEnemy, setCurrentEnemy] = useState<Enemy | null>(null);
-  const [combatMode, setCombatMode] = useState<CombatMode>('auto');
-  const [firstAttacker, setFirstAttacker] = useState<'player' | 'enemy'>('player');
   const [showCombat, setShowCombat] = useState(false);
-  const [combatEndStatus, setCombatEndStatus] = useState<'victory' | 'defeat' | null>(null);
-  const [roundsCount, setRoundsCount] = useState(0);
-  const [remainingEndurance, setRemainingEndurance] = useState(0);
 
   // Charger le personnage spécifique s'il n'est pas dans le cache
   useEffect(() => {
@@ -80,34 +68,24 @@ export default function CharacterDetail() {
     }
   };
 
-  // Combat handlers
-  const handleStartCombat = (enemy: Enemy, firstAttacker: 'player' | 'enemy') => {
-    setCurrentEnemy(enemy);
-    setCombatMode('manual');
-    setFirstAttacker(firstAttacker);
-    setShowCombatSetup(false);
-    setShowCombat(true);
-  };
+  // Combat V3 handlers
+  const handleStartCombat = (enemy: EnemyConfig, firstAttacker: 'player' | 'enemy') => {
+    const config: CombatConfig = {
+      damageFormula: 'standard',
+      isSurprise: firstAttacker === 'enemy',
+    };
 
-  const handleCombatEnd = async (status: 'victory' | 'defeat', finalEnd: number, rounds: number) => {
-    if (!character) return;
-
-    setCombatEndStatus(status);
-    setRoundsCount(rounds);
-    setRemainingEndurance(finalEnd);
-
-    // Calculer les dégâts et appliquer via le store
-    const data = character.toData();
-    const damageAmount = data.stats.pointsDeVieActuels - finalEnd;
-    if (damageAmount > 0) {
-      await applyDamage(id, damageAmount);
+    try {
+      startCombat(id, enemy, config);
+      setShowCombatSetup(false);
+      setShowCombat(true);
+    } catch (error) {
+      console.error('Error starting combat:', error);
     }
-
-    setShowCombat(false);
   };
 
-  const handleCloseCombatModal = () => {
-    setCombatEndStatus(null);
+  const handleExitCombat = () => {
+    setShowCombat(false);
   };
 
   const handleNameClick = () => {
@@ -138,37 +116,6 @@ export default function CharacterDetail() {
     } else if (e.key === 'Escape') {
       handleNameCancel();
     }
-  };
-
-  // Combat V2 handlers
-  const startCombat = useCharacterStore((state) => state.startCombat);
-
-  const handleStartCombatV2 = () => {
-    if (!character) return;
-
-    // Configuration de test avec un ennemi plus résistant pour tester l'historique
-    const testEnemy: EnemyConfig = {
-      name: 'Gobelin (Test)',
-      dexterite: 6,
-      endurance: 25, // PV augmentés pour un combat plus long
-      enduranceMax: 25,
-    };
-
-    const config: CombatConfig = {
-      damageFormula: 'standard',
-      isSurprise: false,
-    };
-
-    try {
-      startCombat(id, testEnemy, config);
-      setShowCombatV2(true);
-    } catch (error) {
-      console.error('Error starting Combat V2:', error);
-    }
-  };
-
-  const handleExitCombatV2 = () => {
-    setShowCombatV2(false);
   };
 
   if (isLoading) {
@@ -259,25 +206,6 @@ export default function CharacterDetail() {
           </button>
         </div>
 
-        {/* Bouton de test Combat V2 (DEV) */}
-        <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-purple-400 font-bold text-sm">🧪 DEV - Combat V2</h3>
-            <span className="text-xs text-purple-300/60">En développement</span>
-          </div>
-          <button
-            onClick={handleStartCombatV2}
-            className="w-full bg-gradient-to-br from-purple-600 to-purple-800 hover:from-purple-500 hover:to-purple-700 text-white font-[var(--font-uncial)] font-bold px-4 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-purple-500/50 hover:scale-[1.02] active:scale-[0.98] text-sm flex items-center justify-center gap-2"
-            title="Tester le nouveau système de combat (PR #103)"
-          >
-            <span className="text-xl">⚔️</span>
-            <span>Combat V2 (Test Gobelin)</span>
-          </button>
-          <p className="text-xs text-purple-300/60 mt-2 text-center">
-            Démarre un combat contre un Gobelin de test
-          </p>
-        </div>
-
         {/* Stats Section */}
         <div className="bg-card glow-border rounded-lg p-6">
           <CharacterStats characterId={id} />
@@ -325,38 +253,14 @@ export default function CharacterDetail() {
         )}
 
         {showCombatSetup && (
-          <CombatSetup
+          <CombatSetupV3
             onStartCombat={handleStartCombat}
             onCancel={() => setShowCombatSetup(false)}
           />
         )}
 
-        {showCombat && currentEnemy && character && (
-          <CombatInterface
-            character={character.toData()}
-            enemy={currentEnemy}
-            mode={combatMode}
-            firstAttacker={firstAttacker}
-            onCombatEnd={handleCombatEnd}
-            onClose={() => setShowCombat(false)}
-          />
-        )}
-
-        {combatEndStatus && (
-          <CombatEndModal
-            status={combatEndStatus}
-            playerName={character.name}
-            enemyName={currentEnemy?.name || 'Adversaire'}
-            roundsCount={roundsCount}
-            remainingEndurance={remainingEndurance}
-            characterId={id}
-            onClose={handleCloseCombatModal}
-          />
-        )}
-
-        {/* Combat V2 Arena */}
-        {showCombatV2 && (
-          <CombatArena characterId={id} onExit={handleExitCombatV2} />
+        {showCombat && (
+          <CombatArena characterId={id} onExit={handleExitCombat} />
         )}
       </div>
     </main>
