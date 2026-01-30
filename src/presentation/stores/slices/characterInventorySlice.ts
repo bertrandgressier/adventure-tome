@@ -1,3 +1,4 @@
+import { type StateCreator } from 'zustand';
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { CharacterListSlice } from './characterListSlice';
 import type { ItemsCatalogSlice } from './itemsCatalogSlice';
@@ -29,11 +30,14 @@ export interface CharacterInventorySlice {
 }
 
 type StoreState = CharacterInventorySlice & CharacterListSlice & ItemsCatalogSlice;
-type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;
-type GetState = () => StoreState;
 
-export const createCharacterInventorySlice = (service: CharacterService) => {
-  return (set: SetState, get: GetState): CharacterInventorySlice => ({
+export const createCharacterInventorySlice = (service: CharacterService): StateCreator<
+  StoreState,
+  [['zustand/devtools', never]],
+  [],
+  CharacterInventorySlice
+> => {
+  return (set, get) => ({
     equipWeapon: async (
       id: string,
       weapon: { name: string; attackPoints: number } | null
@@ -47,7 +51,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
           : await service.unequipWeapon(id);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, weapon ? 'inventory/equipWeapon' : 'inventory/unequipWeapon');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -82,7 +86,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
         );
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'inventory/addItemFromCatalog');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -97,7 +101,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
         const updated = await service.removeItemFromInventory(id, itemIndex);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'inventory/removeItem');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -130,7 +134,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
           const updated = await service.removeOneQuantity(id, itemIndex);
           set((state) => ({
             characters: { ...state.characters, [id]: updated },
-          }));
+          }), false, 'inventory/consumeItem');
         }
       } catch (error) {
         handleSliceError(set, error);
@@ -146,7 +150,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
         const updated = await service.addBoulons(id, amount);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'inventory/addBoulons');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -161,7 +165,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
         const updated = await service.removeBoulons(id, amount);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'inventory/removeBoulons');
       } catch (error) {
         handleSliceError(set, error);
         throw error;
@@ -186,7 +190,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
         if (updated) {
           set((state) => ({
             characters: { ...state.characters, [id]: updated },
-          }));
+          }), false, 'inventory/setBoulons');
         }
       } catch (error) {
         handleSliceError(set, error);
@@ -209,7 +213,7 @@ export const createCharacterInventorySlice = (service: CharacterService) => {
         const updated = await service.addItemToInventory(id, item);
         set((state) => ({
           characters: { ...state.characters, [id]: updated },
-        }));
+        }), false, 'inventory/addItem');
       } catch (error) {
         handleSliceError(set, error);
         throw error;

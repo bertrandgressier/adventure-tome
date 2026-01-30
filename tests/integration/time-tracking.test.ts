@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { CharacterService } from '@/src/application/services/CharacterService';
 import { IndexedDBCharacterRepository } from '@/src/infrastructure/repositories/IndexedDBCharacterRepository';
 import { Character } from '@/src/domain/entities/Character';
-import { migrateCharacter } from '@/src/infrastructure/persistence/migrations';
+import { migrateCharacter, CURRENT_VERSION } from '@/src/infrastructure/persistence/migrations';
 
 describe('Integration: Time Tracking (Tome 2)', () => {
   let service: CharacterService;

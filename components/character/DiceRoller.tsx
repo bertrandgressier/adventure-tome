@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { trackDiceRoll } from '@/src/infrastructure/analytics/tracking';
+import { DiceAnimation3D } from '@/src/presentation/components/combat/DiceAnimation3D';
 import {
   Dialog,
   DialogContent,
@@ -13,41 +14,39 @@ interface DiceRollerProps {
   onClose: () => void;
 }
 
-const getDiceFace = (value: number) => {
-  const faces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
-  return faces[value - 1];
-};
-
 export default function DiceRoller({ onClose }: DiceRollerProps) {
-  const [diceResult, setDiceResult] = useState<number[]>([6, 6]);
-  const [diceTotal, setDiceTotal] = useState(12);
+  const [diceResult, setDiceResult] = useState<[number] | [number, number] | null>(null);
+  const [diceTotal, setDiceTotal] = useState<number | null>(null);
   const [isRolling, setIsRolling] = useState(false);
+  const [pendingTotal, setPendingTotal] = useState<number | null>(null);
 
-  const rollDice = (count: number) => {
+  const rollDice = (count: 1 | 2) => {
     setIsRolling(true);
 
-    const results: number[] = [];
-    let total = 0;
+    const roll1 = Math.floor(Math.random() * 6) + 1 as 1 | 2 | 3 | 4 | 5 | 6;
+    const roll2 = count === 2 ? Math.floor(Math.random() * 6) + 1 as 1 | 2 | 3 | 4 | 5 | 6 : 0;
+    const total = count === 1 ? roll1 : roll1 + roll2;
 
-    for (let i = 0; i < count; i++) {
-      const roll = Math.floor(Math.random() * 6) + 1;
-      results.push(roll);
-      total += roll;
-    }
-
-    // Si on lance 1 dé, on garde le deuxième à 0
-    if (count === 1) {
-      results.push(0);
-    }
+    // Mettre à jour immédiatement le nombre de dés pour l'animation
+    const results: [number] | [number, number] = count === 1 ? [roll1] : [roll1, roll2];
+    setDiceResult(results);
+    setDiceTotal(null); // Masquer le total pendant l'animation
+    setPendingTotal(total); // Stocker le total pour l'afficher après l'animation
 
     setTimeout(() => {
-      setDiceResult(results);
-      setDiceTotal(total);
       setIsRolling(false);
       
       // Tracker le lancer de dés
       trackDiceRoll(count === 1 ? '1d6' : '2d6', total, 'general');
-    }, 500);
+    }, 1200); // Match DiceAnimation3D duration
+  };
+
+  const handleAnimationComplete = () => {
+    // Afficher le total uniquement quand l'animation est complètement terminée
+    if (pendingTotal !== null) {
+      setDiceTotal(pendingTotal);
+      setPendingTotal(null);
+    }
   };
 
   return (
@@ -59,31 +58,27 @@ export default function DiceRoller({ onClose }: DiceRollerProps) {
           </DialogTitle>
         </DialogHeader>
 
-        {/* Affichage des dés - toujours visible */}
+        {/* DiceAnimation3D - Remplace les emojis (issue #133) */}
         <div className="mb-6">
-          <div className="flex justify-center gap-4 mb-4">
-            {diceResult[0] > 0 && (
-              <div
-                className={`w-24 h-24 bg-primary border-2 border-primary-foreground rounded-xl flex items-center justify-center text-7xl text-primary-foreground shadow-lg shadow-primary/50 ${
-                  isRolling ? 'animate-[spin_0.5s_ease-in-out]' : 'animate-[bounce_0.5s_ease-in-out]'
-                }`}
-              >
-                {getDiceFace(diceResult[0])}
+          {diceResult ? (
+            <>
+              <DiceAnimation3D
+                result={diceResult}
+                isRolling={isRolling}
+                onComplete={handleAnimationComplete}
+              />
+              {/* Réserver l'espace pour le total pour éviter le "saut" */}
+              <div className="font-[var(--font-uncial)] text-3xl text-center mt-4 min-h-[3rem]">
+                {diceTotal !== null && (
+                  <span>
+                    Total: <span className="text-primary text-4xl font-bold">{diceTotal}</span>
+                  </span>
+                )}
               </div>
-            )}
-            {diceResult[1] > 0 && (
-              <div
-                className={`w-24 h-24 bg-primary border-2 border-primary-foreground rounded-xl flex items-center justify-center text-7xl text-primary-foreground shadow-lg shadow-primary/50 ${
-                  isRolling ? 'animate-[spin_0.5s_ease-in-out]' : 'animate-[bounce_0.5s_ease-in-out]'
-                }`}
-              >
-                {getDiceFace(diceResult[1])}
-              </div>
-            )}
-          </div>
-          {diceTotal > 0 && (
-            <div className="font-[var(--font-uncial)] text-3xl text-center">
-              Total: <span className="text-primary text-4xl font-bold">{diceTotal}</span>
+            </>
+          ) : (
+            <div className="h-32 flex items-center justify-center text-muted-foreground font-[var(--font-merriweather)] text-center px-4">
+              Cliquez sur un bouton pour lancer les dés
             </div>
           )}
         </div>

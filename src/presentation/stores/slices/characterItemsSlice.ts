@@ -1,3 +1,4 @@
+import { type StateCreator } from 'zustand';
 import type { CharacterService } from '@/src/application/services/CharacterService';
 import type { CharacterListSlice } from './characterListSlice';
 import type { ItemsCatalogSlice } from './itemsCatalogSlice';
@@ -9,11 +10,15 @@ export interface CharacterItemsSlice {
 }
 
 type StoreState = CharacterItemsSlice & CharacterListSlice & ItemsCatalogSlice & CharacterInventorySlice;
-type GetState = () => StoreState;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createCharacterItemsSlice = (_service: CharacterService) => {
-  return (_set: SetState, get: GetState): CharacterItemsSlice => ({
+export const createCharacterItemsSlice = (_service: CharacterService): StateCreator<
+  StoreState,
+  [['zustand/devtools', never]],
+  [],
+  CharacterItemsSlice
+> => {
+  return (_set, get) => ({
     getAddableCustomItems: (characterId: string) => {
       const character = get().characters[characterId];
       if (!character) return [];
@@ -33,5 +38,3 @@ export const createCharacterItemsSlice = (_service: CharacterService) => {
     },
   });
 };
-
-type SetState = (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void;

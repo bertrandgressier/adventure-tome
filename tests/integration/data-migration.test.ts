@@ -9,7 +9,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { Character } from '@/src/domain/entities/Character';
-import { migrateCharacter } from '@/src/infrastructure/persistence/migrations';
+import { migrateCharacter, CURRENT_VERSION } from '@/src/infrastructure/persistence/migrations';
 import type { InventoryItemRef } from '@/src/domain/types/items';
 import { TalentData, normalizeTalent } from '@/src/domain/types/talents';
 

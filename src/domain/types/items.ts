@@ -1,6 +1,6 @@
 /**
  * Item Types - Domain Types
- * 
+ *
  * Définit les types pour les items du catalogue et l'inventaire
  * Inspiré du glossaire des objets des 3 tomes de la Saga de Dagda
  */
@@ -17,6 +17,36 @@ export enum ItemType {
 }
 
 /**
+ * Import types for abilities
+ */
+import type { WeaponAbilityTrigger } from './WeaponAbilityTrigger';
+import type { WeaponEffectType } from './WeaponEffectType';
+
+/**
+ * Effet d'une capacité d'arme (format catalogue)
+ * Les valeurs 'type' correspondent aux constantes de WeaponEffectType
+ */
+export type WeaponEffectDefinition =
+  | { type: WeaponEffectType & 'extra_attack' }
+  | { type: WeaponEffectType & 'heal_on_kill'; amount: number }
+  | { type: WeaponEffectType & 'convert_miss_to_hit' }
+  | { type: WeaponEffectType & 'bonus_damage'; amount: number; firstAttackOnly?: boolean }
+  | { type: WeaponEffectType & 'negate_damage' };
+
+/**
+ * Définition d'une capacité d'arme légendaire (dans le catalogue)
+ */
+export interface WeaponAbilityDefinition {
+  id: string;
+  name: string;
+  trigger: WeaponAbilityTrigger;
+  effect: WeaponEffectDefinition;
+  description: string;
+  usesPerCombat?: number;
+  costChance?: number;
+}
+
+/**
  * Bonus de stats pour les items passifs
  */
 export interface StatBonus {
@@ -24,6 +54,8 @@ export interface StatBonus {
   chance?: number;
   vie?: number;
   pvMax?: number;
+  damageBonus?: number;
+  conditionalDamage?: string;
 }
 
 /**
@@ -44,6 +76,8 @@ export interface CatalogItem {
   damageToEnemy?: number;  // Pour potions offensives
   statBonus?: StatBonus;   // Pour passifs
   isQuestItem?: boolean;   // Pour items de quête
+  isLegendary?: boolean;   // Pour armes légendaires (Tome 3)
+  abilities?: WeaponAbilityDefinition[]; // Capacités spéciales des armes légendaires
 }
 
 /**

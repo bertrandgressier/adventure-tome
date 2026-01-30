@@ -203,7 +203,8 @@ adventure-tome/
     ├── ARCHITECTURE.md            # Ce fichier
     ├── FEATURES.md
     ├── CHARACTER_SHEET.md
-    ├── COMBAT.md
+    ├── COMBAT.md                  # Combat legacy
+    ├── COMBAT_V2_UI_GUIDE.md      # Combat V2 UI development guide
     └── THEMING.md
 ```
 

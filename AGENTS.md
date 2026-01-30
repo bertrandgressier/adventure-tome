@@ -216,6 +216,25 @@ export class Stats {
 - Combat formulas: [docs/COMBAT.md](docs/COMBAT.md) (2d6 + HABILETÉ + weapon)
 - Modes: `narrative` (auto-win) | `simplified` (manual saves) | `mortal` (hardcore)
 
+### ⚠️ RÈGLE CRITIQUE : Ennemis vs Joueur
+
+**ENNEMIS** possèdent UNIQUEMENT :
+- `name` : Nom de l'ennemi
+- `dexterite` : Compétence au combat
+- `endurance` / `enduranceMax` : Points de vie
+
+**ENNEMIS N'ONT PAS** :
+- ❌ `weapon` (pas d'arme)
+- ❌ `chance` (pas de points de chance)
+- ❌ `isBoss` (supprimé, inutile)
+- ❌ Bonus de dégâts d'arme
+
+**JOUEUR UNIQUEMENT** possède :
+- Tout ce que l'ennemi possède +
+- ✅ `weapon` (arme équipée)
+- ✅ `chance` (points de chance)
+- ✅ Bonus de dégâts (DOMMAGES ACTUELS = arme + objets)
+
 ---
 
 ## Application Layer
@@ -271,42 +290,8 @@ slices/
   characterStatsSlice.ts      # Stats updates (updateStats, applyDamage, heal)
   characterInventorySlice.ts  # Inventory (equipWeapon, addItem, removeItem)
   characterMetadataSlice.ts   # Metadata (updateName, notes, progress)
-  characterItemsSlice.ts      # Filter items for "Add Item" modal (custom items that can be added)
+  characterItemsSlice.ts      # Custom items catalog
 ```
-
-### Slice Pattern: itemsCatalogSlice
-
-**Purpose**: Centralized items catalog combining static catalog (`ITEMS_CATALOG`) + custom items (persisted)
-
-```typescript
-export interface ItemsCatalogSlice {
-  catalog: Record<string, CatalogItem>;  // itemId → definition
-
-  // Getters
-  getItem: (itemId: string) => CatalogItem | undefined;
-  getAllItems: () => CatalogItem[];
-  getItemsByTome: (tome: number) => CatalogItem[];
-
-  // Custom items (persisted via zustand/persist)
-  createCustomItem: (item: Omit<CatalogItem, 'id'>) => CatalogItem;
-  removeCustomItem: (itemId: string) => void;
-  initializeCatalog: () => Promise<void>;
-}
-```
-
-**Usage in components**:
-```typescript
-const catalogItem = useCharacterStore((state) => state.getItem(itemId));
-const allItems = useCharacterStore((state) => state.getAllItems());
-const createCustomItem = useCharacterStore((state) => state.createCustomItem);
-```
-
-**Usage in slices** (e.g., `characterInventorySlice`):
-```typescript
-const catalogItem = get().getItem(catalogItemId);
-```
-
-**Note**: `customItemsCatalogStore.ts` was removed - this slice now handles both static catalog (loaded from `ITEMS_CATALOG`) and custom items (persisted).
 
 ### Slice Pattern
 
@@ -475,6 +460,95 @@ export function CharacterStats({ characterId }: Props) {
 
 ---
 
+## Animations avec Framer Motion
+
+### Installation
+
+Framer Motion est déjà installé (`framer-motion@^12.26.2`). **Ne pas utiliser CSS animations brutes** pour les animations complexes.
+
+### Règles obligatoires
+
+1. **TOUJOURS utiliser `useReducedMotion`** pour respecter les préférences utilisateur :
+
+```typescript
+import { motion, useReducedMotion } from 'framer-motion';
+
+export function AnimatedComponent() {
+  const shouldReduceMotion = useReducedMotion();
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
+    />
+  );
+}
+```
+
+2. **Utiliser `AnimatePresence`** pour les éléments qui apparaissent/disparaissent :
+
+```typescript
+import { AnimatePresence, motion } from 'framer-motion';
+
+<AnimatePresence mode="wait">
+  {isVisible && (
+    <motion.div
+      key="unique-key"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    />
+  )}
+</AnimatePresence>
+```
+
+3. **Centraliser les variants** pour réutilisation :
+
+```typescript
+// src/presentation/components/combat/combatAnimationVariants.ts
+export const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
+
+export const damageIndicator = {
+  initial: { opacity: 1, y: 0, scale: 0.5 },
+  animate: { opacity: 0, y: -50, scale: 1 },
+};
+```
+
+### Bonnes pratiques
+
+| ✅ Faire | ❌ Ne pas faire |
+|---------|----------------|
+| `useReducedMotion()` dans chaque composant | Ignorer l'accessibilité |
+| Durées courtes (0.2-0.5s) | Animations > 1s |
+| `type: "spring"` pour interactions | Animations linéaires ennuyeuses |
+| Variants réutilisables | Copier-coller les animations |
+| Tester sur mobile (60fps) | Animations lourdes non testées |
+
+### Composants utilisant Framer Motion
+
+```
+src/presentation/components/combat/
+├── CombatArena.tsx           # Transitions page
+├── CombatantCard.tsx         # HP bar, état actif
+├── DiceAnimation.tsx         # Animation 3D des dés
+├── DamageIndicator.tsx       # Nombres flottants
+├── ActionPanel.tsx           # Boutons animés
+├── ItemPicker.tsx            # Modal animée
+└── combatAnimationVariants.ts # Variants centralisés
+```
+
+### Ressources
+
+- [Framer Motion Docs](https://www.framer.com/motion/)
+- [useReducedMotion](https://www.framer.com/motion/use-reduced-motion/)
+
+---
+
 ## Common Tasks
 
 ### Adding a New Character Field
@@ -536,7 +610,8 @@ pnpm test:ui           # Interactive UI
 
 ## Key Documentation
 
-- [docs/COMBAT.md](docs/COMBAT.md) - Combat formulas + examples
+- [docs/COMBAT.md](docs/COMBAT.md) - Combat formulas + examples (legacy system)
+- [docs/COMBAT_V2_UI_GUIDE.md](docs/COMBAT_V2_UI_GUIDE.md) - **Combat V2 UI Development Guide** (actions, phases, examples)
 - [docs/CHARACTER_SHEET.md](docs/CHARACTER_SHEET.md) - Official character structure
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Detailed architecture + migrations
 - [docs/THEMING.md](docs/THEMING.md) - CSS variables + color palette

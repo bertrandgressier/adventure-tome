@@ -1,4 +1,5 @@
 import type { CombatRound, Enemy } from '@/src/domain/types/combat';
+import { Attacker } from '@/src/domain/types/Attacker';
 
 /**
  * CombatService - Domain Service
@@ -50,10 +51,14 @@ export class CombatService {
 
   /**
    * Résout un round de combat (une attaque)
+   * 
+   * Règles selon docs/regles.md:
+   * - Joueur: dégâts = 1 (base) + 1d6 + bonus arme
+   * - Ennemi: dégâts = 1 (base) + 1d6 (pas d'arme, pas de bonus)
    */
   static resolveCombatRound(
     roundNumber: number,
-    attacker: 'player' | 'enemy',
+    attacker: Attacker,
     playerDexterite: number,
     playerEndurance: number,
     playerWeaponDamage: number,
@@ -62,9 +67,10 @@ export class CombatService {
     hitDiceRoll?: number,
     damageDiceRoll?: number
   ): CombatRound {
-    const isPlayerAttacking = attacker === 'player';
+    const isPlayerAttacking = attacker === Attacker.PLAYER;
     const attackerDex = isPlayerAttacking ? playerDexterite : enemy.dexterite;
-    const attackerWeapon = isPlayerAttacking ? playerWeaponDamage : enemy.attackPoints;
+    // L'ennemi n'a pas d'arme selon les règles officielles
+    const attackerWeapon = isPlayerAttacking ? playerWeaponDamage : 0;
     
     // 1. Test pour toucher
     const hitCheck = this.checkHit(attackerDex, hitDiceRoll);

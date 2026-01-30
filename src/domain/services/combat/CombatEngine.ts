@@ -1,0 +1,551 @@
+import type {
+  CombatState,
+  CombatAction,
+  CombatEvent,
+} from '../../types/combat-state';
+import { CombatActionType } from '../../types/CombatActionType';
+import { CombatPhase } from '../../types/CombatPhase';
+import { CombatEventType } from '../../types/CombatEventType';
+import { Attacker } from '../../types/Attacker';
+import type { PlayerConfig, EnemyConfig, CombatConfig } from '../../types/combatants';
+import type { DiceOverrides } from './DiceRoller';
+import type { AvailableAction } from '../../types/combat-state';
+import { ItemResolver, type CombatUsableItem } from './ItemResolver';
+import { WeaponAbilityResolver, type AbilityResolutionResult } from './WeaponAbilityResolver';
+import { WeaponAbilityTrigger } from '../../types/WeaponAbilityTrigger';
+import { PhaseManager } from './PhaseManager';
+import { CombatValidator } from './CombatValidator';
+import { HistoryManager } from './HistoryManager';
+
+export type CombatResult = {
+  state: CombatState;
+  events: CombatEvent[];
+};
+
+/**
+ * CombatEngine - Moteur de combat avec phases simplifiées
+ * 
+ * Utilise PhaseManager et CombatValidator pour gérer l'état et les transitions
+ * Compatible avec les resolvers existants via adaptation des types
+ */
+export class CombatEngine {
+  private static generateId(): string {
+    return `combat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Crée l'état initial du combat V3
+   */
+  static createInitialState(
+    characterId: string,
+    player: PlayerConfig,
+    enemy: EnemyConfig,
+    config: CombatConfig & { firstAttacker?: 'player' | 'enemy'; isSurprise?: boolean }
+  ): CombatState {
+    const weaponDamage = player.weapon.bonus;
+    const passiveDamageBonus = 0;
+    const totalDamageBonus = weaponDamage + passiveDamageBonus;
+
+    // Les ennemis n'ont pas d'arme - pas de bonus de dégâts
+    const enemyTotalDamageBonus = 0;
+
+    const firstAttacker = config.firstAttacker || 'player';
+    
+    const state: CombatState = {
+      id: this.generateId(),
+      characterId,
+      player: {
+        ...player,
+        endurance: player.endurance,
+        weaponDamage,
+        passiveDamageBonus,
+        totalDamageBonus,
+      },
+      enemy: {
+        ...enemy,
+        endurance: enemy.endurance ?? enemy.enduranceMax,
+        weaponDamage: 0,
+        passiveDamageBonus: 0,
+        totalDamageBonus: enemyTotalDamageBonus,
+      },
+      phase: PhaseManager.getInitialPhase(),
+      currentTurn: PhaseManager.getInitialTurn(firstAttacker),
+      roundNumber: 1,
+      usedAbilities: {},
+      usedReroll: false,
+      isFirstAttack: true,
+      config,
+      events: [
+        {
+          type: CombatEventType.COMBAT_START,
+          timestamp: new Date().toISOString(),
+          round: 1,
+        },
+      ],
+      usedItems: [],
+      history: [],
+    };
+
+    return state;
+  }
+
+  /**
+   * Obtient les actions disponibles pour l'état actuel
+   * @param hasUsableItems - Si le joueur a des objets utilisables (vérifié côté store avec accès à l'inventaire)
+   */
+  static getAvailableActions(state: CombatState, hasUsableItems = false): AvailableAction[] {
+    return CombatValidator.getAvailableActions(state, hasUsableItems);
+  }
+
+  /**
+   * Résout une action de combat
+   */
+  static resolve(
+    state: CombatState,
+    action: CombatAction,
+    diceOverrides?: DiceOverrides
+  ): CombatResult {
+    // Vérifier si le combat est déjà terminé
+    const combatStatus = CombatValidator.checkCombatEnd(state);
+    if (combatStatus !== 'ongoing') {
+      return { state, events: [] };
+    }
+
+    const newState = { ...state };
+    const events: CombatEvent[] = [];
+
+    // Résoudre l'action selon son type
+    switch (action.type) {
+      case CombatActionType.ATTACK:
+        return this.resolveAttack(newState, diceOverrides);
+
+      case CombatActionType.REROLL:
+        return this.resolveReroll(newState, diceOverrides);
+
+      case CombatActionType.SKIP:
+        return this.resolveSkip(newState);
+
+      case CombatActionType.USE_ITEM:
+        return this.resolveUseItem(newState, action.payload as CombatUsableItem);
+
+      case CombatActionType.WEAPON_ABILITY:
+        return this.resolveWeaponAbility(newState, action.payload as { abilityId: string });
+
+      default:
+        // Action inconnue, retourner l'état inchangé
+        return { state: newState, events };
+    }
+  }
+
+  /**
+   * Résout une attaque (player ou enemy selon currentTurn)
+   */
+  private static resolveAttack(state: CombatState, diceOverrides?: DiceOverrides): CombatResult {
+    if (state.phase !== CombatPhase.WAITING_ATTACK_ROLL) {
+      return { state, events: [] };
+    }
+
+    const isPlayerAttacking = state.currentTurn === 'player';
+    const attacker = isPlayerAttacking ? state.player : state.enemy;
+    const dexterite = attacker.dexterite;
+
+    // Capture HP before action
+    const hpBefore = HistoryManager.createHPSnapshot(state);
+
+    // Simuler le DiceRoller pour les tests avec des overrides simples
+    const dice1 = diceOverrides?.hitDice?.[0] ?? Math.floor(Math.random() * 6) + 1;
+    const dice2 = diceOverrides?.hitDice?.[1] ?? Math.floor(Math.random() * 6) + 1;
+    const total = dice1 + dice2;
+    const hit = total <= dexterite;
+
+    const newState = { ...state };
+    const events: CombatEvent[] = [];
+    const triggeredResults: AbilityResolutionResult[] = [];
+
+    // Check for ON_SURPRISE ability BEFORE attack (first attack only)
+    if (isPlayerAttacking && newState.isFirstAttack) {
+      const surpriseAbility = WeaponAbilityResolver.checkAutoTrigger(
+        newState,
+        WeaponAbilityTrigger.ON_SURPRISE,
+        {}
+      );
+        if (surpriseAbility) {
+        const surpriseResult = WeaponAbilityResolver.resolveAbility(newState, surpriseAbility.id);
+        newState.player = surpriseResult.state.player;
+        newState.enemy = surpriseResult.state.enemy;
+        newState.usedAbilities = surpriseResult.state.usedAbilities;
+        events.push(...surpriseResult.events);
+        triggeredResults.push(surpriseResult);
+      }
+    }
+
+    // Mark first attack as done
+    if (newState.isFirstAttack) {
+      newState.isFirstAttack = false;
+    }
+
+    // Add attack roll event
+    events.push({
+      type: CombatEventType.ATTACK_ROLL,
+      timestamp: new Date().toISOString(),
+      round: state.roundNumber,
+      attacker: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+      roll: { dice1, dice2, total },
+      hit,
+    });
+
+    newState.lastRoll = {
+      dice1,
+      dice2,
+      total,
+      success: hit,
+      isDouble: dice1 === dice2,
+    };
+
+    let damageDealt = 0;
+    let damageDice = 0;
+
+    if (hit) {
+      // Calculate and apply damage (formule officielle: 1 + 1d6 + DOMMAGES ACTUELS)
+      damageDice = diceOverrides?.damageDice ?? Math.floor(Math.random() * 6) + 1;
+      const totalDamageBonus = isPlayerAttacking ? newState.player.totalDamageBonus : 0; // Enemy has no weapons
+      damageDealt = 1 + damageDice + totalDamageBonus; // Formule officielle
+
+      events.push({
+        type: CombatEventType.DAMAGE_DEALT,
+        timestamp: new Date().toISOString(),
+        round: state.roundNumber,
+        attacker: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+        roll: { dice1: damageDice, dice2: 0, total: damageDice },
+        damage: damageDealt,
+      });
+
+      if (isPlayerAttacking) {
+        newState.enemy.endurance = Math.max(0, newState.enemy.endurance - damageDealt);
+      } else {
+        newState.player.endurance = Math.max(0, newState.player.endurance - damageDealt);
+      }
+
+      // Check for ON_KILL ability if enemy was defeated
+      if (isPlayerAttacking && newState.enemy.endurance <= 0) {
+        const killAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          WeaponAbilityTrigger.ON_KILL,
+          { killedEnemy: true }
+        );
+        if (killAbility) {
+          const killResult = WeaponAbilityResolver.resolveAbility(newState, killAbility.id);
+          newState.player = killResult.state.player;
+          newState.enemy = killResult.state.enemy;
+          newState.usedAbilities = killResult.state.usedAbilities;
+          events.push(...killResult.events);
+          triggeredResults.push(killResult);
+        }
+      }
+    }
+
+    // Check for weapon abilities on any double (hit or miss)
+    if (isPlayerAttacking && newState.lastRoll?.isDouble) {
+      const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
+        newState,
+        WeaponAbilityTrigger.ON_DOUBLE,
+        { roll: newState.lastRoll }
+      );
+      if (doubleAbility) {
+        const doubleResult = WeaponAbilityResolver.resolveAbility(newState, doubleAbility.id);
+        newState.player = doubleResult.state.player;
+        newState.enemy = doubleResult.state.enemy;
+        newState.usedAbilities = doubleResult.state.usedAbilities;
+        newState.pendingExtraAttack = doubleResult.state.pendingExtraAttack;
+        events.push(...doubleResult.events);
+        triggeredResults.push(doubleResult);
+      }
+    }
+
+    // Capture HP after action
+    const hpAfter = HistoryManager.createHPSnapshot(newState);
+
+    // Check if combat ended
+    const combatEnded = CombatValidator.checkCombatEnd(newState) !== 'ongoing';
+    
+    // Avancer la phase selon le résultat
+    // En V3, le flow est : WAITING_ATTACK_ROLL → WAITING_DAMAGE_ROLL → TURN_COMPLETE
+    // Mais ici on applique les dégâts immédiatement, donc on avance directement à TURN_COMPLETE
+    let phaseUpdate = PhaseManager.advancePhase(newState, { hit, combatEnded });
+    
+    // Si on a touché, on est à WAITING_DAMAGE_ROLL mais dégâts déjà appliqués
+    // → avancer automatiquement à TURN_COMPLETE
+    if (hit && phaseUpdate.phase === CombatPhase.WAITING_DAMAGE_ROLL && !combatEnded) {
+      phaseUpdate = PhaseManager.advancePhase(
+        { ...newState, ...phaseUpdate }, 
+        { combatEnded }
+      );
+    }
+    
+    // Add history entry
+    const historyEntry = {
+      round: state.roundNumber,
+      turn: isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+      action: CombatActionType.ATTACK,
+      hitRoll: HistoryManager.createHitRollDetails(
+        { dice1, dice2, total, success: hit, isDouble: dice1 === dice2 },
+        dexterite
+      ),
+      damageRoll: hit
+        ? HistoryManager.createDamageRollDetails(
+            damageDice,
+            isPlayerAttacking ? state.player.totalDamageBonus : 0,
+            damageDealt
+          )
+        : undefined,
+      hpBefore,
+      hpAfter,
+      timestamp: new Date().toISOString(),
+      description: HistoryManager.generateAttackDescription(
+        isPlayerAttacking ? Attacker.PLAYER : Attacker.ENEMY,
+        hit,
+        hit ? damageDealt : undefined
+      ),
+    };
+
+    // Add history entry (Attack)
+    let history = HistoryManager.addEntry(newState, historyEntry);
+
+    // Add history entries for triggered abilities
+    for (const result of triggeredResults) {
+      const abilityEvent = result.events.find(e => e.type === CombatEventType.WEAPON_ABILITY);
+      if (abilityEvent) {
+        const abilityEntry = {
+          round: state.roundNumber,
+          turn: Attacker.PLAYER,
+          action: CombatActionType.WEAPON_ABILITY,
+          timestamp: new Date().toISOString(),
+          description: abilityEvent.description ?? 'Capacité activée',
+          hpBefore,
+          hpAfter,
+        };
+        history = HistoryManager.addEntry({ ...newState, history }, abilityEntry);
+      }
+    }
+
+    const finalState: CombatState = {
+      ...newState,
+      phase: phaseUpdate.phase,
+      currentTurn: phaseUpdate.currentTurn,
+      roundNumber: phaseUpdate.roundNumber,
+      events: [...state.events, ...events],
+      history,
+    };
+
+    // Ajouter événement de fin si le combat est terminé
+    const finalEvents = [...events];
+    if (combatEnded) {
+      const combatResult = CombatValidator.checkCombatEnd(finalState);
+      if (combatResult !== 'ongoing') {
+        finalEvents.push(CombatValidator.createCombatEndEvent(finalState, combatResult));
+      }
+    }
+
+    return { state: finalState, events: finalEvents };
+  }
+
+  /**
+   * Résout un reroll (uniquement joueur)
+   */
+  private static resolveReroll(state: CombatState, diceOverrides?: DiceOverrides): CombatResult {
+    // Can only reroll if: player's turn, has a last roll, hasn't used reroll, and either in WAITING_ATTACK_ROLL or TURN_COMPLETE after a miss
+    const canReroll =
+      state.currentTurn === 'player' &&
+      state.lastRoll &&
+      !state.usedReroll &&
+      (state.phase === CombatPhase.WAITING_ATTACK_ROLL ||
+        (state.phase === CombatPhase.TURN_COMPLETE && !state.lastRoll.success));
+
+    if (!canReroll) {
+      return { state, events: [] };
+    }
+
+    // Capture HP before action
+    const hpBefore = HistoryManager.createHPSnapshot(state);
+
+    const dice1 = diceOverrides?.hitDice?.[0] ?? Math.floor(Math.random() * 6) + 1;
+    const dice2 = diceOverrides?.hitDice?.[1] ?? Math.floor(Math.random() * 6) + 1;
+    const total = dice1 + dice2;
+    const dexterite = state.player.dexterite;
+    const hit = total <= dexterite;
+
+    const newState: CombatState = {
+      ...state,
+      lastRoll: {
+        dice1,
+        dice2,
+        total,
+        success: hit,
+        isDouble: dice1 === dice2,
+      },
+      usedReroll: true,
+    };
+
+    const events: CombatEvent[] = [
+      {
+        type: CombatEventType.ATTACK_ROLL,
+        timestamp: new Date().toISOString(),
+        round: state.roundNumber,
+        attacker: Attacker.PLAYER,
+        roll: { dice1, dice2, total },
+        hit,
+      },
+    ];
+
+    let damageDealt = 0;
+    let damageDice = 0;
+
+    // Si le reroll touche, appliquer les dégâts immédiatement
+    if (hit) {
+      damageDice = diceOverrides?.damageDice ?? Math.floor(Math.random() * 6) + 1;
+      const totalDamageBonus = newState.player.totalDamageBonus;
+      damageDealt = 1 + damageDice + totalDamageBonus;
+
+      events.push({
+        type: CombatEventType.DAMAGE_DEALT,
+        timestamp: new Date().toISOString(),
+        round: state.roundNumber,
+        attacker: Attacker.PLAYER,
+        roll: { dice1: damageDice, dice2: 0, total: damageDice },
+        damage: damageDealt,
+      });
+
+      newState.enemy.endurance = Math.max(0, newState.enemy.endurance - damageDealt);
+
+      // Check for weapon abilities on successful reroll
+      if (newState.lastRoll?.isDouble) {
+        const doubleAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          WeaponAbilityTrigger.ON_DOUBLE,
+          { roll: newState.lastRoll }
+        );
+        if (doubleAbility) {
+          const doubleResult = WeaponAbilityResolver.resolveAbility(newState, doubleAbility.id);
+          newState.player = doubleResult.state.player;
+          newState.enemy = doubleResult.state.enemy;
+          newState.usedAbilities = doubleResult.state.usedAbilities;
+          newState.pendingExtraAttack = doubleResult.state.pendingExtraAttack;
+          events.push(...doubleResult.events);
+        }
+      }
+
+      // Check for ON_KILL ability if enemy was defeated
+      if (newState.enemy.endurance <= 0) {
+        const killAbility = WeaponAbilityResolver.checkAutoTrigger(
+          newState,
+          WeaponAbilityTrigger.ON_KILL,
+          { killedEnemy: true }
+        );
+        if (killAbility) {
+          const killResult = WeaponAbilityResolver.resolveAbility(newState, killAbility.id);
+          newState.player = killResult.state.player;
+          newState.enemy = killResult.state.enemy;
+          newState.usedAbilities = killResult.state.usedAbilities;
+          events.push(...killResult.events);
+        }
+      }
+    }
+
+    // Capture HP after action
+    const hpAfter = HistoryManager.createHPSnapshot(newState);
+
+    // Check if combat ended
+    const combatEnded = CombatValidator.checkCombatEnd(newState) !== 'ongoing';
+
+    // Avancer la phase selon le résultat (même logique que resolveAttack)
+    let phaseUpdate = PhaseManager.advancePhase(newState, { hit, combatEnded });
+
+    // Si on a touché, on est à WAITING_DAMAGE_ROLL mais dégâts déjà appliqués
+    // → avancer automatiquement à TURN_COMPLETE
+    if (hit && phaseUpdate.phase === CombatPhase.WAITING_DAMAGE_ROLL && !combatEnded) {
+      phaseUpdate = PhaseManager.advancePhase(
+        { ...newState, ...phaseUpdate },
+        { combatEnded }
+      );
+    }
+
+    // Add history entry
+    const historyEntry = {
+      round: state.roundNumber,
+      turn: Attacker.PLAYER,
+      action: CombatActionType.REROLL,
+      hitRoll: HistoryManager.createHitRollDetails(
+        { dice1, dice2, total, success: hit, isDouble: dice1 === dice2 },
+        dexterite
+      ),
+      damageRoll: hit
+        ? HistoryManager.createDamageRollDetails(damageDice, state.player.totalDamageBonus, damageDealt)
+        : undefined,
+      hpBefore,
+      hpAfter,
+      timestamp: new Date().toISOString(),
+      description: HistoryManager.generateRerollDescription(),
+    };
+
+    const finalState: CombatState = {
+      ...newState,
+      phase: phaseUpdate.phase,
+      currentTurn: phaseUpdate.currentTurn,
+      roundNumber: phaseUpdate.roundNumber,
+      history: HistoryManager.addEntry(newState, historyEntry),
+    };
+
+    // Ajouter événement de fin si le combat est terminé
+    const finalEvents = [...events];
+    if (combatEnded) {
+      const combatResult = CombatValidator.checkCombatEnd(finalState);
+      if (combatResult !== 'ongoing') {
+        finalEvents.push(CombatValidator.createCombatEndEvent(finalState, combatResult));
+      }
+    }
+
+    return { state: finalState, events: finalEvents };
+  }
+
+  /**
+   * Résout une action SKIP (passer au tour suivant)
+   */
+  private static resolveSkip(state: CombatState): CombatResult {
+    const phaseUpdate = PhaseManager.skipToNextTurn(state);
+    
+    const newState: CombatState = {
+      ...state,
+      phase: phaseUpdate.phase,
+      currentTurn: phaseUpdate.currentTurn,
+      roundNumber: phaseUpdate.roundNumber,
+    };
+
+    return { state: newState, events: [] };
+  }
+
+  /**
+   * Résout l'utilisation d'un item
+   */
+  private static resolveUseItem(
+    state: CombatState,
+    item: CombatUsableItem
+  ): CombatResult {
+    // ItemResolver fonctionne directement avec V3
+    const result = ItemResolver.resolve(state, item);
+    return { state: result.state, events: result.events };
+  }
+
+  /**
+   * Résout l'utilisation d'une capacité d'arme
+   */
+  private static resolveWeaponAbility(
+    state: CombatState,
+    payload: { abilityId: string }
+  ): CombatResult {
+    // WeaponAbilityResolver fonctionne directement avec V3
+    const result = WeaponAbilityResolver.resolveAbility(state, payload.abilityId);
+    return { state: result.state, events: result.events };
+  }
+
+
+}

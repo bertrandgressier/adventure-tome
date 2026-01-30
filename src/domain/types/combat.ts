@@ -1,14 +1,15 @@
+import type { Attacker } from './Attacker';
+
 export interface Enemy {
   name: string;
   dexterite: number;
   endurance: number;
   enduranceMax: number;
-  attackPoints: number; // Points de dommage de l'arme
 }
 
 export interface CombatRound {
   roundNumber: number;
-  attacker: 'player' | 'enemy';
+  attacker: Attacker;
   
   // Lancer pour toucher
   hitDiceRoll: number;
@@ -29,7 +30,7 @@ export interface CombatState {
   playerEndurance: number;
   enemyEndurance: number;
   status: 'setup' | 'ongoing' | 'victory' | 'defeat';
-  nextAttacker: 'player' | 'enemy';
+  nextAttacker: Attacker;
 }
 
 export type CombatMode = 'auto' | 'manual';

@@ -70,11 +70,18 @@ pnpm install
 # Mode développement
 pnpm dev
 
+# Storybook (développement composants)
+pnpm storybook
+
 # Build production
 pnpm build && pnpm start
+
+# Build Storybook
+pnpm build-storybook
 ```
 
-Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
+Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.  
+Storybook disponible sur [http://localhost:6006](http://localhost:6006).
 
 ## 📱 Installation PWA
 
@@ -85,8 +92,12 @@ Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
 
 - [📋 Fonctionnalités complètes](./docs/FEATURES.md)
 - [🏗️ Architecture technique](./docs/ARCHITECTURE.md) - **Consulter avant toute modification du domaine**
+- [📚 Guide Storybook](./docs/STORYBOOK.md) - **Développement et test des composants**
 - [📝 Format fiche personnage](./docs/CHARACTER_SHEET.md)
 - [⚔️ Règles de combat](./docs/COMBAT.md)
+- [📜 Règles officielles](./docs/regles.md) - Source de vérité (La Saga de Dagda)
+- [🗡️ Armes légendaires (Tome 3)](./docs/armurerie-tome3.md)
+- [📦 Glossaire des objets](./docs/glossaire-des-objets.md)
 - [🎨 Guide du thème](./docs/THEMING.md)
 - [🤖 Instructions pour agents IA](./AGENTS.md)
 
