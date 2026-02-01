@@ -27,7 +27,7 @@ import type { EnemyConfig } from '@/src/domain/types/combatants';
 
 type MockStoreState = CombatSlice & {
   characters: Record<string, Character>;
-  updateStats: (id: string, stats: Partial<{ chance: number }>) => Promise<void>;
+  updateStats: (id: string, stats: Partial<{ chance: number; pointsDeVieActuels: number }>) => Promise<void>;
   applyDamage: (id: string, amount: number) => Promise<void>;
   consumeItem: (id: string, itemIndex: number) => Promise<void>;
   getItem: (itemId: string) => import('@/src/domain/types/items').CatalogItem | undefined;
@@ -374,6 +374,50 @@ describe('Combat V2 - End to End Integration Tests', () => {
 
       const finalPv = currentState.combat?.player.endurance ?? 0;
       expect(finalPv).toBeLessThan(initialPv);
+    });
+
+    it('should persist correct HP after victory with damage taken (bug #152)', async () => {
+      // Bug #152: PV à 0 après victoire - double application des dégâts
+      const initialPv = 30;
+      slice.startCombat('test-char-id', mockEnemy, defaultConfig);
+
+      // Player attacks and hits enemy
+      slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
+
+      // Skip to enemy turn
+      slice.executeAction({ type: CombatActionType.SKIP });
+
+      // Enemy attacks and deals damage to player (simulated with dice override)
+      // Enemy has dexterity 6, player has dexterity 7
+      // Roll 2+2=4, which hits (4 <= 6), damage = 1 + 4 + 0 (no weapon) = 5
+      slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [2, 2], damageDice: 4 });
+
+      const hpAfterEnemyAttack = currentState.combat?.player.endurance ?? initialPv;
+      const expectedDamage = 1 + 4; // base 1 + dice 4 (enemy has no weapon bonus)
+      const expectedFinalHp = initialPv - expectedDamage;
+
+      expect(hpAfterEnemyAttack).toBe(expectedFinalHp);
+
+      // Skip back to player turn
+      slice.executeAction({ type: CombatActionType.SKIP });
+
+      // Player kills enemy
+      slice.executeAction({ type: CombatActionType.ATTACK }, { hitDice: [1, 1], damageDice: 6 });
+
+      // Combat should be ended with enemy dead
+      expect(currentState.combat?.enemy.endurance).toBeLessThanOrEqual(0);
+
+      // End combat - this is where the bug occurred
+      await slice.endCombat();
+
+      // Verify updateStats was called with correct HP (not 0, not double damage)
+      expect(currentState.updateStats).toHaveBeenCalledWith(
+        'test-char-id',
+        expect.objectContaining({ pointsDeVieActuels: expectedFinalHp })
+      );
+
+      // Ensure applyDamage was NOT called (the old buggy behavior)
+      expect(currentState.applyDamage).not.toHaveBeenCalled();
     });
 
     it('should not persist changes on cancel', () => {

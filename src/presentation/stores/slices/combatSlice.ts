@@ -392,13 +392,13 @@ export const createCombatSlice = (): StateCreator<
         const { combat, privateInitialChance } = get();
         if (!combat) return;
 
-        const damageTaken = combat.player.enduranceMax - combat.player.endurance;
         const chanceUsed = privateInitialChance - combat.player.chance;
         const characterId = combat.characterId;
 
-        if (damageTaken > 0) {
-          await get().applyDamage(characterId, damageTaken);
-        }
+        // Sync HP directly with combat state (Combat V3 applies damage immediately)
+        await get().updateStats(characterId, {
+          pointsDeVieActuels: combat.player.endurance
+        });
 
         if (chanceUsed > 0) {
           await get().updateStats(characterId, {
