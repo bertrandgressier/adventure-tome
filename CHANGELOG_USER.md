@@ -12,6 +12,15 @@ Pour les détails techniques complets, consultez le [CHANGELOG.md](./CHANGELOG.m
 
 ---
 
+## Version 5.0.1
+*1 février 2026*
+
+### 🐛 Corrections de bugs
+
+- correct HP persistence after combat victory ([#153](https://github.com/bertrandgressier/adventure-tome/issues/153))
+
+---
+
 ## Version 5.0.0
 *30 janvier 2026*
 

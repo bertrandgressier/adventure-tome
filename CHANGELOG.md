@@ -1,3 +1,10 @@
+## [5.0.1](https://github.com/bertrandgressier/adventure-tome/compare/v5.0.0...v5.0.1) (2026-02-01)
+
+
+### Bug Fixes
+
+* **combat:** correct HP persistence after combat victory ([#153](https://github.com/bertrandgressier/adventure-tome/issues/153)) ([65e620b](https://github.com/bertrandgressier/adventure-tome/commit/65e620ba5ebd289cebe10971b57829cb483b355b)), closes [#152](https://github.com/bertrandgressier/adventure-tome/issues/152) [#152](https://github.com/bertrandgressier/adventure-tome/issues/152)
+
 # [5.0.0](https://github.com/bertrandgressier/adventure-tome/compare/v4.6.0...v5.0.0) (2026-01-30)
 
 
